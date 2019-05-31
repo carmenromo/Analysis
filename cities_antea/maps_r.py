@@ -5,7 +5,6 @@ import datetime
 import tables         as tb
 import numpy          as np
 import pandas         as pd
-#import reco_functions as rf
 
 from antea.reco                       import reco_functions      as rf
 from antea.io.mc_io                   import read_mcsns_response
@@ -30,7 +29,7 @@ var_phi1       = [[] for i in range(0, nsteps)]
 var_phi2       = [[] for i in range(0, nsteps)]
 
 for number in range(start, start+numb):
-    number_str = f''"{:03d}".format(number)
+    number_str = '{:03d}'.format(number)
     true_file  = f'{events_path}/{file_name}.{number_str}.pet.h5'
     print(f'Analyzing file {true_file}')
 
@@ -108,4 +107,4 @@ for i in range(nsteps):
     var_phi1  [i] = np.array(var_phi1[i])[sel1]
     var_phi2  [i] = np.array(var_phi2[i])[sel2]
 
-print(true_r1)
+print(datetime.datetime.now())
