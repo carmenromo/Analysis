@@ -21,12 +21,24 @@ thr_start = int(sys.argv[4])
 events_path = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton'
 file_name   = 'full_ring_iradius165mm_z140mm_depth3cm_pitch7mm'
 data_path   = '/test'
-evt_file    = '{0}/full_ring_p7mm_d3cm_mapsr_{1}_{2}_{3}_{4}'.format(data_path, start, numb, nsteps, thr_start)
+evt_file    = '{data_path}/full_ring_p7mm_d3cm_mapsr_{start}_{numb}_{steps}_{thr_start}'.format(data_path, start, numb, nsteps, thr_start)
 
-true_r1        = [[] for i in range(0, nsteps)]
-true_r2        = [[] for i in range(0, nsteps)]
-var_phi1       = [[] for i in range(0, nsteps)]
-var_phi2       = [[] for i in range(0, nsteps)]
+events    = [[] for i in range(0, nsteps)]
+true_r1   = [[] for i in range(0, nsteps)]
+true_r2   = [[] for i in range(0, nsteps)]
+true_phi1 = [[] for i in range(0, nsteps)]
+true_phi2 = [[] for i in range(0, nsteps)]
+true_z1   = [[] for i in range(0, nsteps)]
+true_z2   = [[] for i in range(0, nsteps)]
+
+reco_r1   = [[] for i in range(0, nsteps)]
+reco_r2   = [[] for i in range(0, nsteps)]
+reco_phi1 = [[] for i in range(0, nsteps)]
+reco_phi2 = [[] for i in range(0, nsteps)]
+reco_z1   = [[] for i in range(0, nsteps)]
+reco_z2   = [[] for i in range(0, nsteps)]
+charge1   = [[] for i in range(0, nsteps)]
+charge2   = [[] for i in range(0, nsteps)]
 
 for number in range(start, start+numb):
     number_str = f'{:03d}'.format(number)
@@ -51,7 +63,8 @@ for number in range(start, start+numb):
             if not len(ave_true1) and not len(ave_true2):
                 continue
 
-            this_event_wvf  = read_mcsns_response(true_file, (evt, evt+1))
+            this_event_wvf = read_mcsns_response(true_file, (evt, evt+1))
+            event_number   = h5in.root.MC.extents[evt]['evt_number']
 
             sns_dict    = list(this_event_wvf.values())[0]
             tot_charges = np.array(list(map(lambda x: sum(x.charges), sns_dict.values())))
@@ -65,6 +78,7 @@ for number in range(start, start+numb):
                 if len(charges_over_thr) == 0:
                     continue
 
+                ## Threshold for R
                 ampl1, count1, pos1, pos1_cyl, q1 = rf.sensors_info(ave_true1,
                                                                     sens_pos,
                                                                     sens_pos_cyl,
@@ -76,7 +90,6 @@ for number in range(start, start+numb):
                                                                     sens_pos_cyl,
                                                                     sns_over_thr,
                                                                     charges_over_thr)
-
 
                 def lists_var_phi_and_r(var_phi, true_r, phi, r):
                     var_phi[threshold].append(phi)
