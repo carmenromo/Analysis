@@ -17,6 +17,7 @@ start     = int(sys.argv[1])
 numb      = int(sys.argv[2])
 nsteps    = int(sys.argv[3])
 thr_start = int(sys.argv[4])
+ampl_thr  = 1000
 
 events_path = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton'
 file_name   = 'full_ring_iradius165mm_z140mm_depth3cm_pitch7mm'
@@ -85,7 +86,7 @@ for number in range(start, start+numb):
 
 
                 def get_true_r(ampl, q, ave_true, pos_cyl, var_phi, true_r):
-                    if ampl and sum(q) != 0:
+                    if ampl>ampl_thr and sum(q) != 0:
                         r, v_phi        = rf.get_r_and_var_phi(ave_true, pos_cyl, q)
                         return lists_var_phi_and_r(var_phi, true_r, v_phi, r)
                     else:
