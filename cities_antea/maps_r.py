@@ -22,7 +22,7 @@ ampl_thr  = 1000
 events_path = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton'
 file_name   = 'full_ring_iradius165mm_z140mm_depth3cm_pitch7mm'
 data_path   = '/test'
-evt_file    = '{0}/full_ring_p7mm_d3cm_mapsr_{1}_{2}_{3}_{4}'.format(data_path, start, numb, nsteps, thr_start)
+evt_file    = f'{data_path}/full_ring_p7mm_d3cm_mapsr_{start}_{numb}_{nsteps}_{thr_start}'
 
 true_r1        = [[] for i in range(0, nsteps)]
 true_r2        = [[] for i in range(0, nsteps)]
