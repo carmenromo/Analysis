@@ -5,6 +5,7 @@ import datetime
 import tables         as tb
 import numpy          as np
 import pandas         as pd
+import analysis_utils as ats
 
 from antea.reco                       import reco_functions      as rf
 from antea.io.mc_io                   import read_mcsns_response
@@ -21,7 +22,9 @@ thr_start = int(sys.argv[4])
 events_path = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton'
 file_name   = 'full_ring_iradius165mm_z140mm_depth3cm_pitch7mm'
 data_path   = '/test'
-evt_file    = '{data_path}/full_ring_p7mm_d3cm_mapsr_{start}_{numb}_{steps}_{thr_start}'.format(data_path, start, numb, nsteps, thr_start)
+evt_file    = f'{data_path}/full_ring_p7mm_d3cm_mapsr_{start}_{numb}_{nsteps}_{thr_start}'
+rpos_file   = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/refl_walls/r_sigma_phi_table_iradius165mm_thr3pes_ref_walls_compton_sel_photopeak.h5'
+Rpos        = ats.load_rpos(rpos_file, group = "Radius", node  = "f3pes150bins")
 
 events    = [[] for i in range(0, nsteps)]
 true_r1   = [[] for i in range(0, nsteps)]
@@ -41,7 +44,7 @@ charge1   = [[] for i in range(0, nsteps)]
 charge2   = [[] for i in range(0, nsteps)]
 
 for number in range(start, start+numb):
-    number_str = f'{:03d}'.format(number)
+    number_str = '{:03d}'.format(number)
     true_file  = f'{events_path}/{file_name}.{number_str}.pet.h5'
     print(f'Analyzing file {true_file}')
 
@@ -56,15 +59,16 @@ for number in range(start, start+numb):
     sens_pos       = rf.sensor_position    (h5in)
     sens_pos_cyl   = rf.sensor_position_cyl(h5in)
 
-    for evt in range(events_in_file):
+    #for evt in range(events_in_file):
+    for evt in range(1000):
         try:
-            ave_true1, ave_true2 = rf.true_photoelect(h5in, true_file, evt, compton=False)
+            this_event_wvf  = read_mcsns_response(true_file, (evt, evt+1))
+            event_number    = h5in.root.MC.extents[evt]['evt_number']
 
-            if not len(ave_true1) and not len(ave_true2):
+            i1, i2, ave_true1, ave_true2 = ats.true_photoelect_compton(h5in, true_file, evt)
+
+            if not i1 and not i2:
                 continue
-
-            this_event_wvf = read_mcsns_response(true_file, (evt, evt+1))
-            event_number   = h5in.root.MC.extents[evt]['evt_number']
 
             sns_dict    = list(this_event_wvf.values())[0]
             tot_charges = np.array(list(map(lambda x: sum(x.charges), sns_dict.values())))
@@ -89,11 +93,11 @@ for number in range(start, start+numb):
 
                 sigma_phi1 = sigma_phi2 = None
 
-                if ampl1 > 1000 and sum(q1) != 0:
+                if ampl1 > 0 and sum(q1) != 0:
                     _, var_phi = ats.get_r_and_var_phi(ave_true1, pos1_r, q1)
                     sigma_phi1 = np.sqrt(var_phi)
 
-                if ampl2 > 1000 and sum(q2) != 0:
+                if ampl2 > 0 and sum(q2) != 0:
                     _, var_phi = ats.get_r_and_var_phi(ave_true2, pos2_r, q2)
                     sigma_phi2 = np.sqrt(var_phi)
 

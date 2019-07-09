@@ -45,7 +45,8 @@ for number in range(start, start+numb):
     sens_pos       = rf.sensor_position    (h5in)
     sens_pos_cyl   = rf.sensor_position_cyl(h5in)
 
-    for evt in range(events_in_file):
+    #for evt in range(events_in_file):
+    for evt in range(1000):
         try:
             ave_true1, ave_true2 = rf.true_photoelect(h5in, true_file, evt, compton=False)
 
