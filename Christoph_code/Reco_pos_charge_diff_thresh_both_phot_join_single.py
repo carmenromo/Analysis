@@ -117,11 +117,7 @@ for number in range(start, start+numb):
                 sing_elem = (evt, sig_pgamma, ave_true)
                 single_events.append(sing_elem)
             
-        except tb.exceptions.HDF5ExtError:
-            continue
         except ValueError:
-            continue
-        except OSError:
             continue
         except SipmEmptyList:
             continue
@@ -193,7 +189,6 @@ for number in range(start, start+numb):
             ave_true2_rot         = ots.apply_rot(theta, axis, ave_true2)
             true2_r, true2_phi, _ = ots.get_coord_cyl(ave_true2_rot)
 
-            print(reco_cart2_rot)
             reco_r1   .append(reco1_r)
             reco_phi1 .append(reco1_cyl_for_phi[1])
             reco_z1   .append(reco1_cart_for_z[2])
