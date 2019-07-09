@@ -93,6 +93,9 @@ def barycenter_3D(pos, qs):
 def get_r_and_var_phi(ave_true, cyl_pos, q):
     r        = np.sqrt(ave_true[0]**2 + ave_true[1]**2)
     phi_pos  = np.array([el[1] for el in cyl_pos])
+    diff_sign = min(pos_phi ) < 0 < max(pos_phi)
+    if diff_sign & (np.abs(np.min(pos_phi))>np.pi/2):
+        pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
     mean_phi = np.average(phi_pos, weights=q)
     var_phi  = np.average((phi_pos - mean_phi)**2, weights=q)
     return r, var_phi
