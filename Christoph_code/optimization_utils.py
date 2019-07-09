@@ -125,7 +125,7 @@ def charges_pass_thr(h5in, true_file, evt, ave_true, th_r, th_phi, th_z, th_e, s
     part_dict       = list(this_event_dict.values())[0]
 
     sns_dict    = list(this_event_wvf.values())[0]
-    tot_charges = np.array(list(map(lambda x: sum(x.charges), list(sns_dict.values()))))
+    tot_charges = np.array(list(map(lambda x: sum(x.charges), sns_dict.values())))
     sns_ids     = np.array(list(sns_dict.keys()))
 
     list_thrs = [th_r, th_phi, th_z, th_e]

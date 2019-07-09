@@ -44,20 +44,6 @@ def parse_args(args):
     return parser.parse_args()
 
 
-def get_coord_cyl(cart_vect):
-    r   = np.sqrt(cart_vect[0]*cart_vect[0] + cart_vect[1]*cart_vect[1])
-    phi = np.arctan2(cart_vect[1], cart_vect[0])
-    z   = cart_vect[2]
-    return np.array([r, phi, z])
-
-
-def get_coord_cart(cyl_vect):
-    x = cyl_vect[0]*np.cos(cyl_vect[1])
-    y = cyl_vect[0]*np.sin(cyl_vect[1])
-    z = cyl_vect[2]
-    return np.array([x, y, z])
-
-
 def sensor_position(h5in):
     """A dictionary that stores the position of all the sensors
     in cartesian coordinates is created
@@ -187,25 +173,31 @@ def true_photoelect_compton(h5in, true_file, evt):
             mother = part_dict[part.mother_indx]
             if part.initial_volume == 'ACTIVE' and part.final_volume == 'ACTIVE':
                 if np.isclose(mother.E*1000., 510.999, atol=1.e-3) and mother.primary:
-                    energy1 = 0
-                    energy2 = 0
-
                     if mother.p[1] > 0.:
-                        interest1     = True
-                        hit_positions += [h.pos for h in part.hits]
-                        energies      += [h.E for h in part.hits]
-                        energy1       += sum(energies)
+                        interest1 = True
+                        min_time  = 100000
+                        times     = [h.time for h in part.hits]
+                        min_t     = min(times)
+
+                        if min_t < min_time:
+                            hit_positions = [h.pos for h in part.hits]
+                            energies      = [h.E   for h in part.hits]
+                            energy1       = sum(energies)
+                            if energy1 != 0:
+                                ave_true1 = np.average(hit_positions, axis=0, weights=energies)
 
                     else:
-                        interest2     = True
-                        hit_positions += [h.pos for h in part.hits]
-                        energies      += [h.E for h in part.hits]
-                        energy2       += sum(energies)
+                        interest2 = True
+                        min_time  = 100000
+                        times     = [h.time for h in part.hits]
+                        min_t     = min(times)
 
-                    if energy1 != 0.:
-                        ave_true1 = np.average(hit_positions, axis=0, weights=energies)
-                    if energy2 != 0.:
-                        ave_true2 = np.average(hit_positions, axis=0, weights=energies)
+                        if min_t < min_time:
+                            hit_positions = [h.pos for h in part.hits]
+                            energies      = [h.E   for h in part.hits]
+                            energy2       = sum(energies)
+                            if energy2 != 0:
+                                ave_true2 = np.average(hit_positions, axis=0, weights=energies)
 
     return interest1, interest2, ave_true1, ave_true2
 
