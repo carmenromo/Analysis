@@ -20,12 +20,20 @@ print(datetime.datetime.now())
 start   = int(sys.argv[1])
 numb    = int(sys.argv[2])
 
-eventsPath = '/data4/PETALO/PETit-ring/7mm_pitch'
+#eventsPath = '/data4/PETALO/PETit-ring/7mm_pitch'
+#base_path  = '/data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton'
+#data_path  = '/optimization_singles/3_data_reco_charge_diff_thr_both_phot'
+#evt_file    = '{0}/full_ring_irad15cm_d3cm_p7mm_pos_and_charge_difth_both_phot_photopeak_join_single_{1}_{2}'.format(base_path+data_path, start, numb)
+#rpos_file   = base_path+'/r_sigma_phi_table_iradius165mm_thr4pes_depth3cm_compton_sel_photopeak_new.h5'
+
+
+eventsPath = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton/'
 file_name  = 'full_ring_iradius165mm_z140mm_depth3cm_pitch7mm'
-base_path  = '/data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton'
-data_path  = '/optimization_singles/3_data_reco_charge_diff_thr_both_phot'
-evt_file    = '{0}/full_ring_irad15cm_d3cm_p7mm_pos_and_charge_difth_both_phot_photopeak_join_single_{1}_{2}'.format(base_path+data_path, start, numb)
-rpos_file   = base_path+'/r_sigma_phi_table_iradius165mm_thr4pes_depth3cm_compton_sel_photopeak_new.h5'
+data_path  = '/3_data_test'
+evt_file   = '{0}/full_ring_irad15cm_d3cm_p7mm_pos_and_charge_difth_test_{1}_{2}'.format(eventsPath+data_path, start, numb)
+rpos_file  = eventsPath+'/r_sigma_phi_table_iradius165mm_thr4pes_depth3cm_compton_sel_photopeak_new.h5'
+
+
 Rpos        = ats.load_rpos(rpos_file, group = "Radius", node  = "f4pes150bins")
 
 true_r1    = []
@@ -81,8 +89,8 @@ for number in range(start, start+numb):
     
     single_events = []
 
-    for evt in range(events_in_file):
-        #for evt in range(100):
+    #for evt in range(events_in_file):
+    for evt in range(11):
         tot_evts += 1
         try:
             this_event_dict = read_mcinfo(h5in, (evt, evt+1))
@@ -290,7 +298,6 @@ np.savez(evt_file,    a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_
                       a_reco_x2=a_reco_x2,   a_reco_y2=a_reco_y2,
                       a_charge1=a_charge1,   a_charge2=a_charge2,  a_events1=a_events1,
                       a_events2=a_events2, a_tot_charge=a_tot_charge, tot_evts=tot_evts)
-
 
 
 print(datetime.datetime.now())
