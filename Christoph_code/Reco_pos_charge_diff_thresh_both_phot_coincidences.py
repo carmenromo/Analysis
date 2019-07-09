@@ -120,25 +120,27 @@ for number in range(start, start+numb):
                     sigma_phi2  = np.sqrt(var_phi2)
 
                 if sigma_phi1 and sigma_phi2 and ampls_1[3]>1000 and ampls_2[3]>1000 and len(qs_1[1]) and len(qs_2[1]) and len(qs_1[2]) and len(qs_2[2]):
-                    reco1_r           = Rpos(sigma_phi1).value
-                    reco1_cyl_for_phi = ats.barycenter_3D(pos_1_cyl[1], qs_1[1])
-                    reco1_cyl_for_z   = ats.barycenter_3D(pos_1_cyl[2], qs_1[2])
-                    
-                    reco_cyl1  = np.array([reco1_r, reco1_cyl_for_phi[1], reco1_cyl_for_z[2]])
+                    reco1_r            = Rpos(sigma_phi1).value
+                    reco1_cart_for_phi = ats.barycenter_3D(pos_1_cart[1], qs_1[1])
+                    reco1_cyl_for_phi  = ots.get_coord_cyl(reco1_cart_for_phi)
+                    reco1_cart_for_z   = ats.barycenter_3D(pos_1_cart[2], qs_1[2])
+
+                    reco_cyl1  = np.array([reco1_r, reco1_cyl_for_phi[1], reco1_cart_for_z[2]])
                     reco_cart1 = ots.get_coord_cart(reco_cyl1)
                     true1_r, true1_phi, _ = ots.get_coord_cyl(ave_true1)
 
-                    reco2_r           = Rpos(sigma_phi2).value
-                    reco2_cyl_for_phi = ats.barycenter_3D(pos_2_cyl[1], qs_2[1])
-                    reco2_cyl_for_z   = ats.barycenter_3D(pos_2_cyl[2], qs_2[2])
+                    reco2_r            = Rpos(sigma_phi2).value
+                    reco2_cart_for_phi = ats.barycenter_3D(pos_2_cart[1], qs_2[1])
+                    reco2_cyl_for_phi  = ots.get_coord_cyl(reco2_cart_for_phi)
+                    reco2_cart_for_z   = ats.barycenter_3D(pos_2_cart[2], qs_2[2])
 
-                    reco_cyl2  = np.array([reco2_r, reco2_cyl_for_phi[1], reco2_cyl_for_z[2]])
+                    reco_cyl2  = np.array([reco2_r, reco2_cyl_for_phi[1], reco2_cart_for_z[2]])
                     reco_cart2 = ots.get_coord_cart(reco_cyl2)
                     true2_r, true2_phi, _ = ots.get_coord_cyl(ave_true2)
 
                     reco_r1   .append(reco1_r)
                     reco_phi1 .append(reco1_cyl_for_phi[1])
-                    reco_z1   .append(reco1_cyl_for_z  [2])
+                    reco_z1   .append(reco1_cart_for_z [2])
                     reco_x1   .append(reco_cart1[0])
                     reco_y1   .append(reco_cart1[1])
                     true_r1   .append(true1_r)
@@ -150,7 +152,7 @@ for number in range(start, start+numb):
 
                     reco_r2   .append(reco2_r)
                     reco_phi2 .append(reco2_cyl_for_phi[1])
-                    reco_z2   .append(reco2_cyl_for_z  [2])
+                    reco_z2   .append(reco2_cart_for_z [2])
                     reco_x2   .append(reco_cart2[0])
                     reco_y2   .append(reco_cart2[1])
                     true_r2   .append(true2_r)
@@ -193,11 +195,7 @@ for number in range(start, start+numb):
                     tot_charge.append(1.e9)
 
 
-        except tb.exceptions.HDF5ExtError:
-            continue
         except ValueError:
-            continue
-        except OSError:
             continue
         except SipmEmptyList:
             continue
