@@ -182,54 +182,60 @@ def true_photoelect_compton(h5in, true_file, evt):
                     if mother.p[1] > 0.:
                         interest1 = True
                         times     = [h.time for h in part.hits]
-                        min_t     = min(times)
-
+                        if len(times)==0:
+                            continue
+                        min_t   = min(times)
+                        min_pos = times.index(min_t)
                         if min_t < min_time1:
                             min_time1     = min_t
                             hit_positions = [h.pos for h in part.hits]
                             energies      = [h.E   for h in part.hits]
-                            energy1       = sum(energies)
-                            if energy1 != 0:
-                                ave_true1 = np.average(hit_positions, axis=0, weights=energies)
+                            if energies[min_pos] != 0:
+                                ave_true1 = hit_positions[min_pos]
                         else:
                             continue
 
                     else:
                         interest2 = True
                         times     = [h.time for h in part.hits]
-                        min_t     = min(times)
-
+                        if len(times)==0:
+                            continue
+                        min_t   = min(times)
+                        min_pos = times.index(min_t)
                         if min_t < min_time2:
                             min_time2     = min_t
                             hit_positions = [h.pos for h in part.hits]
                             energies      = [h.E   for h in part.hits]
-                            energy2       = sum(energies)
-                            if energy2 != 0:
-                                ave_true2 = np.average(hit_positions, axis=0, weights=energies)
+                            if energies[min_pos] != 0:
+                                ave_true2 = hit_positions[min_pos]
                         else:
                             continue
 
         elif part.name == 'gamma' and part.primary:
             if part.p[1] > 0:
                 times = [h.time for h in part.hits]
-                min_t = min(times)
+                if len(times) == 0:
+                    continue
+                min_t   = min(times)
+                min_pos = times.index(min_t)
                 if min_t < min_time1:
                     min_time1     = min_t
                     hit_positions = [h.pos for h in part.hits]
                     energies      = [h.E   for h in part.hits]
-                    energy1       = sum(energies)
-                    if energy1 != 0:
-                        ave_true1 = np.average(hit_positions, axis=0, weights=energies)
+                    if energies[min_pos] != 0:
+                        ave_true1 = hit_positions[min_pos] #The first interaction of the gamma
             else:
                 times = [h.time for h in part.hits]
-                min_t = min(times)
+                if len(times)==0:
+                    continue
+                min_t   = min(times)
+                min_pos = times.index(min_t)
                 if min_t < min_time2:
                     min_time2     = min_t
                     hit_positions = [h.pos for h in part.hits]
                     energies      = [h.E   for h in part.hits]
-                    energy2       = sum(energies)
-                    if energy2 != 0:
-                        ave_true2 = np.average(hit_positions, axis=0, weights=energies)
+                    if energies[min_pos] != 0:
+                        ave_true2 = hit_positions[min_pos]
 
     return interest1, interest2, ave_true1, ave_true2
 
