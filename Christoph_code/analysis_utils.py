@@ -8,6 +8,7 @@ from   invisible_cities.io.mcinfo_io  import read_mcinfo
 
 from invisible_cities.core.exceptions import SipmEmptyList
 from invisible_cities.core.exceptions import SipmZeroCharge
+from invisible_cities.core.exceptions import NoHits
 
 from invisible_cities.reco.corrections import Correction
 from invisible_cities.io.dst_io        import load_dst

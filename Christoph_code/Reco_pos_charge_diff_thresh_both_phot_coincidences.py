@@ -13,6 +13,7 @@ from   invisible_cities.io  .mcinfo_io  import read_mcinfo
 
 from invisible_cities.core.exceptions   import SipmEmptyList
 from invisible_cities.core.exceptions   import SipmZeroCharge
+from invisible_cities.core.exceptions   import NoHits
 
 print(datetime.datetime.now())
 
@@ -198,6 +199,8 @@ for number in range(start, start+numb):
         except ValueError:
             continue
         except SipmEmptyList:
+            continue
+        except NoHits:
             continue
 
 sel1 = (np.array(true_r1) < 1.e9)
