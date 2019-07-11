@@ -71,14 +71,13 @@ def find_closest_sipm(x, y, z, sens_pos, sns_over_thr, charges_over_thr):
     """Returns the sensor ID of the closest sipm to the given true event
     """
     min_dist = 1.e9
-    min_sns = 0
+    min_sns  = 0
     for sns_id, charge in zip(sns_over_thr, charges_over_thr):
-        pos = sens_pos[sns_id]
+        pos  = sens_pos[sns_id]
         dist = np.linalg.norm(np.subtract((x, y, z), pos))
         if dist < min_dist:
             min_dist = dist
-            min_sns = sns_id
-
+            min_sns  = sns_id
     return min_sns
 
 
