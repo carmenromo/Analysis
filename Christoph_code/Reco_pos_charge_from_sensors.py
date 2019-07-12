@@ -267,7 +267,6 @@ a_events1    = np.array(events1)   [sel1]
 a_events2    = np.array(events2)   [sel2]
 a_tot_charge = np.array(tot_charge)[sel3]
 
-print(len(a_charge1), len(a_charge2))
 
 np.savez(evt_file,    a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1,
          a_true_x1=a_true_x1,   a_true_y1=a_true_y1,
@@ -279,7 +278,3 @@ np.savez(evt_file,    a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_
          a_reco_x2=a_reco_x2,   a_reco_y2=a_reco_y2,
          a_charge1=a_charge1,   a_charge2=a_charge2,  a_events1=a_events1,
          a_events2=a_events2, a_tot_charge=a_tot_charge, tot_evts=tot_evts)
-
-print(a_tot_charge)
-print(tot_evts)
-print(datetime.datetime.now())
