@@ -93,7 +93,7 @@ def find_SiPMs_over_threshold(this_event_wvf, threshold):
     sns_dict = list(this_event_wvf.values())[0]
     tot_charges = np.array(list(map(lambda x: sum(x.charges), list(sns_dict.values()))))
     sns_ids = np.array(list(sns_dict.keys()))
-    
+
     indices_over_thr = (tot_charges > threshold)
     sns_over_thr = sns_ids[indices_over_thr]
     charges_over_thr = tot_charges[indices_over_thr]
@@ -121,6 +121,15 @@ def get_r_and_var_phi(ave_true, cyl_pos, q):
     return r, var_phi
 
 
+def get_var_phi(phi_pos, q):
+    diff_sign = min(phi_pos) < 0 < max(phi_pos)
+    if diff_sign & (np.abs(np.min(phi_pos))>np.pi/2):
+        phi_pos[phi_pos<0] = np.pi + np.pi + phi_pos[phi_pos<0]
+    mean_phi = np.average(phi_pos, weights=q)
+    var_phi  = np.average((phi_pos - mean_phi)**2, weights=q)
+    return var_phi
+
+
 def load_rpos(filename, group = "Radius", node = "f100bins"):
     dst = load_dst(filename, group, node)
     return Correction((dst.Sigma_phi.values,), dst.Rpos.values, dst.Uncertainty.values)
@@ -140,17 +149,17 @@ def load_zr_corrections(filename, *,
                       **kwargs)
 
 
-def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos):
+def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict):
 
     positions1, positions2 = [], []
     charges1, charges2 = [], []
-    
+
     ### Find the SiPM with maximum charge. The set if sensors around it are labelled as 1
     ### The sensors on the opposite emisphere are labelled as 2.
     max_sns = sns_over_thr[np.argmax(charges_over_thr)]
     max_pos = sens_pos[max_sns]
     for sns_id, charge in zip(sns_over_thr, charges_over_thr):
-        pos = sensor_pos[sns_id]
+        pos = sens_pos[sns_id]
         scalar_prod = sum(a*b for a, b in zip(pos, max_pos))
         if scalar_prod > 0.:
             charges1.append(charge)
@@ -169,12 +178,10 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
 
 
     ## find the first interactions of the primary gamma(s)
-    this_event_dict = read_mcinfo(h5in, (evt, evt+1))
-    part_dict       = list(this_event_dict.values())[0]
 
     tvertex_pos = tvertex_neg = -1
     min_pos_pos, min_pos_neg = None, None
-    
+
     for _, part in part_dict.items():
         if part.name == 'e-':
             if part.initial_volume == 'ACTIVE' and part.final_volume == 'ACTIVE':
@@ -188,33 +195,33 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
                         if tvertex_neg < 0 or part.initial_vertex[3] < tvertex_neg:
                             min_pos_neg = part.initial_vertex[0:3]
                             tvertex_neg = part.initial_vertex[3]
-                        
-                            
+
+
         elif part.name == 'gamma' and part.primary:
             if len(part.hits) > 0:
-                if mother.p[1] > 0.:              
-                    times = [h.t for h in part.hits]
+                if part.p[1] > 0.:
+                    times = [h.time for h in part.hits]
                     hit_positions = [h.pos for h in part.hits]
                     min_time = min(times)
                     if min_time < tvertex_pos:
                         min_pos_pos = hit_positions[times.index(min_time)]
                         tvertex_pos = min_time
                 else:
-                    times = [h.t for h in part.hits]
+                    times = [h.time for h in part.hits]
                     hit_positions = [h.pos for h in part.hits]
                     min_time = min(times)
                     if min_time < tvertex_neg:
                         min_pos_neg = hit_positions[times.index(min_time)]
-                        tvertex_neg = min_time             
-                        
+                        tvertex_neg = min_time
+
     interest1, interest2 = False, False
     pos_true1, pos_true2 = [], []
 
     if sel1 and sel2:
-        if min_pos_pos and min_pos_neg:
+        if min_pos_pos is not None and min_pos_neg is not None:
             interest1, interest2 = True, True
             scalar_prod = sum(a*b for a, b in zip(min_pos_pos, max_pos))
-            if scalar_prod > 0:                
+            if scalar_prod > 0:
                 pos_true1 = min_pos_pos
                 pos_true2 = min_pos_neg
             else:
@@ -222,43 +229,47 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
                 pos_true2 = min_pos_pos
 
         else:
-            print("Houston, we've got a problem")
+            print("Houston, we've got a problem 0")
 
     elif sel1:
-        if min_pos_pos:
+        if min_pos_pos is not None:
             scalar_prod = sum(a*b for a, b in zip(min_pos_pos, max_pos))
             if scalar_prod > 0:
                 interest1 = True
                 pos_true1 = min_pos_pos
-                
-        if min_pos_neg:
+
+        if min_pos_neg is not None:
             scalar_prod = sum(a*b for a, b in zip(min_pos_neg, max_pos))
             if scalar_prod > 0:
                 if interest1:
-                    print("Houston, we've got a problem")
+                    print("Houston, we've got a problem 1: both gammas interact in the same emisphere. This event cannot be used to join singles.")
+                    interest1 = False
+                    pos_true1 = []
                 else:
                     interest1 = True
                     pos_true1 = min_pos_neg
-        else:
-            print("Houston, we've got a problem")
+        if min_pos_pos is None and min_pos_neg is None:
+            print("Houston, we've got a problem 2")
 
     elif sel2:
-        if min_pos_pos:
+        if min_pos_pos is not None:
             scalar_prod = sum(a*b for a, b in zip(min_pos_pos, max_pos))
             if scalar_prod <= 0:
                 interest2 = True
                 pos_true2 = min_pos_pos
-                
-        if min_pos_neg:
+
+        if min_pos_neg is not None:
             scalar_prod = sum(a*b for a, b in zip(min_pos_neg, max_pos))
             if scalar_prod <= 0:
                 if interest2:
-                    print("Houston, we've got a problem")
+                    print("Houston, we've got a problem 3: both gammas interact in the same emisphere. This event cannot be used to join singles.")
+                    interest2 = False
+                    pos_true2 = []
                 else:
                     interest2 = True
                     pos_true2 = min_pos_neg
-        else:
-            print("Houston, we've got a problem")
+        if min_pos_pos is None and min_pos_neg is None:
+            print("Houston, we've got a problem 4")
 
 
     return interest1, interest2, pos_true1, pos_true2, charges1, charges2, positions1, positions2

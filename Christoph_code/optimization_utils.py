@@ -24,7 +24,7 @@ def get_coord_cart(cyl_vect):
     return np.array([x, y, z])
 
 def single_sensor_classif(i1, i2, ave_true1, ave_true2, sens_pos, sens_pos_cyl, sns_over_thr, charges_over_thr):
-    # i1, i2: only one of them can be True!!                                                                                                                                                                                                                                    
+    # i1, i2: only one of them can be True!!
     if i1==i2:
         raise ValueError
 
@@ -67,7 +67,7 @@ def get_gamma_p(h5in, evt, sig):
     else:   return p2
 
 def get_theta(p1, p2):
-    scalar_prod = np.dot(-p1, p2) #I take the opposite of p1!!!!                                                                                                                                                    
+    scalar_prod = np.dot(-p1, p2) #I take the opposite of p1!!!!
     mod1        = np.linalg.norm(p1)
     mod2        = np.linalg.norm(p2)
     theta       = np.arccos(scalar_prod/(mod1*mod2))
@@ -78,7 +78,7 @@ def get_axis(p1, p2):
     mod       = np.linalg.norm(vect_prod)
     return vect_prod/mod
 
-def rot_matrix(theta, axis): # theta in radians!!                                                                                                                                                                   
+def rot_matrix(theta, axis): # theta in radians!!
     r11 = math.cos(theta) + (axis[0]*axis[0])*(1 - math.cos(theta))
     r12 = axis[0]*axis[1]*(1 - math.cos(theta)) - axis[2]*math.sin(theta)
     r13 = axis[0]*axis[2]*(1 - math.cos(theta)) + axis[1]*math.sin(theta)
@@ -162,7 +162,7 @@ def charges_pass_thr(h5in, true_file, evt, ave_true, th_r, th_phi, th_z, th_e, s
 
 def reco_pos_single(true_pos, sns_q, sns_pos, th_r, th_phi, th_z):
 
-    list_thrs = [th_r, th_phi, th_z, th_e]
+    list_thrs = [th_r, th_phi, th_z]
 
     positions     = []
     qs            = []
@@ -174,7 +174,7 @@ def reco_pos_single(true_pos, sns_q, sns_pos, th_r, th_phi, th_z):
 
         if len(charges_over_thr) == 0:
             return [], []
-        
+
         positions.append(np.array(pos_over_thr))
         qs       .append(np.array(charges_over_thr))
 
