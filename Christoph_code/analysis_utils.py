@@ -263,3 +263,74 @@ def sensor_classification(i1, i2, ave_true1, ave_true2, sens_pos, sens_pos_cyl, 
                 count2  += 1
 
     return ampl1, ampl2, count1, count2, pos1, pos2, pos1_cyl, pos2_cyl, q1, q2
+
+
+def create_list_all_charges(wvf_dict, threshold):
+
+    # This function returns a list of tuples with the id of the sensor that
+    # detects some optical photons and the corresponding charge it sees
+
+    list_charges = []
+    for s_id, wvf in wvf_dict.items():
+        if wvf.charges[0] > threshold:
+            wvf_tuple = (s_id, wvf.charges[0])
+            list_charges.append(wvf_tuple)
+        else:
+            continue
+    list_charges.sort(key=get_key, reverse=True)
+
+    if len(list_charges) == 0:
+        raise SipmZeroCharge
+
+    return list_charges
+
+
+def get_key(item):
+    return item[1]
+
+def rel_dis_xy(n, m, sens_pos):
+    # This function calculates the relative distance (for x and y) between two sensors
+    subst = np.subtract(sens_pos[n], sens_pos[m])
+    return np.linalg.norm(subst[0:2])
+
+def sensor_classif(list_charges, sns_over_thr, charges_over_thr, sens_pos, sens_pos_cyl, n_sipm=5):
+
+    list_dist = []
+    pos1      = []
+    pos2      = []
+    pos_cyl1  = []
+    pos_cyl2  = []
+    q1        = []
+    q2        = []
+    ampl1     = ampl2  = 0
+    count1    = count2 = 0
+
+    n_of_sipm  = list_charges[0:n_sipm]
+    first_sipm = n_of_sipm[0][0]
+
+    for i in n_of_sipm[1:n_sipm]:
+        list_dist.append(rel_dis_xy(n_of_sipm[0][0], i[0], sens_pos))
+
+    if any(list_dist) < 50:
+        imp_sipm    = first_sipm
+
+        for sns_id, charge in zip(sns_over_thr, charges_over_thr):
+            pos_imp = sens_pos    [imp_sipm]
+            pos     = sens_pos    [sns_id]
+            pos_cyl = sens_pos_cyl[sns_id]
+            scalar_prod = sum(a*b for a, b in zip(pos, pos_imp))
+            if scalar_prod > 0.:
+                pos1    .append(pos)
+                pos_cyl1.append(pos_cyl)
+                q1      .append(charge)
+                ampl1   += charge
+                count1  += 1
+            else:
+                pos2    .append(pos)
+                pos_cyl2.append(pos_cyl)
+                q2      .append(charge)
+                ampl2   += charge
+                count2  += 1
+        return pos1, pos2, pos_cyl1, pos_cyl2, q1, q2, ampl1, ampl2, count1, count2
+    else:
+        raise SipmZeroCharge
