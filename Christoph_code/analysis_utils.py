@@ -150,6 +150,14 @@ def load_zr_corrections(filename, *,
 
 
 def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict):
+    """
+    This functions returns a lot of things:
+    interest1, interest2: boolean, it's true if the event of the emisphere 1/2 is of interest
+    pos_true1, pos_true2: the true position of the first interaction of the gamma in the emisphere 1/2
+    gamma1, gamma2: boolean, it's true if the primary gamma originating the interaction in emisphere 1/2 has py>0
+    charges1, charges2: the list of the charges detected by the SiPMs of emisphere 1/2
+    positions1, positions2: the list of the positions of the SiPMs of emisphere 1/2
+    """
 
     positions1, positions2 = [], []
     charges1, charges2 = [], []
@@ -272,7 +280,7 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
             print("Houston, we've got a problem 4")
 
 
-    return interest1, interest2, pos_true1, pos_true2, charges1, charges2, positions1, positions2
+    return interest1, interest2, pos_true1, pos_true2, gamma_1, gamma_2, charges1, charges2, positions1, positions2
 
 
 
