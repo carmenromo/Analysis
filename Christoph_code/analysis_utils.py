@@ -14,37 +14,6 @@ from invisible_cities.reco.corrections import Correction
 from invisible_cities.io.dst_io        import load_dst
 
 
-def check_make_dir(path):
-    folders = path.split("/")
-    for i in range(2, len(folders) + 1):
-        subpath = "/".join(folders[:i])
-        if os.path.exists(subpath): continue
-        print("Creating directory", subpath)
-        os.mkdir(subpath)
-
-
-def join(a, b):
-    c = {}
-    c.update(a)
-    c.update(b)
-    return c
-
-
-def to_int(s):
-    return int(float(s))
-
-
-def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f" , "--first"      , type   = int         , help = "first file (inclusive)"   , default= 0)
-    parser.add_argument("-l" , "--last"       , type   = int         , help = "last file (exclusive)"    , default=-1)
-    parser.add_argument("-nf", "--n-files"    , type   = int         , help = "number of files to create", default= 1)
-    parser.add_argument("-fj", "--n-files-job", type   = to_int      , help = "number of files per job"  , default = 1)
-    parser.add_argument("-t" , "--test"       , action = "store_true", help = "Skip job submission"      )
-    parser.add_argument("-v" , "--verbosity"  , action = "count"     , help = "increase verbosity level" , default = 0)
-    return parser.parse_args()
-
-
 def sensor_position(h5in):
     """A dictionary that stores the position of all the sensors
     in cartesian coordinates is created
