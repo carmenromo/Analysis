@@ -3,7 +3,8 @@ import argparse
 import tables as tb
 import numpy  as np
 
-from   antea.io.mc_io                 import read_mcsns_response
+from   antea.io.mc_io    import read_mcsns_response
+
 from   invisible_cities.io.mcinfo_io  import read_mcinfo
 
 from invisible_cities.core.exceptions import SipmEmptyList
@@ -82,6 +83,24 @@ def find_closest_sipm(x, y, z, sens_pos, sns_over_thr, charges_over_thr):
     return min_sns
 
 
+def from_cartesian_to_cyl(pos):
+    cyl_pos = np.array([np.sqrt(pos[:,0]**2+pos[:,1]**2), np.arctan2(pos[:,1], pos[:,0]), pos[:,2]]).transpose()
+    return cyl_pos
+
+
+def find_SiPMs_over_threshold(this_event_wvf, threshold):
+
+    sns_dict = list(this_event_wvf.values())[0]
+    tot_charges = np.array(list(map(lambda x: sum(x.charges), list(sns_dict.values()))))
+    sns_ids = np.array(list(sns_dict.keys()))
+    
+    indices_over_thr = (tot_charges > threshold)
+    sns_over_thr = sns_ids[indices_over_thr]
+    charges_over_thr = tot_charges[indices_over_thr]
+
+    return sns_over_thr, charges_over_thr
+
+
 def barycenter_3D(pos, qs):
     """Returns the weighted position of an array
     """
@@ -119,6 +138,131 @@ def load_zr_corrections(filename, *,
                       f.reshape(z.size, r.size),
                       u.reshape(z.size, r.size),
                       **kwargs)
+
+
+def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos):
+
+    positions1, positions2 = [], []
+    charges1, charges2 = [], []
+    
+    ### Find the SiPM with maximum charge. The set if sensors around it are labelled as 1
+    ### The sensors on the opposite emisphere are labelled as 2.
+    max_sns = sns_over_thr[np.argmax(charges_over_thr)]
+    max_pos = sens_pos[max_sns]
+    for sns_id, charge in zip(sns_over_thr, charges_over_thr):
+        pos = sensor_pos[sns_id]
+        scalar_prod = sum(a*b for a, b in zip(pos, max_pos))
+        if scalar_prod > 0.:
+            charges1.append(charge)
+            positions1.append(pos)
+        else:
+            charges2.append(charge)
+            positions2.append(pos)
+    q1 = sum(charges1)
+    q2 = sum(charges2)
+
+
+    sel1 = (q1 > charge_range[0]) & (q1 < charge_range[1])
+    sel2 = (q2 > charge_range[0]) & (q2 < charge_range[1])
+    if not sel1 and not sel2:
+        return False, False, [], [], [], [], [], []
+
+
+    ## find the first interactions of the primary gamma(s)
+    this_event_dict = read_mcinfo(h5in, (evt, evt+1))
+    part_dict       = list(this_event_dict.values())[0]
+
+    tvertex_pos = tvertex_neg = -1
+    min_pos_pos, min_pos_neg = None, None
+    
+    for _, part in part_dict.items():
+        if part.name == 'e-':
+            if part.initial_volume == 'ACTIVE' and part.final_volume == 'ACTIVE':
+                mother = part_dict[part.mother_indx]
+                if np.isclose(mother.E*1000., 510.999, atol=1.e-3) and mother.primary:
+                    if mother.p[1] > 0.:
+                        if tvertex_pos < 0 or part.initial_vertex[3] < tvertex_pos:
+                            min_pos_pos = part.initial_vertex[0:3]
+                            tvertex_pos = part.initial_vertex[3]
+                    else:
+                        if tvertex_neg < 0 or part.initial_vertex[3] < tvertex_neg:
+                            min_pos_neg = part.initial_vertex[0:3]
+                            tvertex_neg = part.initial_vertex[3]
+                        
+                            
+        elif part.name == 'gamma' and part.primary:
+            if len(part.hits) > 0:
+                if mother.p[1] > 0.:              
+                    times = [h.t for h in part.hits]
+                    hit_positions = [h.pos for h in part.hits]
+                    min_time = min(times)
+                    if min_time < tvertex_pos:
+                        min_pos_pos = hit_positions[times.index(min_time)]
+                        tvertex_pos = min_time
+                else:
+                    times = [h.t for h in part.hits]
+                    hit_positions = [h.pos for h in part.hits]
+                    min_time = min(times)
+                    if min_time < tvertex_neg:
+                        min_pos_neg = hit_positions[times.index(min_time)]
+                        tvertex_neg = min_time             
+                        
+    interest1, interest2 = False, False
+    pos_true1, pos_true2 = [], []
+
+    if sel1 and sel2:
+        if min_pos_pos and min_pos_neg:
+            interest1, interest2 = True, True
+            scalar_prod = sum(a*b for a, b in zip(min_pos_pos, max_pos))
+            if scalar_prod > 0:                
+                pos_true1 = min_pos_pos
+                pos_true2 = min_pos_neg
+            else:
+                pos_true1 = min_pos_neg
+                pos_true2 = min_pos_pos
+
+        else:
+            print("Houston, we've got a problem")
+
+    elif sel1:
+        if min_pos_pos:
+            scalar_prod = sum(a*b for a, b in zip(min_pos_pos, max_pos))
+            if scalar_prod > 0:
+                interest1 = True
+                pos_true1 = min_pos_pos
+                
+        if min_pos_neg:
+            scalar_prod = sum(a*b for a, b in zip(min_pos_neg, max_pos))
+            if scalar_prod > 0:
+                if interest1:
+                    print("Houston, we've got a problem")
+                else:
+                    interest1 = True
+                    pos_true1 = min_pos_neg
+        else:
+            print("Houston, we've got a problem")
+
+    elif sel2:
+        if min_pos_pos:
+            scalar_prod = sum(a*b for a, b in zip(min_pos_pos, max_pos))
+            if scalar_prod <= 0:
+                interest2 = True
+                pos_true2 = min_pos_pos
+                
+        if min_pos_neg:
+            scalar_prod = sum(a*b for a, b in zip(min_pos_neg, max_pos))
+            if scalar_prod <= 0:
+                if interest2:
+                    print("Houston, we've got a problem")
+                else:
+                    interest2 = True
+                    pos_true2 = min_pos_neg
+        else:
+            print("Houston, we've got a problem")
+
+
+    return interest1, interest2, pos_true1, pos_true2, charges1, charges2, positions1, positions2
+
 
 
 def true_photoelect(evt, h5in, true_file):

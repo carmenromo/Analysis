@@ -158,3 +158,24 @@ def charges_pass_thr(h5in, true_file, evt, ave_true, th_r, th_phi, th_z, th_e, s
     if len(ampls)!=len(list_thrs) or len(counts)!=len(list_thrs) or len(poss)!=len(list_thrs) or len(poss_cyl)!=len(list_thrs) or len(qs)!=len(list_thrs):
         raise ValueError
     return ampls, counts, poss, poss_cyl, qs
+
+
+def reco_pos_single(true_pos, sns_q, sns_pos, th_r, th_phi, th_z):
+
+    list_thrs = [th_r, th_phi, th_z, th_e]
+
+    positions     = []
+    qs            = []
+
+    for th in list_thrs:
+        indices_over_thr = sns_q > th
+        pos_over_thr     = sns_pos[indices_over_thr]
+        charges_over_thr = sns_q[indices_over_thr]
+
+        if len(charges_over_thr) == 0:
+            return [], []
+        
+        positions.append(np.array(pos_over_thr))
+        qs       .append(np.array(charges_over_thr))
+
+    return positions, qs
