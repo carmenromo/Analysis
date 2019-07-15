@@ -68,14 +68,16 @@ for number in range(start, start+numb):
         if i1 == i2: continue
 
         if i1:
-            positions, qs = ots.reco_pos_single(pos_true1, np.array(q1), np.array(pos1), rpos_threshold, phi_threshold, zpos_threshold)
-            gamma_sign = gamma1
             pos_true   = pos_true1
+            gamma_sign = gamma1
+            qs         = q1
+            positions  = pos1
 
         else:
-            positions, qs = ots.reco_pos_single(pos_true2, np.array(q2), np.array(pos2), rpos_threshold, phi_threshold, zpos_threshold)
-            gamma_sign = gamma2
             pos_true   = pos_true2
+            gamma_sign = gamma2
+            qs         = q2
+            positions  = pos2
 
         single_elem = (evt, gamma_sign, pos_true, positions, qs)
         single_events.append(single_elem)
