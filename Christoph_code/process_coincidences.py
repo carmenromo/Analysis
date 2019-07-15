@@ -7,8 +7,9 @@ import analysis_utils     as ats
 
 from   antea.io.mc_io_tb    import read_SiPM_bin_width_from_conf
 from   antea.io.mc_io_tb    import go_through_file
-from   antea.io.mc_io_tb    import read_mcinfo
 from   antea.utils.table_functions             import load_rpos
+
+from invisible_cities.io.mcinfo_io  import read_mcinfo
 
 start   = int(sys.argv[1])
 numb    = int(sys.argv[2])

@@ -182,7 +182,7 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
     sel1 = (q1 > charge_range[0]) & (q1 < charge_range[1])
     sel2 = (q2 > charge_range[0]) & (q2 < charge_range[1])
     if not sel1 and not sel2:
-        return False, False, [], [], [], [], [], []
+        return False, False, [], [], None, None, [], [], [], []
 
 
     ## find the first interactions of the primary gamma(s)
@@ -223,6 +223,7 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
                         tvertex_neg = min_time
 
     interest1, interest2 = False, False
+    gamma_1, gamma_2 = None, None
     pos_true1, pos_true2 = [], []
 
     if sel1 and sel2:
@@ -232,9 +233,13 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
             if scalar_prod > 0:
                 pos_true1 = min_pos_pos
                 pos_true2 = min_pos_neg
+                gamma_1   = True
+                gamma_2   = False
             else:
                 pos_true1 = min_pos_neg
                 pos_true2 = min_pos_pos
+                gamma_1   = False
+                gamma_2   = True
 
         else:
             print("Houston, we've got a problem 0")
@@ -245,6 +250,7 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
             if scalar_prod > 0:
                 interest1 = True
                 pos_true1 = min_pos_pos
+                gamma_1   = True
 
         if min_pos_neg is not None:
             scalar_prod = sum(a*b for a, b in zip(min_pos_neg, max_pos))
@@ -253,9 +259,11 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
                     print("Houston, we've got a problem 1: both gammas interact in the same emisphere. This event cannot be used to join singles.")
                     interest1 = False
                     pos_true1 = []
+                    gamma_1 = None
                 else:
                     interest1 = True
                     pos_true1 = min_pos_neg
+                    gamma_1 = False
         if min_pos_pos is None and min_pos_neg is None:
             print("Houston, we've got a problem 2")
 
@@ -265,6 +273,7 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
             if scalar_prod <= 0:
                 interest2 = True
                 pos_true2 = min_pos_pos
+                gamma_2 = True
 
         if min_pos_neg is not None:
             scalar_prod = sum(a*b for a, b in zip(min_pos_neg, max_pos))
@@ -273,9 +282,11 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
                     print("Houston, we've got a problem 3: both gammas interact in the same emisphere. This event cannot be used to join singles.")
                     interest2 = False
                     pos_true2 = []
+                    gamma_2 = None
                 else:
                     interest2 = True
                     pos_true2 = min_pos_neg
+                    gamma_2 = False
         if min_pos_pos is None and min_pos_neg is None:
             print("Houston, we've got a problem 4")
 
