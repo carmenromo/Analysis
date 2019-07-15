@@ -91,8 +91,8 @@ for number in range(start, start+numb):
         theta = ots.get_theta(p1, p2)
         axis  = ots.get_axis (p1, p2)
 
-        positions1, qs1 = ots.reco_pos_single(pos_true1, sns_qs1, sns_pos1, rpos_threshold, phi_threshold, zpos_threshold)
-        positions2, qs2 = ots.reco_pos_single(pos_true1, sns_qs1, sns_pos1, rpos_threshold, phi_threshold, zpos_threshold)
+        positions1, qs1 = ots.reco_pos_single(pos_true1, np.array(sns_qs1), np.array(sns_pos1), rpos_threshold, phi_threshold, zpos_threshold)
+        positions2, qs2 = ots.reco_pos_single(pos_true1, np.array(sns_qs1), np.array(sns_pos1), rpos_threshold, phi_threshold, zpos_threshold)
 
         if len(positions1) == 0 or len(positions2) == 0:
             continue
