@@ -4,7 +4,7 @@ import math
 import tables as tb
 import numpy  as np
 
-from   antea.io.mc_io                 import read_mcsns_response
+from   antea.io.mc_io_tb                 import read_mcsns_response
 from   invisible_cities.io.mcinfo_io  import read_mcinfo
 
 sys.path.append('/data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton')
