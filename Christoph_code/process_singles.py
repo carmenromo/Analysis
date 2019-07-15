@@ -78,7 +78,7 @@ for number in range(start, start+numb):
             pos_true   = pos_true2
 
         single_elem = (evt, gamma_sign, pos_true, positions, qs)
-        single_events.append(sing_elem)
+        single_events.append(single_elem)
 
     if len(single_events) % 2 == 1:
         del single_events[-1]
