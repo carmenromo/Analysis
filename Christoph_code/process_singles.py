@@ -14,7 +14,7 @@ start   = int(sys.argv[1])
 numb    = int(sys.argv[2])
 
 base_file = '/data/PETALO/pitch7mm/full_ring_iradius165mm_z140mm_depth3cm_pitch7mm.{0:03d}.pet.h5'
-evt_file = '/home/paolafer/analysis/petalo/full_ring_iradius165mm_z140mm_depth3cm_pitch7mm_reco_pos_dnn_compt_compare_{0}_{1}'.format(start, numb)
+evt_file = '/home/paolafer/analysis/petalo/test_singles_{0}_{1}'.format(start, numb)
 
 rpos_threshold = 4
 rpos_file = '/home/paolafer/analysis/petalo/tables/r_table_iradius165mm_depth3cm_pitch7mm_new_h5_clean_thr4pes.h5'
