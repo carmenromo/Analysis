@@ -3,7 +3,6 @@ import argparse
 import tables as tb
 import numpy  as np
 
-from   antea.io.mc_io                 import read_mcsns_response
 from   invisible_cities.io.mcinfo_io  import read_mcinfo
 
 from invisible_cities.core.exceptions import SipmEmptyList
@@ -91,7 +90,6 @@ def load_zr_corrections(filename, *,
 
 def true_photoelect(evt, h5in, true_file):
     this_event_dict = read_mcinfo(h5in, (evt, evt+1))
-    this_event_wvf  = read_mcsns_response(true_file, (evt, evt+1))
     event_number    = h5in.root.MC.extents[evt]['evt_number']
     part_dict       = list(this_event_dict.values())[0]
 
@@ -131,7 +129,6 @@ def true_photoelect(evt, h5in, true_file):
 def true_photoelect_compton(h5in, true_file, evt):
 
     this_event_dict = read_mcinfo(h5in, (evt, evt+1))
-    this_event_wvf  = read_mcsns_response(true_file, (evt, evt+1))
     event_number    = h5in.root.MC.extents[evt]['evt_number']
     part_dict       = list(this_event_dict.values())[0]
 
