@@ -1,7 +1,6 @@
 import tables as tb
 import numpy  as np
 
-from antea.io.mc_io                   import read_mcsns_response
 from invisible_cities.io  .mcinfo_io  import read_mcinfo
 from invisible_cities.core.exceptions import NoHits
 
@@ -13,7 +12,6 @@ def true_photoelect(h5in, true_file, evt, compton=False):
     """
 
     this_event_dict = read_mcinfo        (     h5in, (evt, evt+1))
-    this_event_wvf  = read_mcsns_response(true_file, (evt, evt+1))
     part_dict       = list(this_event_dict.values())[0]
 
     ave_true1 = []
