@@ -27,233 +27,137 @@ nsteps     = arguments.n_steps
 thr_start  = arguments.thr_start
 eventsPath = arguments.events_path
 file_name  = arguments.file_name
+base_path  = arguments.base_path
 data_path  = arguments.data_path
 identifier = arguments.identifier
+
+data_path  = f"{base_path}/{data_path}"
 evt_file   = f"{data_path}/full_ring_{identifier}_reco_pos_charge_{start}_{numb}_{nsteps}_{thr_start}"
 
-rpos_file   = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/refl_walls/r_sigma_phi_table_iradius165mm_thr3pes_ref_walls_compton_sel_photopeak.h5'
-Rpos        = ats.load_rpos(rpos_file, group = "Radius", node  = "f3pes150bins")
+rpos_threshold = 3
+phi_threshold  = 5
+zpos_threshold = 4
+e_threshold    = 2
 
-events    = [[] for i in range(0, nsteps)]
-true_r1   = [[] for i in range(0, nsteps)]
-true_r2   = [[] for i in range(0, nsteps)]
-true_phi1 = [[] for i in range(0, nsteps)]
-true_phi2 = [[] for i in range(0, nsteps)]
-true_z1   = [[] for i in range(0, nsteps)]
-true_z2   = [[] for i in range(0, nsteps)]
+rpos_file   = f"{base_path}/r_sigma_phi_{identifier}_thr{rpos_threshold}pes_compton_sel_photp.h5"
+Rpos        = ats.load_rpos(rpos_file, group = "Radius", node  = f"f{rpos_threshold}pes150bins")
 
-reco_r1   = [[] for i in range(0, nsteps)]
-reco_r2   = [[] for i in range(0, nsteps)]
-reco_phi1 = [[] for i in range(0, nsteps)]
-reco_phi2 = [[] for i in range(0, nsteps)]
-reco_z1   = [[] for i in range(0, nsteps)]
-reco_z2   = [[] for i in range(0, nsteps)]
-charge1   = [[] for i in range(0, nsteps)]
-charge2   = [[] for i in range(0, nsteps)]
+reco_r1, reco_r2, true_r1, true_r2          = [], [], [], []
+reco_phi1, reco_phi2, true_phi1, true_phi2  = [], [], [], []
+reco_z1, reco_z2, true_z1, true_z2          = [], [], [], []
+events, sns_response1, sns_response2        = [], [], []
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
-    true_file  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
-    print(f'Trying file {true_file}')
-
+    filename  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
     try:
-        h5in = tb.open_file(true_file, mode='r')
-        print(f'Analyzing file {true_file}')
+        print('Trying file {0}'.format(filename))
+        h5in = tb.open_file(filename, mode='r')
+    except ValueError:
+        continue
     except OSError:
         continue
+    print('Analyzing file {0}'.format(filename))
 
     h5extents      = h5in.root.MC.extents
     events_in_file = len(h5extents)
 
-    sens_pos       = rf.sensor_position    (h5in)
-    sens_pos_cyl   = rf.sensor_position_cyl(h5in)
-    bin_width      = read_SiPM_bin_width_from_conf(h5in)
+    sens_pos     = rf.sensor_position    (h5in)
+    sens_pos_cyl = rf.sensor_position_cyl(h5in)
+    bin_width    = read_SiPM_bin_width_from_conf(h5in)
 
     charge_range   = (1000, 1400)
 
     for evt in range(events_in_file):
-        try:
-            ave_true1, ave_true2 = rf.true_photoelect(h5in, true_file, evt, compton=True)
-            if len(ave_true1)==0 and len(ave_true2)==0:
+        #for evt in range(1000):
+        event_number   = h5in.root.MC.extents[evt]['evt_number']
+        this_event_wvf = go_through_file(h5in, h5in.root.MC.waveforms, (evt, evt+1), bin_width, 'data')
+        sns_over_thr, charges_over_thr = rf.find_SiPMs_over_threshold(this_event_wvf, e_threshold)
+        if len(charges_over_thr) == 0: continue
+
+        this_event_dict = read_mcinfo(h5in, (evt, evt+1))
+        part_dict       = list(this_event_dict.values())[0]
+        i1, i2, pos_true1, pos_true2, _, _, q1, q2, pos1, pos2 = rf.select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict)
+
+        if i1 and i2:
+            positions1, qs1 = rf.reco_pos_single(pos_true1, np.array(q1), np.array(pos1), rpos_threshold, phi_threshold, zpos_threshold)
+            positions2, qs2 = rf.reco_pos_single(pos_true2, np.array(q2), np.array(pos2), rpos_threshold, phi_threshold, zpos_threshold)
+
+            if len(positions1) == 0 or len(positions2) == 0:
                 continue
 
-            this_event_wvf = go_through_file(h5in, h5in.root.MC.waveforms, (evt, evt+1), bin_width, 'data')
+            phi1        = ats.from_cartesian_to_cyl(positions1[0])[:,1]
+            var_phi1    = rf.get_var_phi(phi1, qs1[0])
+            sigma_phi1  = np.sqrt(var_phi1)
+            reco1_r     = Rpos(sigma_phi1).value
 
-            sns_dict    = list(this_event_wvf.values())[0]
-            tot_charges = np.array(list(map(lambda x: sum(x.charges), sns_dict.values())))
-            sns_ids     = np.array(list(sns_dict.keys()))
+            phi2        = ats.from_cartesian_to_cyl(positions2[0])[:,1]
+            var_phi2    = rf.get_var_phi(phi2, qs2[0])
+            sigma_phi2  = np.sqrt(var_phi2)
+            reco2_r     = Rpos(sigma_phi2).value
 
-            for threshold in range(thr_start, nsteps + thr_start):
-                indices_over_thr = (tot_charges > threshold)
-                sns_over_thr     = sns_ids    [indices_over_thr]
-                charges_over_thr = tot_charges[indices_over_thr]
+            reco_cart = ats.barycenter_3D(positions1[1], qs1[1])
+            reco1_phi = np.arctan2(reco_cart[1], reco_cart[0])
 
-                if len(charges_over_thr) == 0:
-                    continue
+            reco_cart = ats.barycenter_3D(positions2[1], qs2[1])
+            reco2_phi = np.arctan2(reco_cart[1], reco_cart[0])
 
-                ### THRESHOLD FOR R:
-                ampl1, ampl2, _, _, pos1_r, pos2_r, q1, q2 = rf.sensor_classification(ave_true1,
-                                                                                      ave_true2,
-                                                                                      sens_pos,
-                                                                                      sens_pos_cyl,
-                                                                                      sns_over_thr,
-                                                                                      charges_over_thr)
+            reco_cart = ats.barycenter_3D(positions1[2], qs1[2])
+            reco1_z   = reco_cart[2]
 
-                sigma_phi1 = sigma_phi2 = None
+            reco_cart = ats.barycenter_3D(positions2[2], qs2[2])
+            reco2_z   = reco_cart[2]
 
-                if ampl1 > charge_range[0] and ampl1 < charge_range[1] and sum(q1) != 0:
-                    _, var_phi = ats.get_r_and_var_phi(ave_true1, pos1_r, q1)
-                    sigma_phi1 = np.sqrt(var_phi)
+            true1_r   = ats.from_cartesian_to_cyl(np.array([pos_true1]))[0, 0]
+            true1_phi = ats.from_cartesian_to_cyl(np.array([pos_true1]))[0, 1]
+            true1_z   = ats.from_cartesian_to_cyl(np.array([pos_true1]))[0, 2]
 
-                if ampl2 > charge_range[0] and ampl2 < charge_range[1] and sum(q2) != 0:
-                    _, var_phi = ats.get_r_and_var_phi(ave_true2, pos2_r, q2)
-                    sigma_phi2 = np.sqrt(var_phi)
+            true2_r   = ats.from_cartesian_to_cyl(np.array([pos_true2]))[0, 0]
+            true2_phi = ats.from_cartesian_to_cyl(np.array([pos_true2]))[0, 1]
+            true2_z   = ats.from_cartesian_to_cyl(np.array([pos_true2]))[0, 2]
 
+            reco_r1  .append(reco1_r)
+            reco_phi1.append(reco1_phi)
+            reco_z1  .append(reco1_z)
+            reco_r2  .append(reco2_r)
+            reco_phi2.append(reco2_phi)
+            reco_z2  .append(reco2_z)
+            true_r1  .append(true1_r)
+            true_phi1.append(true1_phi)
+            true_z1  .append(true1_z)
+            true_r2  .append(true2_r)
+            true_phi2.append(true2_phi)
+            true_z2  .append(true2_z)
 
-                ### THRESHOLD FOR PHI:
-                indices_over_thr_phi = (tot_charges >= threshold)
-                sns_over_thr_phi     = sns_ids    [indices_over_thr_phi]
-                charges_over_thr_phi = tot_charges[indices_over_thr_phi]
-                        
-                if len(charges_over_thr_phi) == 0:
-                    continue
-                        
-                _, _, pos1_for_phi, pos2_for_phi, _, _, q1_for_phi, q2_for_phi = ats.sensor_classification(ave_true1,
-                                                                                                           ave_true2,
-                                                                                                           sens_pos,
-                                                                                                           sens_pos_cyl,
-                                                                                                           sns_over_thr_phi,
-                                                                                                           charges_over_thr_phi)
+            sns_response1.append(q1)
+            sns_response2.append(q2)
 
-                ### THRESHOLD FOR Z:
-                indices_over_thr_z = (tot_charges >= threshold)
-                sns_over_thr_z     = sns_ids    [indices_over_thr_z]
-                charges_over_thr_z = tot_charges[indices_over_thr_z]
-
-                if len(charges_over_thr_z) == 0:
-                    continue
-
-                _, _, pos1_for_z, pos2_for_z, _, _, q1_for_z, q2_for_z = ats.sensor_classification(ave_true1,
-                                                                                                   ave_true2,
-                                                                                                   sens_pos,
-                                                                                                   sens_pos_cyl,
-                                                                                                   sns_over_thr_z,
-                                                                                                   charges_over_thr_z)
-
-                ### THRESHOLD FOR E:
-                indices_over_thr_e = (tot_charges >= threshold)
-                sns_over_thr_e     = sns_ids    [indices_over_thr_e]
-                charges_over_thr_e = tot_charges[indices_over_thr_e]
-
-                if len(charges_over_thr_e) == 0:
-                    continue
-                
-                ampl1_e, ampl2_e, _, _, _, _, _, _ = ats.sensor_classification(ave_true1,
-                                                                               ave_true2,
-                                                                               sens_pos,
-                                                                               sens_pos_cyl,
-                                                                               sns_over_thr_e,
-                                                                               charges_over_thr_e)
-
-                if len(q1_for_phi) and len(q1_for_z) and sigma_phi1 and ampl1_e:
-                    reco_r            = Rpos(sigma_phi1).value
-                    reco_cart_for_phi = ats.barycenter_3D(pos1_for_phi, q1_for_phi)
-                    reco_cyl_for_phi  = ats.get_coord_cyl(reco_cart_for_phi)
-                    reco_cart_for_z   = ats.barycenter_3D(pos1_for_z  , q1_for_z  )
-
-                    true_r   = np.sqrt((ave_true1[0]*ave_true1[0])+(ave_true1[1]*ave_true1[1]))
-                    true_phi = np.arctan2(ave_true1[1], ave_true1[0])
-
-                    reco_r1  [threshold].append(reco_r)
-                    reco_phi1[threshold].append(reco_cyl_for_phi[1])
-                    reco_z1  [threshold].append(reco_cart_for_z [2])
-                    true_r1  [threshold].append(true_r)
-                    true_phi1[threshold].append(true_phi)
-                    true_z1  [threshold].append(ave_true1[2])
-                    charge1  [threshold].append(ampl1_e)
-                    events   [threshold].append(event_number)
-                else:
-                    reco_r1  [threshold].append(1.e9)
-                    reco_phi1[threshold].append(1.e9)
-                    reco_z1  [threshold].append(1.e9)
-                    true_r1  [threshold].append(1.e9)
-                    true_phi1[threshold].append(1.e9)
-                    true_z1  [threshold].append(1.e9)
-                    charge1  [threshold].append(1.e9)
-                    events   [threshold].append(event_number)
-
-                if len(q2_for_phi) and len(q2_for_z) and sigma_phi2 and ampl2_e:
-                    reco_r            = Rpos(sigma_phi2).value
-                    reco_cart_for_phi = ats.barycenter_3D(pos2_for_phi, q2_for_phi)
-                    reco_cyl_for_phi  = ats.get_coord_cyl(reco_cart_for_phi)
-                    reco_cart_for_z   = ats.barycenter_3D(pos2_for_z  , q2_for_z  )
-
-                    true_r   = np.sqrt((ave_true2[0]*ave_true2[0])+(ave_true2[1]*ave_true2[1]))
-                    true_phi = np.arctan2(ave_true2[1], ave_true2[0])
-
-                    reco_r2  [threshold].append(reco_r)
-                    reco_phi2[threshold].append(reco_cyl_for_phi[1])
-                    reco_z2  [threshold].append(reco_cart_for_z[2])
-                    true_r2  [threshold].append(true_r)
-                    true_phi2[threshold].append(true_phi)
-                    true_z2  [threshold].append(ave_true2[2])
-                    charge2  [threshold].append(ampl2_e)
-                else:
-                    reco_r2  [threshold].append(1.e9)
-                    reco_phi2[threshold].append(1.e9)
-                    reco_z2  [threshold].append(1.e9)
-                    true_r2  [threshold].append(1.e9)
-                    true_phi2[threshold].append(1.e9)
-                    true_z2  [threshold].append(1.e9)
-                    charge2  [threshold].append(1.e9)
-
-        except SipmEmptyList:
-            continue
+            events.append(event_number)
 
 
-for i in range(nsteps):
-    sel1 = (np.array(true_r1[i]) < 1.e9)
-    sel2 = (np.array(true_r2[i]) < 1.e9)
+a_true_r1    = np.array(true_r1)
+a_true_phi1  = np.array(true_phi1)
+a_true_z1    = np.array(true_z1)
+a_reco_r1    = np.array(reco_r1)
+a_reco_phi1  = np.array(reco_phi1)
+a_reco_z1    = np.array(reco_z1)
+a_sns_response1 = np.array(sns_response1)
 
-    events    [i] = np.array(events    [i])[sel1]
-    true_r1   [i] = np.array(true_r1   [i])[sel1]
-    true_r2   [i] = np.array(true_r2   [i])[sel2]
-    true_phi1 [i] = np.array(true_phi1 [i])[sel1]
-    true_phi2 [i] = np.array(true_phi2 [i])[sel2]
-    true_z1   [i] = np.array(true_z1   [i])[sel1]
-    true_z2   [i] = np.array(true_z2   [i])[sel2]
+a_true_r2    = np.array(true_r2)
+a_true_phi2  = np.array(true_phi2)
+a_true_z2    = np.array(true_z2)
+a_reco_r2    = np.array(reco_r2)
+a_reco_phi2  = np.array(reco_phi2)
+a_reco_z2    = np.array(reco_z2)
+a_sns_response2 = np.array(sns_response2)
 
-    reco_r1   [i] = np.array(reco_r1   [i])[sel1]
-    reco_r2   [i] = np.array(reco_r2   [i])[sel2]
-    reco_phi1 [i] = np.array(reco_phi1 [i])[sel1]
-    reco_phi2 [i] = np.array(reco_phi2 [i])[sel2]
-    reco_z1   [i] = np.array(reco_z1   [i])[sel1]
-    reco_z2   [i] = np.array(reco_z2   [i])[sel2]
-    charge1   [i] = np.array(charge1   [i])[sel1]
-    charge2   [i] = np.array(charge2   [i])[sel2]
+a_events = np.array(events)
+
+np.savez(evt_file,    a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1,
+         a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2,
+         a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1,
+         a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2,
+         a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2,
+         a_events=a_events)
 
 print(datetime.datetime.now())
-
-np.savez(evt_file, a_events_0=events[0], a_true_r1_0=true_r1[0], a_true_r2_0=true_r2[0], a_true_phi1_0=true_phi1[0],
-         a_true_phi2_0=true_phi2[0], a_true_z1_0=true_z1[0], a_true_z2_0=true_z2[0], a_reco_r1_0=reco_r1[0],
-         a_reco_r2_0=reco_r2[0], a_reco_phi1_0=reco_phi1[0], a_reco_phi2_0=reco_phi2[0], a_reco_z1_0=reco_z1[0],
-         a_reco_z2_0=reco_z2[0], a_charge1_0=charge1[0], a_charge2_0=charge2[0], a_events_1=events[1], a_true_r1_1=true_r1[1],
-         a_true_r2_1=true_r2[1], a_true_phi1_1=true_phi1[1], a_true_phi2_1=true_phi2[1], a_true_z1_1=true_z1[1],
-         a_true_z2_1=true_z2[1], a_reco_r1_1=reco_r1[1], a_reco_r2_1=reco_r2[1], a_reco_phi1_1=reco_phi1[1],
-         a_reco_phi2_1=reco_phi2[1], a_reco_z1_1=reco_z1[1], a_reco_z2_1=reco_z2[1], a_charge1_1=charge1[1],
-         a_charge2_1=charge2[1], a_events_2=events[2], a_true_r1_2=true_r1[2], a_true_r2_2=true_r2[2],
-         a_true_phi1_2=true_phi1[2], a_true_phi2_2=true_phi2[2], a_true_z1_2=true_z1[2], a_true_z2_2=true_z2[2],
-         a_reco_r1_2=reco_r1[2], a_reco_r2_2=reco_r2[2], a_reco_phi1_2=reco_phi1[2], a_reco_phi2_2=reco_phi2[2],
-         a_reco_z1_2=reco_z1[2], a_reco_z2_2=reco_z2[2], a_charge1_2=charge1[2], a_charge2_2=charge2[2],
-         a_events_3=events[3], a_true_r1_3=true_r1[3], a_true_r2_3=true_r2[3], a_true_phi1_3=true_phi1[3],
-         a_true_phi2_3=true_phi2[3], a_true_z1_3=true_z1[3], a_true_z2_3=true_z2[3], a_reco_r1_3=reco_r1[3],
-         a_reco_r2_3=reco_r2[3], a_reco_phi1_3=reco_phi1[3], a_reco_phi2_3=reco_phi2[3], a_reco_z1_3=reco_z1[3],
-         a_reco_z2_3=reco_z2[3], a_charge1_3=charge1[3], a_charge2_3=charge2[3], a_events_4=events[4],
-         a_true_r1_4=true_r1[4], a_true_r2_4=true_r2[4], a_true_phi1_4=true_phi1[4], a_true_phi2_4=true_phi2[4],
-         a_true_z1_4=true_z1[4], a_true_z2_4=true_z2[4], a_reco_r1_4=reco_r1[4], a_reco_r2_4=reco_r2[4],
-         a_reco_phi1_4=reco_phi1[4], a_reco_phi2_4=reco_phi2[4], a_reco_z1_4=reco_z1[4], a_reco_z2_4=reco_z2[4],
-         a_charge1_4=charge1[4], a_charge2_4=charge2[4], a_events_5=events[5], a_true_r1_5=true_r1[5],
-         a_true_r2_5=true_r2[5], a_true_phi1_5=true_phi1[5], a_true_phi2_5=true_phi2[5], a_true_z1_5=true_z1[5],
-         a_true_z2_5=true_z2[5], a_reco_r1_5=reco_r1[5], a_reco_r2_5=reco_r2[5], a_reco_phi1_5=reco_phi1[5],
-         a_reco_phi2_5=reco_phi2[5], a_reco_z1_5=reco_z1[5], a_reco_z2_5=reco_z2[5], a_charge1_5=charge1[5],
-         a_charge2_5=charge2[5])
