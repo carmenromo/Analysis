@@ -17,7 +17,7 @@ print(datetime.datetime.now())
 
 """
 Example of calling this script:
-python 1_maps_r.py 3000 1 6 0 /Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton full_ring_iradius165mm_z140mm_depth3cm_pitch7mm data_test
+python 1_maps_r.py 3000 1 6 0 /Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton full_ring_iradius165mm_z140mm_depth3cm_pitch7mm /Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton data_test irad165mm_z140mm_d3cm
 """
 
 arguments  = sc_utils.parse_args(sys.argv)
@@ -27,8 +27,12 @@ nsteps     = arguments.n_steps
 thr_start  = arguments.thr_start
 eventsPath = arguments.events_path
 file_name  = arguments.file_name
+base_path  = arguments.base_path
 data_path  = arguments.data_path
-evt_file   = f"{data_path}/full_ring_p7mm_d4cm_mapsr_{start}_{numb}_{nsteps}_{thr_start}"
+identifier = arguments.identifier
+
+data_path  = f"{base_path}/{data_path}"
+evt_file   = f"{data_path}/full_ring_{identifier}_mapsr_{start}_{numb}_{nsteps}_{thr_start}"
 
 true_r1        = [[] for i in range(0, nsteps)]
 true_r2        = [[] for i in range(0, nsteps)]
