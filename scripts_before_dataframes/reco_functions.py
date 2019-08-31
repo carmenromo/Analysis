@@ -160,6 +160,7 @@ def get_r_and_var_phi(ave_true, cyl_pos, q):
     var_phi  = np.average((phi_pos - mean_phi)**2, weights=q)
     return r, var_phi
 
+
 def get_r_and_var_phi2(ave_true, cyl_pos, q):
     r        = np.sqrt(ave_true[0]**2 + ave_true[1]**2)
     phi_pos  = np.array([el[1] for el in cyl_pos])
@@ -168,8 +169,7 @@ def get_r_and_var_phi2(ave_true, cyl_pos, q):
     return r, var_phi
 
 
-def get_var_phi(cyl_pos, q):
-    phi_pos   = np.array([el[1] for el in cyl_pos])
+def get_var_phi(phi_pos, q):
     diff_sign = min(phi_pos) < 0 < max(phi_pos)
     if diff_sign & (np.abs(np.min(phi_pos))>np.pi/2):
         phi_pos[phi_pos<0] = np.pi + np.pi + phi_pos[phi_pos<0]

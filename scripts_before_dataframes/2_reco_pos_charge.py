@@ -7,6 +7,7 @@ import tables         as tb
 import numpy          as np
 import pandas         as pd
 import reco_functions as rf
+import analysis_utils as ats
 
 from   antea.io.mc_io_tb                import read_SiPM_bin_width_from_conf
 from   antea.io.mc_io_tb                import go_through_file
@@ -17,7 +18,7 @@ print(datetime.datetime.now())
 
 """
 Example of calling this script:
-python 2_reco_pos_charge.py 3000 1 6 0 /Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton full_ring_iradius165mm_z140mm_depth3cm_pitch7mm data_test
+python 2_reco_pos_charge.py 3000 1 6 0 /Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton full_ring_iradius165mm_z140mm_depth3cm_pitch7mm /Users/carmenromoluque/nexus_petit_analysis/PETit-ring/Christoff_sim/compton data_test irad165mm_depth3cm
 """
 
 arguments  = sc_utils.parse_args(sys.argv)
@@ -39,8 +40,10 @@ phi_threshold  = 5
 zpos_threshold = 4
 e_threshold    = 2
 
-rpos_file   = f"{base_path}/r_sigma_phi_{identifier}_thr{rpos_threshold}pes_compton_sel_photp.h5"
-Rpos        = ats.load_rpos(rpos_file, group = "Radius", node  = f"f{rpos_threshold}pes150bins")
+rpos_file   = f"{base_path}/r_sigma_phi_table_{identifier}_thr{rpos_threshold}pes_compton_sel_photp.h5"
+print(rpos_file)
+#Rpos        = ats.load_rpos(rpos_file, group="Radius", node=f"f{rpos_threshold}pes150bins")
+Rpos        = ats.load_rpos(rpos_file, group="Radius", node=f"f3pes150bins")
 
 reco_r1, reco_r2, true_r1, true_r2          = [], [], [], []
 reco_phi1, reco_phi2, true_phi1, true_phi2  = [], [], [], []
