@@ -31,8 +31,7 @@ base_path  = arguments.base_path
 data_path  = arguments.data_path
 identifier = arguments.identifier
 
-data_path  = f"{base_path}/{data_path}"
-evt_file   = f"{data_path}/full_ring_{identifier}_mapsr_{start}_{numb}_{nsteps}_{thr_start}"
+evt_file   = f"{base_path}/{data_path}/full_ring_{identifier}_mapsr_no_compton_{start}_{numb}_{nsteps}_{thr_start}"
 
 true_r1        = [[] for i in range(0, nsteps)]
 true_r2        = [[] for i in range(0, nsteps)]
