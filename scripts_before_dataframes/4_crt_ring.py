@@ -201,8 +201,7 @@ a_pos_cart1 = np.array(pos_cart1)
 a_pos_cart2 = np.array(pos_cart2)
 a_event_ids = np.array(event_ids)
 
-#np.savez(evt_file, time_diff=a_time_diff, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
+np.savez(evt_file, time_diff=a_time_diff, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
 
 print(datetime.datetime.now())
-print(n_coinc_true)
-print(n_coinc_reco)
+
