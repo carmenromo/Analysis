@@ -57,6 +57,7 @@ else:
 
 time_diff1 = []
 time_diff2 = []
+time_diff3 = []
 pos_cart1  = []
 pos_cart2  = []
 event_ids  = []
@@ -141,6 +142,8 @@ for number in range(start, start+numb):
                 pos2_cart.append(r2 * np.cos(phi2))
                 pos2_cart.append(r2 * np.sin(phi2))
                 pos2_cart.append(z2)
+            else: continue
+
             a_cart1 = np.array(pos1_cart)
             a_cart2 = np.array(pos2_cart)
 
@@ -155,20 +158,22 @@ for number in range(start, start+numb):
             
             delta_t1 = 1/2 *((dp1 - dp2)/ave_speed_in_LXe - min_t1 + min_t2)
             delta_t2 = 1/2 *(min_t2 - min_t1)
-
+            delta_t3 = min_t1 - min_t2 - ((dp1 - dp2)/ave_speed_in_LXe)
 
             time_diff1.append(delta_t1)
             time_diff2.append(delta_t2)
+            time_diff3.append(delta_t3)
             pos_cart1 .append(a_cart1)
             pos_cart2 .append(a_cart2)
             event_ids .append(event_number)
 
 a_time_diff1 = np.array(time_diff1)
 a_time_diff2 = np.array(time_diff2)
+a_time_diff3 = np.array(time_diff3)
 a_pos_cart1  = np.array(pos_cart1 )
 a_pos_cart2  = np.array(pos_cart2 )
 a_event_ids  = np.array(event_ids )
 
-np.savez(evt_file, time_diff1=a_time_diff1, time_diff2=a_time_diff2, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
+np.savez(evt_file, time_diff1=a_time_diff1, time_diff2=a_time_diff2, time_diff3=a_time_diff3, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
 
 print(datetime.datetime.now())
