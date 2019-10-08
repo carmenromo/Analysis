@@ -11,7 +11,7 @@ def true_photoelect(h5in, true_file, evt, compton=False):
     It allows the possibility of including compton events.
     """
 
-    this_event_dict = read_mcinfo        (     h5in, (evt, evt+1))
+    this_event_dict = read_mcinfo(h5in, (evt, evt+1))
     part_dict       = list(this_event_dict.values())[0]
 
     ave_true1 = []
@@ -276,7 +276,7 @@ def reco_pos_single(true_pos, sns_q, sns_pos, th_r, th_phi, th_z):
     for th in list_thrs:
         indices_over_thr = sns_q > th
         pos_over_thr     = sns_pos[indices_over_thr]
-        charges_over_thr = sns_q[indices_over_thr]
+        charges_over_thr = sns_q  [indices_over_thr]
         if len(charges_over_thr) == 0:
             return [], []
 
@@ -288,16 +288,17 @@ def reco_pos_single(true_pos, sns_q, sns_pos, th_r, th_phi, th_z):
 
 def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict):
     """
-        This functions returns a lot of things:
-        interest1, interest2: boolean, it's true if the event of the emisphere 1/2 is of interest
-        pos_true1, pos_true2: the true position of the first interaction of the gamma in the emisphere 1/2
-        gamma1, gamma2: boolean, it's true if the primary gamma originating the interaction in emisphere 1/2 has py>0
-        charges1, charges2: the list of the charges detected by the SiPMs of emisphere 1/2
-        positions1, positions2: the list of the positions of the SiPMs of emisphere 1/2
-        """
+    This functions returns a lot of things:
+    interest1, interest2: boolean, it's true if the event of the emisphere 1/2 is of interest
+    pos_true1, pos_true2: the true position of the first interaction of the gamma in the hemisphere 1/2
+    gamma1, gamma2: boolean, it's true if the primary gamma originating the interaction in hemisphere 1/2 has py>0
+    charges1, charges2: the list of the charges detected by the SiPMs of emisphere 1/2
+    positions1, positions2: the list of the positions of the SiPMs of emisphere 1/2
+    """
 
     positions1, positions2 = [], []
-    charges1, charges2 = [], []
+    charges1  , charges2   = [], []
+    ids1      , ids2       = [], []   
 
     ### Find the SiPM with maximum charge. The set if sensors around it are labelled as 1
     ### The sensors on the opposite emisphere are labelled as 2.
@@ -307,11 +308,13 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
         pos = sens_pos[sns_id]
         scalar_prod = sum(a*b for a, b in zip(pos, max_pos))
         if scalar_prod > 0.:
-            charges1.append(charge)
+            charges1  .append(charge)
             positions1.append(pos)
+            ids1      .append(sns_id)
         else:
-            charges2.append(charge)
+            charges2  .append(charge)
             positions2.append(pos)
+            ids2      .append(sns_id)
     q1 = sum(charges1)
     q2 = sum(charges2)
 
@@ -319,7 +322,7 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
     sel1 = (q1 > charge_range[0]) & (q1 < charge_range[1])
     sel2 = (q2 > charge_range[0]) & (q2 < charge_range[1])
     if not sel1 and not sel2:
-        return False, False, [], [], None, None, [], [], [], []
+        return False, False, [], [], None, None, [], [], [], [], [], []
 
 
     ## find the first interactions of the primary gamma(s)
@@ -427,4 +430,15 @@ def select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, se
             print("Houston, we've got a problem 4")
 
 
-    return interest1, interest2, pos_true1, pos_true2, gamma_1, gamma_2, charges1, charges2, positions1, positions2
+    return interest1, interest2, pos_true1, pos_true2, gamma_1, gamma_2, ids1, ids2, charges1, charges2, positions1, positions2
+
+
+def find_first_time_of_sensors(sns_dict_tof, ids):
+    sns_ids_tof         = np.array(list(sns_dict_tof.keys()))
+    sel_sns             = np.isin(-sns_ids_tof, ids)
+    tof_ids             = sns_ids_tof[sel_sns]
+    tot_charges_tof     = np.array(list(map(lambda x: sum(x.charges), sns_dict_tof.values())))[sel_sns]
+    first_timestamp_tof = np.array(list(map(lambda x:     x.times[0], sns_dict_tof.values())))[sel_sns]
+    min_t               = min(first_timestamp_tof)
+    min_id              = tof_ids[np.where(first_timestamp_tof==min_t)[0][0]]
+    return min_t, min_id
