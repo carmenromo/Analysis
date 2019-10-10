@@ -63,6 +63,7 @@ pos_cart2  = []
 event_ids  = []
 
 ave_speed_in_LXe = 0.210 # mm/ps 
+speed_in_vacuum  = 0.299792458 # mm/ps
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -91,7 +92,6 @@ for number in range(start, start+numb):
         event_number       = h5in.root.MC.extents[evt]['evt_number']
         this_event_wvf     = go_through_file(h5in, h5in.root.MC.waveforms, (evt, evt+1), bin_width, 'data')
         this_event_wvf_tof = read_mcTOFsns_response(filename, (evt, evt+1))
-
         sns_over_thr, charges_over_thr = rf.find_SiPMs_over_threshold(this_event_wvf, e_threshold)
 
         if len(charges_over_thr) == 0: continue
@@ -151,14 +151,21 @@ for number in range(start, start+numb):
             min_t1, min_id1 = rf.find_first_time_of_sensors(sns_dict_tof, ids1)
             min_t2, min_id2 = rf.find_first_time_of_sensors(sns_dict_tof, ids2)
 
+            min_t1 = min_t1/0.001 #from ns to ps
+            min_t2 = min_t2/0.001
 
             ### Distance between interaction point and sensor detecting first photon
             dp1 = np.linalg.norm(a_cart1 - sens_pos[-min_id1])
             dp2 = np.linalg.norm(a_cart2 - sens_pos[-min_id2])
+
+            ### Distance between interaction point and center of the geometry
+            geo_center = np.array([0,0,0])
+            dg1 = np.linalg.norm(a_cart1 - geo_center)
+            dg2 = np.linalg.norm(a_cart2 - geo_center)
             
-            delta_t1 = 1/2 *((dp1 - dp2)/ave_speed_in_LXe - min_t1 + min_t2)
+            delta_t1 = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe)
             delta_t2 = 1/2 *(min_t2 - min_t1)
-            delta_t3 = min_t1 - min_t2 - ((dp1 - dp2)/ave_speed_in_LXe)
+            delta_t3 = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe + (dg1 - dg2)/speed_in_vacuum)
 
             time_diff1.append(delta_t1)
             time_diff2.append(delta_t2)
