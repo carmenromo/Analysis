@@ -442,3 +442,19 @@ def find_first_time_of_sensors(sns_dict_tof, ids):
     min_t               = min(first_timestamp_tof)
     min_id              = tof_ids[np.where(first_timestamp_tof==min_t)[0][0]]
     return min_t, min_id
+
+
+def intersect_points_line_and_circ(p1_line, p2_line, r_circ):
+    x1, y1, z1 = p1_line
+    x2, y2, z2 = p2_line
+    m = (y2 - y1)/(x2 - x1)
+    xa = (x1*m*m - m*y1 - np.sqrt(r_circ*r_circ*(m*m+1) - x1*x1*m*m - y1*y1 + 2*x1*y1*m)) / (m*m+1)
+    xb = (x1*m*m - m*y1 + np.sqrt(r_circ*r_circ*(m*m+1) - x1*x1*m*m - y1*y1 + 2*x1*y1*m)) / (m*m+1)
+    
+    ya = m * (xa-x1) + y1
+    yb = m * (xb-x1) + y1
+    
+    m2 = (z2-z1)/(x2-x1)
+    za = m2*(-r_circ-x1) + z1
+    zb = m2*( r_circ-x2) + z1
+    return np.array([xa, ya, za]), np.array([xb, yb, zb])

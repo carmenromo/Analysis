@@ -58,12 +58,14 @@ else:
 time_diff1 = []
 time_diff2 = []
 time_diff3 = []
+time_diff4 = []
 pos_cart1  = []
 pos_cart2  = []
 event_ids  = []
 
 ave_speed_in_LXe = 0.210 # mm/ps 
 speed_in_vacuum  = 0.299792458 # mm/ps
+r_int            = 165 # mm
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -170,20 +172,37 @@ for number in range(start, start+numb):
             delta_t2 = 1/2 *(min_t2 - min_t1)
             delta_t3 = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe + (dg1 - dg2)/speed_in_vacuum)
 
+
+            ### CRT calculation having into account the depth of interaction of the gammas
+            point_a, point_b = rf.intersect_points_line_and_circ(a_cart1, a_cart2, r_int)
+            
+            da = np.linalg.norm(np.subtract(a_cart1, point_a))
+            db = np.linalg.norm(np.subtract(a_cart1, point_b))
+            if da < db:
+                db = np.linalg.norm(np.subtract(a_cart2, point_b))
+            else:
+                da = np.linalg.norm(np.subtract(a_cart2, point_a))
+
+            delta_t4 = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe + (da - db)/ave_speed_in_LXe)
+
             time_diff1.append(delta_t1)
             time_diff2.append(delta_t2)
             time_diff3.append(delta_t3)
+            time_diff4.append(delta_t4)
             pos_cart1 .append(a_cart1)
             pos_cart2 .append(a_cart2)
             event_ids .append(event_number)
 
+
 a_time_diff1 = np.array(time_diff1)
 a_time_diff2 = np.array(time_diff2)
 a_time_diff3 = np.array(time_diff3)
+a_time_diff4 = np.array(time_diff4)
 a_pos_cart1  = np.array(pos_cart1 )
 a_pos_cart2  = np.array(pos_cart2 )
 a_event_ids  = np.array(event_ids )
 
-np.savez(evt_file, time_diff1=a_time_diff1, time_diff2=a_time_diff2, time_diff3=a_time_diff3, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
+np.savez(evt_file, time_diff1=a_time_diff1, time_diff2=a_time_diff2, time_diff3=a_time_diff3, 
+         time_diff4=a_time_diff4, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
 
 print(datetime.datetime.now())
