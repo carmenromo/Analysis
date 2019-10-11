@@ -84,7 +84,7 @@ for number in range(start, start+numb):
     sens_pos_cyl   = rf.sensor_position_cyl(h5in)
     bin_width      = read_SiPM_bin_width_from_conf(h5in)
 
-    charge_range = (0, 1400)
+    charge_range = (0, 10000)
 
     for evt in range(events_in_file):
         #for evt in range(1000):
