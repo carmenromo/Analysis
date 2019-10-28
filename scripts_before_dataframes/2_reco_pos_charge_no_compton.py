@@ -35,22 +35,23 @@ identifier = arguments.identifier
 data_path  = f"{base_path}/{data_path}"
 evt_file   = f"{data_path}/full_ring_{identifier}_reco_pos_charge_{start}_{numb}_{nsteps}_{thr_start}"
 
-if identifier == 'irad165mm_d3cm_no_refl_sipms':
-    rpos_threshold = 4
-else:
-    rpos_threshold = 3
+#if identifier == 'irad165mm_d3cm_no_refl_sipms':
+#    rpos_threshold = 4
+#else:
+#    rpos_threshold = 3
 
+rpos_threshold = 4
 phi_threshold  = 5
 zpos_threshold = 4
 e_threshold    = 2
 
 rpos_file   = f"{base_path}/r_sigma_phi_table_{identifier}_thr{rpos_threshold}pes_no_compton.h5"
-#Rpos        = ats.load_rpos(rpos_file, group="Radius", node=f"f{rpos_threshold}pes150bins")
+Rpos        = ats.load_rpos(rpos_file, group="Radius", node=f"f{rpos_threshold}pes150bins")
 
-if identifier == 'irad165mm_d3cm_no_refl_sipms':
-    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
-else:
-    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f3pes150bins")
+#if identifier == 'irad165mm_d3cm_no_refl_sipms':
+#    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
+#else:
+#    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f3pes150bins")
 
 reco_r1, reco_r2, true_r1, true_r2          = [], [], [], []
 reco_phi1, reco_phi2, true_phi1, true_phi2  = [], [], [], []
@@ -92,7 +93,7 @@ for number in range(start, start+numb):
 
         this_event_dict = read_mcinfo(h5in, (evt, evt+1))
         part_dict       = list(this_event_dict.values())[0]
-        i1, i2, pos_true1, pos_true2, _, _, q1, q2, pos1, pos2 = rf.select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict)
+        i1, i2, pos_true1, pos_true2, _, _, _, _, q1, q2, pos1, pos2 = rf.select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict)
 
         if i1 and i2:
             positions1, qs1 = rf.reco_pos_single(pos_true1, np.array(q1), np.array(pos1), rpos_threshold, phi_threshold, zpos_threshold)
