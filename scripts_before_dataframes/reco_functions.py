@@ -5,17 +5,17 @@ from invisible_cities.io  .mcinfo_io  import read_mcinfo
 from invisible_cities.core.exceptions import NoHits
 
 
-def true_photoelect(h5in, true_file, evt, compton=False):
+def true_photoelect(h5in, true_file, evt, compton=False, energy=False):
     """Returns the position of the true photoelectric energy deposition
     calculated with barycenter algorithm.
-    It allows the possibility of including compton events.
+    It allows the possibility of including compton events and
+    returning the energy.
     """
-
     this_event_dict = read_mcinfo(h5in, (evt, evt+1))
     part_dict       = list(this_event_dict.values())[0]
 
-    ave_true1 = []
-    ave_true2 = []
+    ave_true1, ave_true2 = [], []
+    energy1  , energy2   =  0,  0
 
     for indx, part in part_dict.items():
         if part.name == 'e-' :
@@ -24,19 +24,20 @@ def true_photoelect(h5in, true_file, evt, compton=False):
                 if mother.primary and np.isclose(mother.E*1000., 510.999, atol=1.e-3):
                     if compton==True: pass
                     else:
-                        if sum(h.E for h in part.hits) > 0.476443: pass
+                        if sum(h.E for h in part.hits) >= 0.476443: pass
                         else: continue
 
-                    if mother.p[1] > 0.: ave_true1 = get_true_pos(part)
-                    else:                ave_true2 = get_true_pos(part)
-    return ave_true1, ave_true2
-
+                    if mother.p[1] > 0.: ave_true1, energy1 = get_true_pos(part)
+                    else:                ave_true2, energy2 = get_true_pos(part)
+    if energy: return ave_true1, ave_true2, energy1, energy2
+    else:      return ave_true1, ave_true2
+    
 
 def get_true_pos(part):
     hit_positions = [h.pos for h in part.hits]
     energies      = [h.E   for h in part.hits]
     energy        = sum(energies)
-    if energy: return np.average(hit_positions, axis=0, weights=energies)
+    if energy: return np.average(hit_positions, axis=0, weights=energies), energy
     else: raise NoHits
 
 
@@ -457,4 +458,10 @@ def intersect_points_line_and_circ(p1_line, p2_line, r_circ):
     m2 = (z2-z1)/(x2-x1)
     za = m2*(-r_circ-x1) + z1
     zb = m2*( r_circ-x2) + z1
-    return np.array([xa, ya, za]), np.array([xb, yb, zb])
+    
+    d1 = np.linalg.norm(np.subtract(p1_line, np.array([xa, ya, za])))
+    d2 = np.linalg.norm(np.subtract(p1_line, np.array([xb, yb, zb])))
+    if d1 < d2:
+        return np.array([xa, ya, za]), np.array([xb, yb, zb])
+    else:
+        return np.array([xb, yb, zb]), np.array([xa, ya, za])
