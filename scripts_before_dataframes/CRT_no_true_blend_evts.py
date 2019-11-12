@@ -37,11 +37,12 @@ identifier = arguments.identifier
 data_path  = f"{base_path}/{data_path}"
 evt_file   = f"{data_path}/full_ring_{identifier}_crt_{start}_{numb}"
 
-if identifier == 'irad165mm_d3cm_no_refl_sipms':
-    rpos_threshold = 4
-else:
-    rpos_threshold = 3
+#if identifier == 'irad165mm_d3cm_no_refl_sipms':
+#    rpos_threshold = 4
+#else:
+#    rpos_threshold = 3
 
+rpos_threshold = 4
 phi_threshold  = 5
 zpos_threshold = 4
 e_threshold    = 2
