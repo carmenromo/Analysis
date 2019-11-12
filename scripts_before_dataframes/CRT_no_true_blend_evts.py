@@ -50,10 +50,11 @@ e_threshold    = 2
 rpos_file   = f"{base_path}/r_sigma_phi_table_{identifier}_thr{rpos_threshold}pes_no_compton.h5"
 #Rpos        = ats.load_rpos(rpos_file, group="Radius", node=f"f{rpos_threshold}pes150bins")
 
-if identifier == 'irad165mm_d3cm_no_refl_sipms':
-    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
-else:
-    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f3pes150bins")
+#if identifier == 'irad165mm_d3cm_no_refl_sipms':
+#    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
+#else:
+#    Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f3pes150bins")
+Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
 
 
 time_diff1 = []
