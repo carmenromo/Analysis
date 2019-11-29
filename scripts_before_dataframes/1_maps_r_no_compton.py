@@ -95,7 +95,7 @@ for number in range(start, start+numb):
 
 
                 def get_true_r(ampl, q, ave_true, pos_cyl, var_phi, true_r):
-                    if ampl>0 and sum(q) != 0:
+                    if ampl>0 and sum(q)!=0:
                         r, v_phi        = rf.get_r_and_var_phi(ave_true, pos_cyl, q)
                         return lists_var_phi_and_r(var_phi, true_r, v_phi, r)
                     else:

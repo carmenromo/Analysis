@@ -105,7 +105,7 @@ for number in range(start, start+numb):
 
         this_event_dict = read_mcinfo(h5in, (evt, evt+1))
         part_dict       = list(this_event_dict.values())[0]
-        i1, i2, pos_true1, pos_true2, _, _, q1, q2, pos1, pos2 = rf.select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict)
+        i1, i2, pos_true1, pos_true2, _, _, ids1, ids2, q1, q2, pos1, pos2 = rf.select_true_pos_from_charge(sns_over_thr, charges_over_thr, charge_range, sens_pos, part_dict)
 
         sns_dict_tof          = list(this_event_wvf_tof.values())[0]
         tot_charges_tof       = np.array(list(map(lambda x: sum(x.charges), sns_dict_tof.values())))
