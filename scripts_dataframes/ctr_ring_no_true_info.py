@@ -1,6 +1,10 @@
 import sys
-import numpy  as np
-import pandas as pd
+import datetime
+import sc_utils
+import tables         as tb
+import numpy          as np
+import pandas         as pd
+import analysis_utils as ats
 
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
@@ -12,13 +16,14 @@ from antea.io   .mc_io           import load_mcsns_response
 from antea.io   .mc_io           import load_mcTOFsns_response
 from antea.io   .mc_io           import read_sensor_bin_width_from_conf
 
+from invisible_cities.core import system_of_units as units
+
 print(datetime.datetime.now())
 
 """
 Example of calling this script:
 
-python CRT.py 0 1 6 0 /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/data_ring full_ring_iradius165mm_z140mm_depth3cm_pitch7mm /data5/users/carme\
-nromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/ 4_data_crt_no_compton irad165mm_depth3cm
+python ctr_ring_no_true_info.py 0 1 6 0 /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/data_ring full_ring_iradius165mm_z140mm_depth3cm_pitch7mm /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/ 4_data_crt_no_compton irad165mm_depth3cm
 """
 
 arguments  = sc_utils.parse_args(sys.argv)
@@ -35,20 +40,22 @@ identifier = arguments.identifier
 data_path  = f"{base_path}/{data_path}"
 evt_file   = f"{data_path}/full_ring_{identifier}_crt_{start}_{numb}"
 
-rpos_threshold = 4
-phi_threshold  = 5
-zpos_threshold = 4
-e_threshold    = 2
+thr_r   = 4
+thr_phi = 5
+thr_z   = 4
+thr_e   = 2
 
 def sensor_position(s_id, sipms):
-    xpos = sipms[sipms.ChannelID==min_id1].X.unique()
-    ypos = sipms[sipms.ChannelID==min_id1].Y.unique()
-    zpos = sipms[sipms.ChannelID==min_id1].Z.unique()
-    return np.array(xpos, ypos, zpos)
+    xpos = sipms[sipms.ChannelID==s_id].X.unique()[0]
+    ypos = sipms[sipms.ChannelID==s_id].Y.unique()[0]
+    zpos = sipms[sipms.ChannelID==s_id].Z.unique()[0]
+    return np.array([xpos, ypos, zpos])
 
-rpos_file   = f"{base_path}/r_sigma_phi_table_{identifier}_thr{rpos_threshold}pes_no_compton.h5"
+rpos_file = f"{base_path}/r_sigma_phi_table_{identifier}_thr{thr_r}pes_no_compton.h5"
+Rpos      = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
 
-Rpos = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
+DataSiPM     = db.DataSiPM('petalo', 0)
+DataSiPM_idx = DataSiPM.set_index('SensorID')
 
 c0 = c1 = c2 = c3 = c4 = 0
 
@@ -64,7 +71,7 @@ for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
     filename  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
     try:
-        sns_response = pd.load_mcsns_response(filename)
+        sns_response = load_mcsns_response(filename)
     except ValueError:
         print(f'File {filename} not found')
         continue
@@ -87,13 +94,12 @@ for number in range(start, start+numb):
     events = particles.event_id.unique()
 
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
-    #sipms.ChannelID==
     sns_ids       = sipms.index.values
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
 
     charge_range = (1000, 1400)
 
-    for evt in events[831:832]:
+    for evt in events[:]:
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
         if len(evt_sns) == 0:
@@ -101,7 +107,7 @@ for number in range(start, start+numb):
 
         evt_parts = particles[particles.event_id       == evt]
         evt_hits  = hits[hits.event_id                 == evt]
-        evt_tof   = tof_response[tof_response.event_id == evt]
+        evt_tof   = sns_response_tof[sns_response_tof.event_id == evt]
 
         pos1, pos2, q1, q2, _, _, _, _, min_id1, min_id2, min_tof1, min_tof2 = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
@@ -145,7 +151,8 @@ for number in range(start, start+numb):
         mean_phi = np.average(pos2_phi, weights=q2r)
         var_phi2 = np.average((pos2_phi-mean_phi)**2, weights=q2r)
         r2  = Rpos(np.sqrt(var_phi2)).value
-
+        if np.isnan(r1) or np.isnan(r2):
+            continue
 
         sel1_phi = q1>thr_phi
         q1phi    = q1  [sel1_phi]
@@ -198,15 +205,27 @@ for number in range(start, start+numb):
             pos2_cart.append(r2 * np.sin(phi2))
             pos2_cart.append(z2)
         else: continue
-        a_cart1 = np.array(pos1_cart)
-        a_cart2 = np.array(pos2_cart)
 
-        min_t1 = (min_tof1/0.001)*tof_bin_size/units.ps #from ns to ps
-        min_t2 = (min_tof2/0.001)*tof_bin_size/units.ps
+        ### CAREFUL, I AM BLENDING THE EVENTS!!!                                                                                                                              
+        if evt%2 == 0:
+            a_cart1   = np.array(pos1_cart)
+            a_cart2   = np.array(pos2_cart)
+            min_t1    = min_tof1*tof_bin_size/units.ps
+            min_t2    = min_tof2*tof_bin_size/units.ps
+            min_pos1 = sensor_position(min_id1, sipms)
+            min_pos2 = sensor_position(min_id2, sipms)
+        else:
+            a_cart1   = np.array(pos2_cart)
+            a_cart2   = np.array(pos1_cart)
+            min_t1    = min_tof2*tof_bin_size/units.ps
+            min_t2    = min_tof1*tof_bin_size/units.ps
+            min_pos1 = sensor_position(min_id2, sipms)
+            min_pos2 = sensor_position(min_id1, sipms)
+
 
         ### Distance between interaction point and sensor detecting first photon
-        dp1 = np.linalg.norm(a_cart1 - sensor_position(min_id1, sipms))
-        dp2 = np.linalg.norm(a_cart2 - sensor_position(min_id2, sipms))
+        dp1 = np.linalg.norm(a_cart1 - min_pos1)
+        dp2 = np.linalg.norm(a_cart2 - min_pos2)
 
         ### Distance between interaction point and center of the geometry
         geo_center = np.array([0,0,0])
@@ -219,7 +238,7 @@ for number in range(start, start+numb):
         pos_cart1.append(a_cart1)
         pos_cart2.append(a_cart2)
         event_ids.append(evt)
-
+        
         print(delta_t)
 
 a_time_diff = np.array(time_diff)
