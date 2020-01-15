@@ -24,7 +24,7 @@ print(datetime.datetime.now())
 """
 Example of calling this script:
 
-python ctr_ring_no_true_info.py 0 1 6 0 /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/data_ring full_ring_iradius165mm_z140mm_depth3cm_pitch7mm /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/ 4_data_crt_no_compton irad165mm_depth3cm
+python ctr_ring_no_true_info_exp_dist_tof.py 0 1 6 0 /data5/users/carmenromo/PETALO/PETit/PETit-ring/ring_dataframes_analysis/ring_dataframes_files/ petit_ring_tof_all_tables /data5/users/carmenromo/PETALO/PETit/PETit-ring/ring_dataframes_analysis/ data_ctr irad165mm_depth3cm
 """
 
 arguments  = sc_utils.parse_args(sys.argv)
@@ -39,12 +39,14 @@ data_path  = arguments.data_path
 identifier = arguments.identifier
 
 data_path  = f"{base_path}/{data_path}"
-evt_file   = f"{data_path}/full_ring_{identifier}_crt_{start}_{numb}"
+evt_file   = f"{data_path}/full_ring_{identifier}_crt_exp_dist_tof_{start}_{numb}"
 
 thr_r   = 4
 thr_phi = 5
 thr_z   = 4
 thr_e   = 2
+
+timestamp_thr = [0.5, 1, 1.5, 2, 2.5] #pes
 
 def sensor_position(s_id, sipms):
     xpos = sipms[sipms.ChannelID==s_id].X.unique()[0]
@@ -58,27 +60,26 @@ Rpos      = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
 DataSiPM     = db.DataSiPM('petalo', 0)
 DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-c0 = c1 = c2 = c3 = c4 = 0
 
-time_diff = []
-pos_cart1 = []
-pos_cart2 = []
-event_ids = []
+time_diff = [[] for j in range(len(timestamp_thr))]
+pos_cart1 = [[] for j in range(len(timestamp_thr))]
+pos_cart2 = [[] for j in range(len(timestamp_thr))]
+event_ids = [[] for j in range(len(timestamp_thr))]
 
 ave_speed_in_LXe = 0.210 # mm/ps
 speed_in_vacuum  = 0.299792458 # mm/ps
 
 ### TOF elec parameters:
-SIPM        = {'n_sipms':3500, 'first_sipm':1000, 'tau_sipm':[100,15000]}
-n_sipms     = SIPM['n_sipms']
-first_sipm  = SIPM['first_sipm']
-tau_sipm    = SIPM['tau_sipm']
-TE_range    = [0.25]
-TE_TDC      = TE_range[0]
-time_window = 10000
-time_bin    = 5
-time        = np.arange(0, 80000, time_bin)
-spe_resp    = tf.spe_dist(tau_sipm, time)
+SIPM                = {'n_sipms':3500, 'first_sipm':1000, 'tau_sipm':[100,15000]}
+n_sipms             = SIPM['n_sipms']
+first_sipm          = SIPM['first_sipm']
+tau_sipm            = SIPM['tau_sipm']
+TE_range            = [0.25]
+TE_TDC              = TE_range[0]
+time_window         = 10000
+time_bin            = 5
+time                = np.arange(0, 80000, time_bin)
+spe_resp, norm_dist = tf.spe_dist(tau_sipm, time)
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -125,7 +126,6 @@ for number in range(start, start+numb):
         pos1, pos2, q1, q2, _, _, _, _ = rf.select_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(pos1) == 0 or len(pos2) == 0:
-            c0 += 1
             continue
 
         q1   = np.array(q1);
@@ -144,7 +144,6 @@ for number in range(start, start+numb):
         pos2r  = pos2[sel2_r]
 
         if len(pos1r) == 0 or len(pos2r) == 0:
-            c1 += 1
             continue
 
         pos1_phi  = rf.from_cartesian_to_cyl(np.array(pos1r))[:,1]
@@ -172,7 +171,6 @@ for number in range(start, start+numb):
         q2phi    = q2  [sel2_phi]
         pos2phi  = pos2[sel2_phi]
         if len(q1phi) == 0 or len(q2phi) == 0:
-            c2 += 1
             continue
 
         phi1 = phi2 = None
@@ -189,7 +187,6 @@ for number in range(start, start+numb):
         q2z    = q2  [sel2_z]
         pos2z  = pos2[sel2_z]
         if len(q1z) == 0 or len(q2z) == 0:
-            c3 += 1
             continue
 
         z1 = z2 = None
@@ -203,7 +200,6 @@ for number in range(start, start+numb):
         sel2_e = q2>thr_e
         q2e    = q2[sel2_e]
         if len(q1e) == 0 or len(q2e) == 0:
-            c4 += 1
             continue
 
         pos1_cart = []
@@ -217,52 +213,56 @@ for number in range(start, start+numb):
             pos2_cart.append(z2)
         else: continue
 
-        tdc_conv_table = tf.tdc_convolution(evt_tof, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
+        tdc_conv_table   = tf.tdc_convolution(evt_tof, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
         evt_tof_exp_dist = tf.translate_charge_matrix_to_wf_df(evt, tdc_conv_table, first_sipm)
-        print(evt_sns, evt_tof_exp_dist)
-        min_id1, min_id2, min_tof1, min_tof2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
-        ### CAREFUL, I AM BLENDING THE EVENTS!!!                                                                                                                              
-        if evt%2 == 0:
-            a_cart1   = np.array(pos1_cart)
-            a_cart2   = np.array(pos2_cart)
-            min_t1    = min_tof1*tof_bin_size/units.ps
-            min_t2    = min_tof2*tof_bin_size/units.ps
-            min_pos1 = sensor_position(min_id1, sipms)
-            min_pos2 = sensor_position(min_id2, sipms)
-        else:
-            a_cart1   = np.array(pos2_cart)
-            a_cart2   = np.array(pos1_cart)
-            min_t1    = min_tof2*tof_bin_size/units.ps
-            min_t2    = min_tof1*tof_bin_size/units.ps
-            min_pos1 = sensor_position(min_id2, sipms)
-            min_pos2 = sensor_position(min_id1, sipms)
+        for j, t_thr in enumerate(timestamp_thr):
+            evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > (t_thr/norm_dist)]
+            min_id1, min_id2, min_tof1, min_tof2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+
+            ### CAREFUL, I AM BLENDING THE EVENTS!!!
+            if evt%2 == 0:
+                a_cart1   = np.array(pos1_cart)
+                a_cart2   = np.array(pos2_cart)
+                min_t1    = min_tof1*tof_bin_size/units.ps
+                min_t2    = min_tof2*tof_bin_size/units.ps
+                min_pos1 = sensor_position(min_id1, sipms)
+                min_pos2 = sensor_position(min_id2, sipms)
+            else:
+                a_cart1   = np.array(pos2_cart)
+                a_cart2   = np.array(pos1_cart)
+                min_t1    = min_tof2*tof_bin_size/units.ps
+                min_t2    = min_tof1*tof_bin_size/units.ps
+                min_pos1 = sensor_position(min_id2, sipms)
+                min_pos2 = sensor_position(min_id1, sipms)
 
 
-        ### Distance between interaction point and sensor detecting first photon
-        dp1 = np.linalg.norm(a_cart1 - min_pos1)
-        dp2 = np.linalg.norm(a_cart2 - min_pos2)
+            ### Distance between interaction point and sensor detecting first photon
+            dp1 = np.linalg.norm(a_cart1 - min_pos1)
+            dp2 = np.linalg.norm(a_cart2 - min_pos2)
 
-        ### Distance between interaction point and center of the geometry
-        geo_center = np.array([0,0,0])
-        dg1 = np.linalg.norm(a_cart1 - geo_center)
-        dg2 = np.linalg.norm(a_cart2 - geo_center)
+            ### Distance between interaction point and center of the geometry
+            geo_center = np.array([0,0,0])
+            dg1 = np.linalg.norm(a_cart1 - geo_center)
+            dg2 = np.linalg.norm(a_cart2 - geo_center)
 
-        delta_t = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe)
+            delta_t = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe)
 
-        time_diff.append(delta_t)
-        pos_cart1.append(a_cart1)
-        pos_cart2.append(a_cart2)
-        event_ids.append(evt)
-        
-        print(delta_t)
+            time_diff[j].append(delta_t)
+            pos_cart1[j].append(a_cart1)
+            pos_cart2[j].append(a_cart2)
+            event_ids[j].append(evt)
 
-a_time_diff = np.array(time_diff)
-a_pos_cart1 = np.array(pos_cart1)
-a_pos_cart2 = np.array(pos_cart2)
-a_event_ids = np.array(event_ids)
+            print(delta_t)
 
-np.savez(evt_file, time_diff=a_time_diff, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
+
+for j in range(len(timestamp_thr)):
+    time_diff[j] = np.array(time_diff[j])
+    pos_cart1[j] = np.array(pos_cart1[j])
+    pos_cart2[j] = np.array(pos_cart2[j])
+    event_ids[j] = np.array(event_ids[j])
+
+np.savez(evt_file, time_diff=time_diff, pos_cart1=pos_cart1, pos_cart2=pos_cart2, event_ids=event_ids)
 
 print(datetime.datetime.now())
 
