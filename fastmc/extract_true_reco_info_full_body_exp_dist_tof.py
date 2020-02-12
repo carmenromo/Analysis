@@ -261,7 +261,6 @@ for number in range(start, start+numb):
 
         ## Tof distribution
         tdc_conv_table   = tf.tdc_convolution(evt_tof, spe_resp, time_window, n_sipms, first_sipm, te_tdc)
-        tdc_conv_table2  = tf.tdc_convolution2(evt_tof, spe_resp, time_window, te_tdc)
         evt_tof_exp_dist = tf.translate_charge_matrix_to_wf_df(evt, tdc_conv_table, first_sipm)
         min_id1, min_id2, min_t1, min_t2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
