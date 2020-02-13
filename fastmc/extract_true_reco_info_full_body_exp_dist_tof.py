@@ -123,7 +123,6 @@ for number in range(start, start+numb):
     charge_range = (1050, 1300)
 
     for evt in events[:]:
-        #for evt in events[31:32]:
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
         if len(evt_sns) == 0:
@@ -214,7 +213,6 @@ for number in range(start, start+numb):
             c4 += 1
             continue
 
-        print(evt)
         ## extract information about the interaction being photoelectric
         phot, phot_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not phot:
@@ -259,9 +257,15 @@ for number in range(start, start+numb):
         tot_hit_energy2 = hits2.energy.sum()
 
 
-        ## Tof distribution
-        tdc_conv_table   = tf.tdc_convolution(evt_tof, spe_resp, time_window, n_sipms, first_sipm, te_tdc)
-        evt_tof_exp_dist = tf.translate_charge_matrix_to_wf_df(evt, tdc_conv_table, first_sipm)
+        ## Tof convolution
+        tof_sns = evt_tof.sensor_id.unique()
+        evt_tof_exp_dist = []
+        for s_id in tof_sns[:]:
+            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, time_window, s_id, te_tdc)
+            tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+            evt_tof_exp_dist.append(tdc_conv_df)
+        evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
+
         min_id1, min_id2, min_t1, min_t2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
 
