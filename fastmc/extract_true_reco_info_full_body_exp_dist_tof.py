@@ -51,9 +51,7 @@ file_name  = arguments.file_name
 base_path  = arguments.base_path
 data_path  = arguments.data_path
 
-
-data_path = f"{base_path}/{data_path}"
-evt_file  = f"{data_path}/full_body_phantom_coincidences_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
+evt_file  = f"{base_path}/{data_path}/full_body_phantom_coincidences_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
 rpos_file = f"r_table_full_body_195cm_thr{thr_r}pes.h5"
 
 Rpos = load_rpos(rpos_file,
