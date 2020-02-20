@@ -111,8 +111,6 @@ for number in range(start, start+numb):
 
         pos1, pos2, q1, q2, _, _, _, _, min_id1, min_id2, min_tof1, min_tof2 = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
-        pos1, pos2, q1, q2, _, _, _, _, min_id1, min_id2, min_tof1, min_tof2 = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
-
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
             continue
