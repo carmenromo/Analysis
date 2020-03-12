@@ -23,6 +23,11 @@ from antea.io.mc_io import read_sensor_bin_width_from_conf
 DataSiPM     = db.DataSiPMsim_only('petalo', 0)
 DataSiPM_idx = DataSiPM.set_index('SensorID')
 
+"""
+Example of calling this script:
+
+$ python extract_true_reco_info_full_body_exp_dist_tof.py 0 1 2 4 4 2 /Users/carmenromoluque/Desktop/ full_body_iradius380mm_z200cm_depth3cm_pitch7mm /Users/carmenromoluque/Analysis/fastmc/r_table_full_body_195cm_thr2pes.h5 /Users/carmenromoluque/Desktop/
+"""
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
@@ -34,10 +39,9 @@ def parse_args(args):
     parser.add_argument('thr_e'      , type = int, help = "threshold in the energy"    )
     parser.add_argument('events_path',             help = "input files path"           )
     parser.add_argument('file_name'  ,             help = "name of input files"        )
-    parser.add_argument('base_path'  ,             help = "Path of the conf"           )
+    parser.add_argument('rpos_file'  ,             help = "File of the Rpos"           )
     parser.add_argument('data_path'  ,             help = "output files path"          )
     return parser.parse_args()
-
 
 arguments  = parse_args(sys.argv)
 start      = arguments.first_file
@@ -48,28 +52,26 @@ thr_z      = arguments.thr_z
 thr_e      = arguments.thr_e
 eventsPath = arguments.events_path
 file_name  = arguments.file_name
-base_path  = arguments.base_path
+rpos_file  = arguments.rpos_file
 data_path  = arguments.data_path
 
-evt_file  = f"{base_path}/{data_path}/full_body_phantom_coincidences_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
-rpos_file = f"r_table_full_body_195cm_thr{thr_r}pes.h5"
 
-Rpos = load_rpos(rpos_file,
-                 group = "Radius",
-                 node  = f"f{thr_r}pes200bins")
+evt_file  = f"{data_path}/full_body_phantom_coincidences_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
+Rpos = load_rpos(rpos_file, group="Radius", node=f"f{thr_r}pes200bins")
 
 ### TOF elec parameters:
-te_tdc         = 0.25
 n_sipms        = len(DataSiPM)
 first_sipm     = DataSiPM_idx.index.min()
+tau_sipm       = [100, 15000]
 time_window    = 10000
 time_bin       = 5
 time           = np.arange(0, 80000, time_bin)
-spe_resp, norm = tf.apply_spe_dist(time)
+spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
-timestamp_thr = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
+#timestamp_thr = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
+timestamp_thr = [0.5, 1.0, 1.5]
 
-c0 = c1 = c2 = c3 = c4 = 0
+c0  = c1 = c2 = c3 = c4 = 0
 bad = 0
 
 true_r1, true_phi1, true_z1 = [], [], []
@@ -137,7 +139,7 @@ for number in range(start, start+numb):
         evt_hits  = hits            [hits            .event_id == evt]
         evt_tof   = sns_response_tof[sns_response_tof.event_id == evt]
 
-        pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2 = rf.select_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
@@ -266,7 +268,7 @@ for number in range(start, start+numb):
         tof_sns = evt_tof.sensor_id.unique()
         evt_tof_exp_dist = []
         for s_id in tof_sns:
-            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window, te_tdc)
+            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
             tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
             evt_tof_exp_dist.append(tdc_conv_df)
         evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
@@ -274,7 +276,7 @@ for number in range(start, start+numb):
         ## Trying different thresholds in charge for the sensor that sees the first pe:
         for k, th in enumerate(timestamp_thr):
             evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
-            min_id1, min_id2, min_t1, min_t2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+            min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2)
             first_sipm1_thrs[k].append(min_id1)
             first_sipm2_thrs[k].append(min_id2)
             if min_t1 == None:
@@ -355,13 +357,22 @@ a_hit_energy2    = np.array(hit_energy2)
 
 a_event_ids      = np.array(event_ids)
 
-np.savez(evt_file, a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1, a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2,
-                   a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1, a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2,
-                   a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2, a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2,
-                   a_first_sipm1_thrs=a_first_sipm1_thrs, a_first_time1_thrs=a_first_time1_thrs,
-                   a_first_sipm2_thrs=a_first_sipm2_thrs, a_first_time2_thrs=a_first_time2_thrs,
-                   a_true_time1=a_true_time1, a_true_time2=a_true_time2, a_photo1=a_photo1, a_photo2=a_photo2,
-                   a_photo_like1=a_photo_like1, a_photo_like2=a_photo_like2, a_hit_energy1=a_hit_energy1, a_hit_energy2=a_hit_energy2, a_event_ids=a_event_ids)
+np.savez(evt_file, a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1,
+         a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2,
+         a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1,
+         a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2,
+         a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2,
+         a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2,
+         a_first_sipm1_thr0=a_first_sipm1_thrs[0], a_first_sipm2_thr0=a_first_sipm2_thrs[0],
+         a_first_time1_thr0=a_first_time1_thrs[0], a_first_time2_thr0=a_first_time2_thrs[0],
+         a_first_sipm1_thr1=a_first_sipm1_thrs[1], a_first_sipm2_thr1=a_first_sipm2_thrs[1],
+         a_first_time1_thr1=a_first_time1_thrs[1], a_first_time2_thr1=a_first_time2_thrs[1],
+         a_first_sipm1_thr2=a_first_sipm1_thrs[2], a_first_sipm2_thr2=a_first_sipm2_thrs[2],
+         a_first_time1_thr2=a_first_time1_thrs[2], a_first_time2_thr2=a_first_time2_thrs[2],
+         a_true_time1=a_true_time1, a_true_time2=a_true_time2,
+         a_photo1=a_photo1, a_photo2=a_photo2, a_photo_like1=a_photo_like1, a_photo_like2=a_photo_like2,
+         a_hit_energy1=a_hit_energy1, a_hit_energy2=a_hit_energy2, a_event_ids=a_event_ids)
+
 
 print(f"Not a coincidence: {c0}")
 print(f"Not passing threshold r = {c1}, phi = {c2}, z = {c3}, E = {c4}")
