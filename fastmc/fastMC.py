@@ -12,8 +12,10 @@ def parse_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('first_file' , type = int, help = "first file (inclusive)"    )
     parser.add_argument('n_files'    , type = int, help = "number of files to analize")
+    parser.add_argument('input_path' ,             help = "input files path"          )
+    parser.add_argument('filename'   ,             help = "input files name"          )
+    parser.add_argument('output_path',             help = "output files path"         )
     parser.add_argument('matrix_path',             help = "path of the error matrix"  )
-    parser.add_argument('events_path',             help = "input files path"          )
     return parser.parse_args()
 
 
@@ -24,8 +26,11 @@ DataSiPM_idx = DataSiPM.set_index('SensorID')
 arguments     = parse_args(sys.argv)
 start         = arguments.first_file
 numb_of_files = arguments.n_files
+folder_in     = arguments.input_path
+filename      = arguments.filename
+folder_out    = arguments.output_path
 table_folder  = arguments.matrix_path
-folder        = arguments.events_path
+
 
 err_r_phot_file      = table_folder + '/errmat_r_phot_like.npz'
 err_r_compt_file     = table_folder + '/errmat_r_compt_like.npz'
@@ -56,10 +61,10 @@ errmat_t_th_compt2 = errmat.errmat(err_t_th_compt_file2)
 
 for file_number in range(start, start+numb_of_files):
 
-    sim_file  = folder + f'/full_body_phantom.{file_number}.pet.h5'
-    out_file0 = folder + f'/fastsim_tof_thr_charge/full_body_phantom_reco_thr0.5pes.{file_number}.h5'
-    out_file1 = folder + f'/fastsim_tof_thr_charge/full_body_phantom_reco_thr1.0pes.{file_number}.h5'
-    out_file2 = folder + f'/fastsim_tof_thr_charge/full_body_phantom_reco_thr1.5pes.{file_number}.h5'
+    sim_file  = folder_in  + f'/' + filename + '.{file_number}.pet.h5'
+    out_file0 = folder_out + f'/' + filename + '_reco_thr0.5pes.{file_number}.h5'
+    out_file1 = folder_out + f'/' + filename + '_reco_thr1.0pes.{file_number}.h5'
+    out_file2 = folder_out + f'/' + filename + '_reco_thr1.5pes.{file_number}.h5'
 
     try:
         particles = mcio.load_mcparticles(sim_file)
@@ -67,46 +72,85 @@ for file_number in range(start, start+numb_of_files):
         print(f'File {sim_file} not found!')
         continue
     hits   = mcio.load_mchits(sim_file)
-
     events = particles.event_id.unique()
 
-    reco = pd.DataFrame(columns=['event_id',
-                                 'true_energy',
-                                 'true_r1',
-                                 'true_phi1',
-                                 'true_z1',
-                                 'true_t1',
-                                 'true_r2',
-                                 'true_phi2',
-                                 'true_z2',
-                                 'true_t2',
-                                 'phot_like1',
-                                 'phot_like2',
-                                 'reco_r1',
-                                 'reco_phi1',
-                                 'reco_z1',
-                                 'reco_t1',
-                                 'reco_r2',
-                                 'reco_phi2',
-                                 'reco_z2',
-                                 'reco_t2'])
+    reco0 = pd.DataFrame(columns=['event_id',
+                                  'true_energy',
+                                  'true_r1',
+                                  'true_phi1',
+                                  'true_z1',
+                                  'true_t1',
+                                  'true_r2',
+                                  'true_phi2',
+                                  'true_z2',
+                                  'true_t2',
+                                  'phot_like1',
+                                  'phot_like2',
+                                  'reco_r1',
+                                  'reco_phi1',
+                                  'reco_z1',
+                                  'reco_t1',
+                                  'reco_r2',
+                                  'reco_phi2',
+                                  'reco_z2',
+                                  'reco_t2'])
+    reco1 = pd.DataFrame(columns=['event_id',
+                                  'true_energy',
+                                  'true_r1',
+                                  'true_phi1',
+                                  'true_z1',
+                                  'true_t1',
+                                  'true_r2',
+                                  'true_phi2',
+                                  'true_z2',
+                                  'true_t2',
+                                  'phot_like1',
+                                  'phot_like2',
+                                  'reco_r1',
+                                  'reco_phi1',
+                                  'reco_z1',
+                                  'reco_t1',
+                                  'reco_r2',
+                                  'reco_phi2',
+                                  'reco_z2',
+                                  'reco_t2'])
+    reco2 = pd.DataFrame(columns=['event_id',
+                                  'true_energy',
+                                  'true_r1',
+                                  'true_phi1',
+                                  'true_z1',
+                                  'true_t1',
+                                  'true_r2',
+                                  'true_phi2',
+                                  'true_z2',
+                                  'true_t2',
+                                  'phot_like1',
+                                  'phot_like2',
+                                  'reco_r1',
+                                  'reco_phi1',
+                                  'reco_z1',
+                                  'reco_t1',
+                                  'reco_r2',
+                                  'reco_phi2',
+                                  'reco_z2',
+                                  'reco_t2'])
 
     for evt in events:
 
         evt_df0 = fmc.simulate_reco_event(evt, hits, particles, errmat_r_phot,
                                           errmat_phi_phot, errmat_z_phot, errmat_t_th_phot0, errmat_r_compt,
                                           errmat_phi_compt, errmat_z_compt, errmat_t_th_compt0, 0.95)
-        reco0 = pd.concat([reco, evt_df0])
+        reco0 = pd.concat([reco0, evt_df0])
 
         evt_df1 = fmc.simulate_reco_event(evt, hits, particles, errmat_r_phot,
                                           errmat_phi_phot, errmat_z_phot, errmat_t_th_phot1, errmat_r_compt,
                                           errmat_phi_compt, errmat_z_compt, errmat_t_th_compt1, 0.95)
-        reco1 = pd.concat([reco, evt_df1])
+        reco1 = pd.concat([reco1, evt_df1])
 
-        evt_df1 = fmc.simulate_reco_event(evt, hits, particles, errmat_r_phot,
+        evt_df2 = fmc.simulate_reco_event(evt, hits, particles, errmat_r_phot,
                                           errmat_phi_phot, errmat_z_phot, errmat_t_th_phot2, errmat_r_compt,
                                           errmat_phi_compt, errmat_z_compt, errmat_t_th_compt2, 0.95)
-        reco1 = pd.concat([reco, evt_df1])
+        reco2 = pd.concat([reco2, evt_df2])
 
 
     store = pd.HDFStore(out_file0, "w", complib=str("zlib"), complevel=4)
