@@ -61,10 +61,10 @@ errmat_t_th_compt2 = errmat.errmat(err_t_th_compt_file2)
 
 for file_number in range(start, start+numb_of_files):
 
-    sim_file  = folder_in  + f'/' + filename + '.{file_number}.pet.h5'
-    out_file0 = folder_out + f'/' + filename + '_reco_thr0.5pes.{file_number}.h5'
-    out_file1 = folder_out + f'/' + filename + '_reco_thr1.0pes.{file_number}.h5'
-    out_file2 = folder_out + f'/' + filename + '_reco_thr1.5pes.{file_number}.h5'
+    sim_file  = folder_in  + '/' + filename + f'.{file_number}.pet.h5'
+    out_file0 = folder_out + '/' + filename + f'_reco_thr0.5pes.{file_number}.h5'
+    out_file1 = folder_out + '/' + filename + f'_reco_thr1.0pes.{file_number}.h5'
+    out_file2 = folder_out + '/' + filename + f'_reco_thr1.5pes.{file_number}.h5'
 
     try:
         particles = mcio.load_mcparticles(sim_file)
