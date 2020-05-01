@@ -6,6 +6,7 @@ import pandas as pd
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
+import reco_functions as rf2
 
 from antea.io.mc_io import load_mcsns_response
 from antea.io.mc_io import load_mchits
@@ -35,7 +36,7 @@ eventsPath = arguments.events_path
 file_name  = arguments.file_name
 data_path  = arguments.data_path
 
-evt_file  = f"{data_path}/full_body_r_map_{start}_{numb}_{threshold}"
+evt_file  = f"{data_path}/full_body_r_map_compton_efrom0.4_{start}_{numb}_{threshold}"
 
 true_r1, true_r2   = [], []
 var_phi1, var_phi2 = [], []
@@ -68,8 +69,8 @@ for number in range(start, start+numb):
     for evt in events:
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
-        evt_hits  = hits     [hits.event_id      == evt]
-        select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
+        evt_hits  = hits     [hits     .event_id == evt]
+        select, true_pos = rf2.true_photoelect(evt_parts, evt_hits, compton=True)
         if not select: continue
 
         waveforms = sel_df[sel_df.event_id == evt]
@@ -119,7 +120,6 @@ for number in range(start, start+numb):
             touched_sipms2.append(1.e9)
             true_r2       .append(1.e9)
 
-
 a_true_r1  = np.array(true_r1)
 a_true_r2  = np.array(true_r2)
 a_var_phi1 = np.array(var_phi1)
@@ -129,6 +129,5 @@ a_var_z2   = np.array(var_z2)
 
 a_touched_sipms1 = np.array(touched_sipms1)
 a_touched_sipms2 = np.array(touched_sipms2)
-
 
 np.savez(evt_file, a_true_r1=a_true_r1, a_true_r2=a_true_r2, a_var_phi1=a_var_phi1, a_var_phi2=a_var_phi2, a_var_z1=a_var_z1, a_var_z2=a_var_z2, a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2)
