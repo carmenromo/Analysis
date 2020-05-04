@@ -6,7 +6,7 @@ import pandas as pd
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
-import reco_functions as rf2
+import reco_functions              as rf2
 
 from antea.io.mc_io import load_mcsns_response
 from antea.io.mc_io import load_mchits
@@ -15,8 +15,8 @@ from antea.io.mc_io import load_mcparticles
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
-DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
-DataSiPM_idx = DataSiPM.set_index('SensorID')
+#DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
+#DataSiPM_idx = DataSiPM.set_index('SensorID')
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
@@ -28,6 +28,10 @@ def parse_args(args):
     parser.add_argument('data_path'  ,             help = "output files path"          )
     return parser.parse_args()
 
+def load_sens_pos(file_name):
+    sens_pos = pd.read_hdf(file_name, 'MC/sensor_positions')
+    return sens_pos
+
 arguments  = parse_args(sys.argv)
 start      = arguments.first_file
 numb       = arguments.n_files
@@ -36,7 +40,7 @@ eventsPath = arguments.events_path
 file_name  = arguments.file_name
 data_path  = arguments.data_path
 
-evt_file  = f"{data_path}/full_body_r_map_compton_efrom0.4_{start}_{numb}_{threshold}"
+evt_file  = f"{data_path}/full_body_r_map_{start}_{numb}_{threshold}"
 
 true_r1, true_r2   = [], []
 var_phi1, var_phi2 = [], []
@@ -66,11 +70,15 @@ for number in range(start, start+numb):
     hits      = load_mchits     (filename)
     events    = particles.event_id.unique()
 
+    DataSiPM     = load_sens_pos(filename)
+    DataSiPM     = DataSiPM.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
+    DataSiPM_idx = DataSiPM.set_index('SensorID')
+
     for evt in events:
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
-        select, true_pos = rf2.true_photoelect(evt_parts, evt_hits, compton=True)
+        select, true_pos = rf2.true_photoelect(evt_parts, evt_hits, compton=False)
         if not select: continue
 
         waveforms = sel_df[sel_df.event_id == evt]
