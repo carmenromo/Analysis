@@ -70,8 +70,8 @@ num_singl_phots = 0
 evt_file = f"{data_path}/full_body_charge_and_true_info_nest_{start}_{numb}_{threshold}"
 
 for number in range(start, start+numb):
-    number_str = "{:03d}".format(number)
-    filename  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
+    #number_str = "{:03d}".format(number)
+    filename  = f"{eventsPath}/{file_name}.{number}.pet.h5"
     try:
         sns_response = pd.read_hdf(filename, 'MC/waveforms')
         sens_pos     = pd.read_hdf(filename, 'MC/sensor_positions')
