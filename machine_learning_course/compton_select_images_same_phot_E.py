@@ -90,7 +90,7 @@ def compton_selection(particles, hits):
             return False, True, [], np.array([np.average(np.array(p2), axis=0), t2[0]])
  
  
- def compton_selection2(particles, hits):
+def compton_selection2(particles, hits):
     sel_volume = (particles.initial_volume == 'ACTIVE') & (particles.creator_proc == 'compt')
     sel_name   =  particles.name == 'e-'
     sel_all    = particles[sel_volume & sel_name]
@@ -160,13 +160,14 @@ eventsPath = arguments.events_path
 file_name  = arguments.file_name
 data_path  = arguments.data_path
 
-compt_images    = []
-evt_ids         = []
-min_touched_sns = 50
-threshold       = 2
-charge_range    = (1050, 1300)
+compt_images     = []
+phot_like_images = []
+evt_ids          = []
+min_touched_sns  = 50
+threshold        = 2
+charge_range     = (1050, 1300)
 
-evt_file = f"{data_path}/full_body_4cmdepth_compt_images_phot_E_{start}_{numb}_{threshold}"
+evt_file = f"{data_path}/full_body_4cmdepth_compt_plus_phot_like_images_phot_E_{start}_{numb}_{threshold}"
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -198,7 +199,8 @@ for number in range(start, start+numb):
     events = particles.event_id.unique()
 
     for evt in events:
-        images = []
+        images1 = []
+        images2 = []
         ### Select compton events only
         evt_parts = particles   [particles   .event_id == evt]
         evt_hits  = hits        [hits        .event_id == evt]
@@ -223,24 +225,33 @@ for number in range(start, start+numb):
                 continue
 
 
-        if len(q1)>min_touched_sns and d1 > 10:
+        if len(q1)>min_touched_sns:
             pos1_cyl, range_z1, range_phi1 = needed_info_to_plot(pos1, q1)
             h1 = hist_matrix_z_phi(evt, pos1_cyl, q1, range_z1, range_phi1)
             if len(np.nonzero(h1[0].flatten())[0])>min_touched_sns:
-                images.append(h1[0])
+                if d1 > 10: ## Compton (bad events)
+                    images1.append(h1[0])
+                else: ## Phot like Comptons
+                    images2.append(h1[0])
 
-        elif len(q2)>min_touched_sns and d2 > 10:
+
+        elif len(q2)>min_touched_sns:
             pos2_cyl, range_z2, range_phi2 = needed_info_to_plot(pos2, q2)
             h2 = hist_matrix_z_phi(evt, pos2_cyl, q2, range_z2, range_phi2)
             if len(np.nonzero(h2[0].flatten())[0])>min_touched_sns:
-                images.append(h2[0])
+                if d2 > 10: ## Compton (bad events)
+                    images1.append(h2[0])
+                else: ## Phot like Comptons
+                    images2.append(h2[0])
 
         else:continue
 
-        evt_ids     .append(evt)
-        compt_images.append(np.array(images))
+        evt_ids         .append(evt)
+        compt_images    .append(np.array(images1))
+        phot_like_images.append(np.array(images2))
 
-a_compt_images = np.array(compt_images)
-np.savez(evt_file, evt_ids=evt_ids, compt_images=a_compt_images)
+a_compt_images     = np.array(    compt_images)
+a_phot_like_images = np.array(phot_like_images)
+np.savez(evt_file, evt_ids=evt_ids, compt_images=a_compt_images, phot_like_images=a_phot_like_images)
 
 print(datetime.datetime.now())
