@@ -213,9 +213,6 @@ for number in range(start, start+numb):
         #compt1, compt2, true_pos1, true_pos2 = compton_selection(evt_parts, evt_hits)
         compt1, compt2, true_pos1, d1, true_pos2, d2 = compton_selection2(evt_parts, evt_hits)
 
-        if d1 < 10 and d2 < 10:
-            continue
-
         if sel1 and sel2 and compt1 and compt2: #to simplify
             check_pos = np.array([np.average(pos1, weights=q1, axis=0).dot(true_pos1[0]),
                                   np.average(pos1, weights=q1, axis=0).dot(true_pos2[0]),
@@ -229,7 +226,7 @@ for number in range(start, start+numb):
             pos1_cyl, range_z1, range_phi1 = needed_info_to_plot(pos1, q1)
             h1 = hist_matrix_z_phi(evt, pos1_cyl, q1, range_z1, range_phi1)
             if len(np.nonzero(h1[0].flatten())[0])>min_touched_sns:
-                if d1 > 10: ## Compton (bad events)
+                if d1 > 1.: ##(mm) ## Compton (bad events)
                     images1.append(h1[0])
                 else: ## Phot like Comptons
                     images2.append(h1[0])
@@ -239,7 +236,7 @@ for number in range(start, start+numb):
             pos2_cyl, range_z2, range_phi2 = needed_info_to_plot(pos2, q2)
             h2 = hist_matrix_z_phi(evt, pos2_cyl, q2, range_z2, range_phi2)
             if len(np.nonzero(h2[0].flatten())[0])>min_touched_sns:
-                if d2 > 10: ## Compton (bad events)
+                if d2 > 1.: ## (mm) ## Compton (bad events)
                     images1.append(h2[0])
                 else: ## Phot like Comptons
                     images2.append(h2[0])
