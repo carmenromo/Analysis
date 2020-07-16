@@ -98,42 +98,41 @@ for number in range(start, start+numb):
     events = particles.event_id.unique()
 
     for evt in events:
-        try:
-            ### Select photoelectric events only
-            evt_parts = particles[particles.event_id == evt]
-            evt_hits  = hits     [hits     .event_id == evt]
-            evt_sns   = sel_df   [sel_df   .event_id == evt]
+        ### Select photoelectric events only
+        evt_parts = particles[particles.event_id == evt]
+        evt_hits  = hits     [hits     .event_id == evt]
+        evt_sns   = sel_df   [sel_df   .event_id == evt]
 
-            #select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits, every_single=True)
-            select, true_pos = select_photoelectric(evt_parts, evt_hits)
+        #select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits, every_single=True)
+        select, true_pos = select_photoelectric(evt_parts, evt_hits)
 
-            if len(true_pos) == 1:
-                num_singl_phots += 1
-            elif len(true_pos) == 2:
-                num_coinc += 1
-
-            max_sns = evt_sns[evt_sns.charge == evt_sns.charge.max()]
-            ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
-            if len(max_sns != 1):
-                max_sns = max_sns[max_sns.sensor_id == max_sns.sensor_id.min()]
-            max_sipm = DataSiPM_idx.loc[max_sns.sensor_id]
-            max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
-
-            sipms         = DataSiPM_idx.loc[evt_sns.sensor_id]
-            sns_ids       = sipms.index.astype('int64').values
-            sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-            sns_charges   = evt_sns.charge
-
-            sns1, sns2, pos1, pos2, q1, q2 = rf.divide_sipms_in_two_hemispheres(sns_ids, sns_positions,
-                                                                                sns_charges, max_pos)
-            tot_q1 = sum(q1)
-            tot_q2 = sum(q2)
-
-            tot_charges.append(tot_q1)
-            tot_charges.append(tot_q2)
-            evt_ids.append(evt)
-        except IndexError:
+        if len(true_pos) == 1:
+            num_singl_phots += 1
+        elif len(true_pos) == 2:
+            num_coinc += 1
+        else:
             continue
+
+        max_sns = evt_sns[evt_sns.charge == evt_sns.charge.max()]
+        ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
+        if len(max_sns != 1):
+            max_sns = max_sns[max_sns.sensor_id == max_sns.sensor_id.min()]
+        max_sipm = DataSiPM_idx.loc[max_sns.sensor_id]
+        max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
+
+        sipms         = DataSiPM_idx.loc[evt_sns.sensor_id]
+        sns_ids       = sipms.index.astype('int64').values
+        sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
+        sns_charges   = evt_sns.charge
+
+        sns1, sns2, pos1, pos2, q1, q2 = rf.divide_sipms_in_two_hemispheres(sns_ids, sns_positions,
+                                                                            sns_charges, max_pos)
+        tot_q1 = sum(q1)
+        tot_q2 = sum(q2)
+
+        tot_charges.append(tot_q1)
+        tot_charges.append(tot_q2)
+        evt_ids.append(evt)
 
 np.savez(evt_file, evt_ids=evt_ids, num_coinc=num_coinc, num_singl_phots=num_singl_phots, tot_charges=np.array(tot_charges))
 

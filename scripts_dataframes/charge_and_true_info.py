@@ -110,6 +110,8 @@ for number in range(start, start+numb):
             num_singl_phots += 1
         elif len(true_pos) == 2:
             num_coinc += 1
+        else:
+            continue
 
         max_sns = evt_sns[evt_sns.charge == evt_sns.charge.max()]
         ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
