@@ -4,10 +4,9 @@ import numpy  as np
 import antea.reco.mctrue_functions as mcf
 import antea.reco.reco_functions   as rf
 
-def true_photoelect(evt_parts, evt_hits, compton=False):
+def true_photoelect(evt_parts, evt_hits):
     """Returns the position of the true photoelectric energy deposition
     calculated with barycenter algorithm.
-    It allows the possibility of including compton events.
     """
 
     sel_volume   = (evt_parts.initial_volume == 'ACTIVE') & (evt_parts.final_volume == 'ACTIVE')
@@ -18,9 +17,7 @@ def true_photoelect(evt_parts, evt_hits, compton=False):
     sel_hits   = mcf.find_hits_of_given_particles(ids, evt_hits)
     energies   = sel_hits.groupby(['particle_id'])[['energy']].sum()
     energies   = energies.reset_index()
-
-    if compton: energy_sel = energies[rf.greater_or_equal(energies.energy, 0.4, allowed_error=1.e-6)]
-    else: energy_sel = energies[rf.greater_or_equal(energies.energy, 0.476443, allowed_error=1.e-6)]
+    energy_sel = energies[rf.greater_or_equal(energies.energy, 0.476443, allowed_error=1.e-6)]
 
     sel_vol_name_e  = sel_vol_name[sel_vol_name.particle_id.isin(energy_sel.particle_id)]
 
@@ -40,7 +37,7 @@ def true_photoelect(evt_parts, evt_hits, compton=False):
         true_pos.append(np.average(hit_positions, axis=0, weights=df.energy))
 
     ### Reject events where the two gammas have interacted in the same hemisphere.
-    if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
-       return (False, [])
+    #if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
+    #   return (False, [])
 
     return (True, true_pos)

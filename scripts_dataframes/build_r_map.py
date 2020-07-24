@@ -78,7 +78,7 @@ for number in range(start, start+numb):
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
-        select, true_pos = rf2.true_photoelect(evt_parts, evt_hits, compton=False)
+        select, true_pos = rf2.true_photoelect(evt_parts, evt_hits)
         if not select: continue
 
         waveforms = sel_df[sel_df.event_id == evt]
