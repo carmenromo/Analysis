@@ -11,7 +11,7 @@ import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 import antea.elec.tof_functions    as tf
 
-from antea.utils.map_functions import load_map
+from antea.utils.map_functions   import load_map
 from antea.io   .mc_io           import load_mchits
 from antea.io   .mc_io           import load_mcparticles
 from antea.io   .mc_io           import load_mcsns_response
@@ -120,8 +120,8 @@ for number in range(start, start+numb):
     tof_bin_size = read_sensor_bin_width_from_conf(filename, tof=True)
 
     sns_response_tof = load_mcTOFsns_response(filename)
-    particles        = load_mcparticles(filename)
-    hits             = load_mchits(filename)
+    particles        = load_mcparticles      (filename)
+    hits             = load_mchits           (filename)
 
     events = particles.event_id.unique()
 
