@@ -26,7 +26,7 @@ DataSiPM_idx = DataSiPM.set_index('SensorID')
 """
 Example of calling this script:
 
-$ python extract_true_reco_info_full_body_exp_dist_tof_nest.py 0 1 2 4 4 2 /Users/carmenromoluque/Desktop/ full_body_iradius380mm_z200cm_depth3cm_pitch7mm /Users/carmenromoluque/Analysis/fastmc/r_table_full_body_195cm_thr2pes.h5 /Users/carmenromoluque/Desktop/
+$ python extract_true_reco_info_full_body_exp_dist_tof_nest.py 0 1 2 4 4 2 /Users/carmenromoluque/Desktop/ full_body_center_nest_fixed /Users/carmenromoluque/Analysis/fastmc/r_table_full_body_195cm_thr2pes.h5 /Users/carmenromoluque/Desktop/
 """
 
 def parse_args(args):
