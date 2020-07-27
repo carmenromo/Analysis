@@ -56,7 +56,7 @@ rpos_file  = arguments.rpos_file
 data_path  = arguments.data_path
 
 
-evt_file  = f"{data_path}/full_body_phantom_coincidences_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
+evt_file  = f"{data_path}/full_body_extract_coinc_nest_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
 Rpos = load_map(rpos_file, group="Radius",
                            node=f"f{thr_r}pes200bins",
                            xs='RmsPhi',
