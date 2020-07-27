@@ -73,7 +73,7 @@ time           = np.arange(0, 80000, time_bin)
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 #timestamp_thr = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
-timestamp_thr = [0.5, 1.0, 1.5]
+timestamp_thr = [0, 0.5, 1.0, 1.5]
 
 c0  = c1 = c2 = c3 = c4 = 0
 bad = 0
@@ -371,6 +371,8 @@ np.savez(evt_file, a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_tru
          a_first_time1_thr1=a_first_time1_thrs[1], a_first_time2_thr1=a_first_time2_thrs[1],
          a_first_sipm1_thr2=a_first_sipm1_thrs[2], a_first_sipm2_thr2=a_first_sipm2_thrs[2],
          a_first_time1_thr2=a_first_time1_thrs[2], a_first_time2_thr2=a_first_time2_thrs[2],
+         a_first_sipm1_thr3=a_first_sipm1_thrs[3], a_first_sipm2_thr3=a_first_sipm2_thrs[3],
+         a_first_time1_thr3=a_first_time1_thrs[3], a_first_time2_thr3=a_first_time2_thrs[3],
          a_true_time1=a_true_time1, a_true_time2=a_true_time2,
          a_photo1=a_photo1, a_photo2=a_photo2, a_photo_like1=a_photo_like1, a_photo_like2=a_photo_like2,
          a_hit_energy1=a_hit_energy1, a_hit_energy2=a_hit_energy2, a_event_ids=a_event_ids)
