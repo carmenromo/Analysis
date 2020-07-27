@@ -59,9 +59,9 @@ data_path  = arguments.data_path
 evt_file  = f"{data_path}/full_body_extract_coinc_nest_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
 Rpos = load_map(rpos_file, group="Radius",
                            node=f"f{thr_r}pes200bins",
-                           xs='RmsPhi',
-                           ys='Rpos',
-                           us='Uncertainty')
+                           x_name='RmsPhi',
+                           y_name='Rpos',
+                           u_name='Uncertainty')
 
 ### TOF elec parameters:
 n_sipms        = len(DataSiPM)
@@ -117,7 +117,7 @@ for number in range(start, start+numb):
         continue
     print(f'Analyzing file {filename}')
 
-    tof_bin_size = read_sensor_bin_width_from_conf(filename)
+    tof_bin_size = read_sensor_bin_width_from_conf(filename, tof=True)
 
     sns_response_tof = load_mcTOFsns_response(filename)
     particles        = load_mcparticles(filename)
