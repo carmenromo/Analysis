@@ -83,7 +83,6 @@ def compton_selection2(particles, hits):
         p1, p2 = [], []
         t1, t2 = [], []
         for p in true_pos:
-            print(p)
             if true_pos[0][0].dot(p[0])>0:
                 p1.append(p[0])
                 t1.append(p[1])
@@ -94,11 +93,6 @@ def compton_selection2(particles, hits):
             min_t1           = min(t1)
             pos_min_compton1 = np.array([p1[t1.index(min_t1)]])
             dist1            = np.linalg.norm(pos_min_compton1 - np.array([np.average(np.array(p1), axis=0)]))
-            print('Lets see')
-            print(min_t1, pos_min_compton1, dist1)
-            print(np.array(p1))
-            print(np.array([np.average(np.array(p1), axis=0)]))
-            print(pos_min_compton1 - np.array([np.average(np.array(p1), axis=0)]))
             if p2:
                 min_t2           = min(t2)
                 pos_min_compton2 = np.array([p2[t2.index(min_t2)]])
