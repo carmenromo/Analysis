@@ -206,19 +206,7 @@ for number in range(start, start+numb):
             continue
 
         min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof, sns1, sns2)
-#        first_sipm1.append(min_id1)
-#        first_sipm2.append(min_id2)
-#        if min_t1 == None:
-#            first_time1.append(min_t1)
-#        else:
-#            first_time1.append(min_t1*tof_bin_size/units.ps)
-#
-#        if min_t2 == None:
-#            first_time2.append(min_t2)
-#        else:
-#            first_time2[k].append(min_t2*tof_bin_size/units.ps)
 
-        print(min_id1, min_id2, min_t1, min_t2)
         event_ids     .append(evt)
         reco_r1       .append(r1)
         reco_phi1     .append(phi1)
