@@ -1,5 +1,6 @@
 import sys
 import argparse
+import pandas   as pd
 import numpy    as np
 import tables   as tb
 
@@ -93,7 +94,11 @@ for number in range(start, start+numb):
         continue
     print(f'Analyzing file {filename}')
 
-    tof_bin_size     = read_sensor_bin_width_from_conf(filename, tof=True)
+    #tof_bin_size     = read_sensor_bin_width_from_conf(filename, tof=True)
+    h5f = tb.open_file(filename, mode='r')
+    tof_bin_size = read_sensor_bin_width_from_conf(h5f, tof=True)
+    h5f.close()
+
     sns_response_tof = load_mcTOFsns_response(filename)
     particles        = load_mcparticles      (filename)
     hits             = load_mchits           (filename)
