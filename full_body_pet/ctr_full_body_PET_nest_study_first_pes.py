@@ -143,7 +143,7 @@ file_name  = arguments.file_name
 rpos_file  = arguments.rpos_file
 data_path  = arguments.data_path
 
-evt_file  = f"{data_path}/full_body_4cm_depth_ctr_number_pes_for_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
+evt_file  = f"{data_path}/full_body_nest_ctr_number_pes_for_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
 Rpos = load_map(rpos_file, group="Radius",
                 node=f"f{thr_r}pes200bins",
                 x_name='RmsPhi',
