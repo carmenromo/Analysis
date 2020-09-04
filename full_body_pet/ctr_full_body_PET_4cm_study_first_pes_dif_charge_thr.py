@@ -219,10 +219,6 @@ for number in range(start, start+numb):
 
     charge_range = (1050, 1300)
 
-    DataSiPM     = load_sens_pos(filename)
-    DataSiPM     = DataSiPM.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
-
     for evt in events[:]:
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
