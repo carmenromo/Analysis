@@ -1,12 +1,13 @@
 import sys
-import argparse
 import datetime
-import tables   as tb
-import numpy    as np
-import pandas   as pd
+import sc_utils
+import tables         as tb
+import numpy          as np
+import pandas         as pd
+import analysis_utils as ats
 
-import antea.database.load_db    as db
-import antea.reco.reco_functions as rf
+import antea.database.load_db      as db
+import antea.reco.reco_functions   as rf
 
 from antea.utils.table_functions import load_rpos
 from antea.io   .mc_io           import load_mchits
@@ -20,48 +21,51 @@ from invisible_cities.core import system_of_units as units
 print(datetime.datetime.now())
 
 """
-    Example of calling this script:
+Example of calling this script:
 
-    $ python coincidences_sensitivity_full_body_PET.py 0 1 2 4 4 2 /Users/carmenromoluque/Desktop/ full_body_iradius380mm_z200cm_depth3cm_pitch7mm /Users/carmenromoluque/Analysis/fastmc/r_table_full_body_195cm_thr2pes.h5 /Users/carmenromoluque/Desktop/
-    """
+python ctr_ring_no_true_info.py 0 1 6 0 /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/data_ring full_ring_iradius165mm_z140mm_depth3cm_pitch7mm /data5/users/carmenromo/PETALO/PETit/PETit-ring/Christoff_sim/compton/analysis/ 4_data_crt_no_compton irad165mm_depth3cm
+"""
 
-def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('first_file' , type = int, help = "first file (inclusive)"     )
-    parser.add_argument('n_files'    , type = int, help = "number of files to analize" )
-    parser.add_argument('thr_r'      , type = int, help = "threshold in r coordinate"  )
-    parser.add_argument('thr_phi'    , type = int, help = "threshold in phi coordinate")
-    parser.add_argument('thr_z'      , type = int, help = "threshold in z coordinate"  )
-    parser.add_argument('thr_e'      , type = int, help = "threshold in the energy"    )
-    parser.add_argument('events_path',             help = "input files path"           )
-    parser.add_argument('file_name'  ,             help = "name of input files"        )
-    parser.add_argument('rpos_file'  ,             help = "File of the Rpos"           )
-    parser.add_argument('data_path'  ,             help = "output files path"          )
-    return parser.parse_args()
-
-arguments  = parse_args(sys.argv)
+arguments  = sc_utils.parse_args(sys.argv)
 start      = arguments.first_file
 numb       = arguments.n_files
-thr_r      = arguments.thr_r
-thr_phi    = arguments.thr_phi
-thr_z      = arguments.thr_z
-thr_e      = arguments.thr_e
+nsteps     = arguments.n_steps
+thr_start  = arguments.thr_start
 eventsPath = arguments.events_path
 file_name  = arguments.file_name
-rpos_file  = arguments.rpos_file
+base_path  = arguments.base_path
 data_path  = arguments.data_path
+identifier = arguments.identifier
 
-evt_file  = f"{data_path}/full_body_ctr_number_pes_for_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
-Rpos = load_rpos(rpos_file, group="Radius", node=f"f{thr_r}pes200bins")
+data_path  = f"{base_path}/{data_path}"
+evt_file   = f"{data_path}/full_ring_{identifier}_crt_no_blend_{start}_{numb}"
+
+thr_r   = 4
+thr_phi = 5
+thr_z   = 4
+thr_e   = 2
+
+def sensor_position(s_id, sipms):
+    xpos = sipms[sipms.ChannelID==s_id].X.unique()[0]
+    ypos = sipms[sipms.ChannelID==s_id].Y.unique()[0]
+    zpos = sipms[sipms.ChannelID==s_id].Z.unique()[0]
+    return np.array([xpos, ypos, zpos])
+
+rpos_file = f"{base_path}/r_sigma_phi_table_{identifier}_thr{thr_r}pes_no_compton.h5"
+Rpos      = ats.load_rpos(rpos_file, group="Radius", node=f"f4pes150bins")
+
+DataSiPM     = db.DataSiPM('petalo', 0)
+DataSiPM_idx = DataSiPM.set_index('SensorID')
 
 c0 = c1 = c2 = c3 = c4 = 0
 
-pos_cart1_time = []
-pos_cart2_time = []
-event_ids      = []
+time_diff = []
+pos_cart1 = []
+pos_cart2 = []
+event_ids = []
 
-DataSiPM       = db.DataSiPMsim_only('petalo', 0)
-DataSiPM_idx   = DataSiPM.set_index('SensorID')
+ave_speed_in_LXe = 0.210 # mm/ps
+speed_in_vacuum  = 0.299792458 # mm/ps
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -79,21 +83,21 @@ for number in range(start, start+numb):
         continue
     print(f'Analyzing file {filename}')
 
+    h5f = tb.open_file(filename, mode='r')
+    tof_bin_size = read_sensor_bin_width_from_conf(h5f)
+    h5f.close()
+
     sns_response_tof = load_mcTOFsns_response(filename)
     particles        = load_mcparticles(filename)
     hits             = load_mchits(filename)
 
     events = particles.event_id.unique()
 
-    h5f = tb.open_file(filename, mode='r')
-    tof_bin_size = read_sensor_bin_width_from_conf(h5f)
-    h5f.close()
-
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids       = sipms.index.values
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
 
-    charge_range = (1050, 1300)
+    charge_range = (1000, 1400)
 
     for evt in events[:]:
         evt_sns = sns_response[sns_response.event_id == evt]
@@ -101,11 +105,11 @@ for number in range(start, start+numb):
         if len(evt_sns) == 0:
             continue
 
-        evt_parts = particles       [particles       .event_id == evt]
-        evt_hits  = hits            [hits            .event_id == evt]
+        evt_parts = particles[particles.event_id       == evt]
+        evt_hits  = hits[hits.event_id                 == evt]
         evt_tof   = sns_response_tof[sns_response_tof.event_id == evt]
 
-        pos1, pos2, q1, q2, _, _, _, _, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, _, _, _, _, min_id1, min_id2, min_tof1, min_tof2 = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
@@ -189,38 +193,66 @@ for number in range(start, start+numb):
             c4 += 1
             continue
 
-        min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof, sns1, sns2)
-
-        pos1_cart_time = []
-        pos2_cart_time = []
+        pos1_cart = []
+        pos2_cart = []
         if r1 and phi1 and z1 and len(q1) and r2 and phi2 and z2 and len(q2):
-            pos1_cart_time.append(min_t1 * tof_bin_size/units.ps)
-            pos1_cart_time.append(r1 * np.cos(phi1))
-            pos1_cart_time.append(r1 * np.sin(phi1))
-            pos1_cart_time.append(z1)
-            pos2_cart_time.append(min_t2 * tof_bin_size/units.ps)
-            pos2_cart_time.append(r2 * np.cos(phi2))
-            pos2_cart_time.append(r2 * np.sin(phi2))
-            pos2_cart_time.append(z2)
+            pos1_cart.append(r1 * np.cos(phi1))
+            pos1_cart.append(r1 * np.sin(phi1))
+            pos1_cart.append(z1)
+            pos2_cart.append(r2 * np.cos(phi2))
+            pos2_cart.append(r2 * np.sin(phi2))
+            pos2_cart.append(z2)
         else: continue
 
-        a_cart1_time = np.array(pos1_cart_time)
-        a_cart2_time = np.array(pos2_cart_time)
+        a_cart1   = np.array(pos1_cart)
+        a_cart2   = np.array(pos2_cart)
+        min_t1    = min_tof1*tof_bin_size/units.ps
+        min_t2    = min_tof2*tof_bin_size/units.ps
+        min_pos1 = sensor_position(min_id1, sipms)
+        min_pos2 = sensor_position(min_id2, sipms)
 
-        print(evt)
-        print(a_cart1_time)
-        print(a_cart2_time)
-        print('')
-        pos_cart1_time.append(a_cart1_time)
-        pos_cart2_time.append(a_cart2_time)
-        event_ids     .append(evt)
+        ### CAREFUL, I AM BLENDING THE EVENTS!!!                                                                                                                              
+        #if evt%2 == 0:
+        #    a_cart1   = np.array(pos1_cart)
+        #    a_cart2   = np.array(pos2_cart)
+        #    min_t1    = min_tof1*tof_bin_size/units.ps
+        #    min_t2    = min_tof2*tof_bin_size/units.ps
+        #    min_pos1 = sensor_position(min_id1, sipms)
+        #    min_pos2 = sensor_position(min_id2, sipms)
+        #else:
+        #    a_cart1   = np.array(pos2_cart)
+        #    a_cart2   = np.array(pos1_cart)
+        #    min_t1    = min_tof2*tof_bin_size/units.ps
+        #    min_t2    = min_tof1*tof_bin_size/units.ps
+        #    min_pos1 = sensor_position(min_id2, sipms)
+        #    min_pos2 = sensor_position(min_id1, sipms)
 
 
-a_pos_cart1_time = np.array(pos_cart1_time)
-a_pos_cart2_time = np.array(pos_cart2_time)
-a_event_ids      = np.array(event_ids)
+        ### Distance between interaction point and sensor detecting first photon
+        dp1 = np.linalg.norm(a_cart1 - min_pos1)
+        dp2 = np.linalg.norm(a_cart2 - min_pos2)
 
-np.savez(evt_file, pos_cart1_time=a_pos_cart1_time, pos_cart2_time=a_pos_cart2_time, event_ids=a_event_ids)
+        ### Distance between interaction point and center of the geometry
+        geo_center = np.array([0,0,0])
+        dg1 = np.linalg.norm(a_cart1 - geo_center)
+        dg2 = np.linalg.norm(a_cart2 - geo_center)
+
+        delta_t = 1/2 *(min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe)
+
+        time_diff.append(delta_t)
+        pos_cart1.append(a_cart1)
+        pos_cart2.append(a_cart2)
+        event_ids.append(evt)
+        
+        print(delta_t)
+
+a_time_diff = np.array(time_diff)
+a_pos_cart1 = np.array(pos_cart1)
+a_pos_cart2 = np.array(pos_cart2)
+a_event_ids = np.array(event_ids)
+
+np.savez(evt_file, time_diff=a_time_diff, pos_cart1=a_pos_cart1, pos_cart2=a_pos_cart2, event_ids=a_event_ids)
 
 print(datetime.datetime.now())
+
 

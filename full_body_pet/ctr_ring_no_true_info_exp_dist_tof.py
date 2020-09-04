@@ -8,7 +8,7 @@ import analysis_utils as ats
 
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
-import antea.elec.tof_functions    as tf
+import antea.elec.tof_functions_profiler2  as tf
 
 from antea.utils.table_functions import load_rpos
 from antea.io   .mc_io           import load_mchits
@@ -39,7 +39,7 @@ data_path  = arguments.data_path
 identifier = arguments.identifier
 
 data_path  = f"{base_path}/{data_path}"
-evt_file   = f"{data_path}/full_ring_{identifier}_crt_{start}_{numb}"
+evt_file   = f"{data_path}/full_ring_{identifier}_crt_no_blend_{start}_{numb}"
 
 thr_r   = 4
 thr_phi = 5
@@ -79,7 +79,8 @@ TE_TDC      = TE_range[0]
 time_window = 10000
 time_bin    = 5
 time        = np.arange(0, 80000, time_bin)
-spe_resp    = tf.spe_dist(tau_sipm, time)
+#spe_resp, norm    = tf.spe_dist(tau_sipm, time)
+spe_resp, norm    = tf.apply_spe_dist(time) 
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -114,6 +115,7 @@ for number in range(start, start+numb):
     charge_range = (1000, 1400)
 
     for evt in events[31:32]:
+    #for evt in events[:]:
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
         if len(evt_sns) == 0:
@@ -218,25 +220,35 @@ for number in range(start, start+numb):
             pos2_cart.append(z2)
         else: continue
 
-        tdc_conv_table = tf.tdc_convolution(evt_tof, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
+        tdc_conv_table = tf.tdc_convolution(evt_tof, spe_resp, time_window, TE_TDC)
         evt_tof_exp_dist = tf.translate_charge_matrix_to_wf_df(evt, tdc_conv_table, first_sipm)
         min_id1, min_id2, min_tof1, min_tof2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        if min_tof1==None or min_tof2==None:
+            continue
+
+        a_cart1   = np.array(pos1_cart)
+        a_cart2   = np.array(pos2_cart)
+
+        min_t1    = min_tof1*tof_bin_size/units.ps
+        min_t2    = min_tof2*tof_bin_size/units.ps
+        min_pos1 = sensor_position(min_id1, sipms)
+        min_pos2 = sensor_position(min_id2, sipms)
 
         ### CAREFUL, I AM BLENDING THE EVENTS!!!                                                                                                                              
-        if evt%2 == 0:
-            a_cart1   = np.array(pos1_cart)
-            a_cart2   = np.array(pos2_cart)
-            min_t1    = min_tof1*tof_bin_size/units.ps
-            min_t2    = min_tof2*tof_bin_size/units.ps
-            min_pos1 = sensor_position(min_id1, sipms)
-            min_pos2 = sensor_position(min_id2, sipms)
-        else:
-            a_cart1   = np.array(pos2_cart)
-            a_cart2   = np.array(pos1_cart)
-            min_t1    = min_tof2*tof_bin_size/units.ps
-            min_t2    = min_tof1*tof_bin_size/units.ps
-            min_pos1 = sensor_position(min_id2, sipms)
-            min_pos2 = sensor_position(min_id1, sipms)
+        #if evt%2 == 0:
+        #    a_cart1   = np.array(pos1_cart)
+        #    a_cart2   = np.array(pos2_cart)
+        #    min_t1    = min_tof1*tof_bin_size/units.ps
+        #    min_t2    = min_tof2*tof_bin_size/units.ps
+        #    min_pos1 = sensor_position(min_id1, sipms)
+        #    min_pos2 = sensor_position(min_id2, sipms)
+        #else:
+        #    a_cart1   = np.array(pos2_cart)
+        #    a_cart2   = np.array(pos1_cart)
+        #    min_t1    = min_tof2*tof_bin_size/units.ps
+        #    min_t2    = min_tof1*tof_bin_size/units.ps
+        #    min_pos1 = sensor_position(min_id2, sipms)
+        #    min_pos2 = sensor_position(min_id1, sipms)
 
 
         ### Distance between interaction point and sensor detecting first photon

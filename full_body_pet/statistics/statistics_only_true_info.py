@@ -76,7 +76,8 @@ def compton_selection2(particles, hits):
         hit_time      = df.time.values[0]
         cuatrivect    = np.array([np.average(hit_positions, axis=0, weights=df.energy), hit_time])
         true_pos.append(cuatrivect)
-
+    print('Energy of the hits:')
+    print(sel_hits[['energy']].sum())
     if len(sel_all)==0:
         return False, False, [], 0, [], 0
     else:
@@ -154,7 +155,7 @@ for number in range(start, start+numb):
     sel_df = rf.find_SiPMs_over_threshold(sns_response, threshold=threshold)
     events = particles.event_id.unique()
 
-    for evt in events:
+    for evt in events[30:31]:
         evt_parts = particles   [particles   .event_id == evt]
         evt_hits  = hits        [hits        .event_id == evt]
         evt_sns   = sns_response[sns_response.event_id == evt]
