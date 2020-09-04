@@ -11,12 +11,12 @@ import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 import antea.elec.tof_functions    as tf
 
-from antea.utils.map_functions   import load_map
-from antea.io   .mc_io           import load_mchits
-from antea.io   .mc_io           import load_mcparticles
-from antea.io   .mc_io           import load_mcsns_response
-from antea.io   .mc_io           import load_mcTOFsns_response
-from antea.io.mc_io import read_sensor_bin_width_from_conf
+from antea.utils.map_functions import load_map
+from antea.io   .mc_io         import load_mchits
+from antea.io   .mc_io         import load_mcparticles
+from antea.io   .mc_io         import load_mcsns_response
+from antea.io   .mc_io         import load_mcTOFsns_response
+from antea.io   .mc_io         import read_sensor_bin_width_from_conf
 
 
 ### read sensor positions from database
