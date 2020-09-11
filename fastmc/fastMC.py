@@ -141,6 +141,6 @@ for file_number in range(start, start+numb_of_files):
     store.put('reco', reco2, format='table', data_columns=True)
     store.close()
 
-    store = pd.HDFStore(out_file2, "w", complib=str("zlib"), complevel=4)
+    store = pd.HDFStore(out_file3, "w", complib=str("zlib"), complevel=4)
     store.put('reco', reco3, format='table', data_columns=True)
     store.close()
