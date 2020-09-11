@@ -5,10 +5,10 @@ import numpy as np
 import antea.database.load_db as db
 
 
-filepath = '/data5/users/carmenromo/fastmc/data_extract_true_reco_info_full_body_exp_dist_tof/data_coincidences_phot_info_dist_tof_dif_thr_charge/'
+filepath = '/Users/carmenromoluque/nexus_petit_analysis/full-body-PET/nest/data_extract_coinc_phantom/'
 #filepath = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/fastmc/data_coincidences_phot_info_dist_tof_dif_thr_charge/'
 
-folder = '/data5/users/carmenromo/fastmc/error_matrices/'
+folder = '/Users/carmenromoluque/nexus_petit_analysis/full-body-PET/nest/error_matrices/'
 #folder = '/Users/carmenromoluque/nexus_petit_analysis/PETit-ring/fastmc/'
 
 
@@ -19,8 +19,8 @@ reco_r2, reco_phi2, reco_z2 = [], [], []
 events = []
 sns_response1, sns_response2 = [], []
 true_t1, true_t2 = [], []
-sipm_t1, sipm_t2         = [[] for i in range(6)], [[] for i in range(6)]
-first_sipm1, first_sipm2 = [[] for i in range(6)], [[] for i in range(6)]
+sipm_t1, sipm_t2         = [[] for i in range(4)], [[] for i in range(4)]
+first_sipm1, first_sipm2 = [[] for i in range(4)], [[] for i in range(4)]
 phot1, phot2, phot_like1, phot_like2 = [], [], [], []
 true_dep_e1, true_dep_e2 = [], []
 
@@ -63,12 +63,12 @@ for filename in os.listdir(filepath):
 
         events = np.concatenate((events, d['a_event_ids']))
 
-        for i in range(6):
-            sipm_t1[i] = np.concatenate((sipm_t1[i], d['a_first_time1_thrs'][i]))
-            sipm_t2[i] = np.concatenate((sipm_t2[i], d['a_first_time2_thrs'][i]))
+        for i in range(4):
+            sipm_t1[i] = np.concatenate((sipm_t1[i], d[f'a_first_time1_thr{i}']))
+            sipm_t2[i] = np.concatenate((sipm_t2[i], d[f'a_first_time2_thr{i}']))
 
-            first_sipm1[i] = np.concatenate((first_sipm1[i], d['a_first_sipm1_thrs'][i]))
-            first_sipm2[i] = np.concatenate((first_sipm2[i], d['a_first_sipm2_thrs'][i]))
+            first_sipm1[i] = np.concatenate((first_sipm1[i], d[f'a_first_sipm1_thr{i}']))
+            first_sipm2[i] = np.concatenate((first_sipm2[i], d[f'a_first_sipm2_thr{i}']))
 
 
 true_r1   = np.array(true_r1)
@@ -165,9 +165,9 @@ ave_speed_in_LXe = 0.210 #* units.mm / units.ps
 ### Positions
 pos_1 = np.array([reco_x1, reco_y1, reco_z1]).transpose()
 pos_2 = np.array([reco_x2, reco_y2, reco_z2]).transpose()
-dist1 = [[] for j in range(6)]
-dist2 = [[] for j in range(6)]
-for j in range(6):
+dist1 = [[] for j in range(4)]
+dist2 = [[] for j in range(4)]
+for j in range(4):
     sipm_pos_1 = np.array([DataSiPM_idx.loc[first_sipm1[j]].X, DataSiPM_idx.loc[first_sipm1[j]].Y, DataSiPM_idx.loc[first_sipm1[j]].Z]).transpose()
     sipm_pos_2 = np.array([DataSiPM_idx.loc[first_sipm2[j]].X, DataSiPM_idx.loc[first_sipm2[j]].Y, DataSiPM_idx.loc[first_sipm2[j]].Z]).transpose()
 
@@ -175,9 +175,9 @@ for j in range(6):
     dist1[j].append(np.linalg.norm(np.subtract(pos_1, sipm_pos_1), axis=1))
     dist2[j].append(np.linalg.norm(np.subtract(pos_2, sipm_pos_2), axis=1))
 
-diff_t_matrix      = [[] for j in range(6)]
-diff_reco_t_matrix = [[] for j in range(6)]
-for j in range(6):
+diff_t_matrix      = [[] for j in range(4)]
+diff_reco_t_matrix = [[] for j in range(4)]
+for j in range(4):
     #d1_t = true_t1 - sipm_t1[j]
     #d2_t = true_t2 - sipm_t2[j]
     #diff_t_matrix[j].append((np.concatenate((d1_t, d2_t))).flatten())
@@ -236,7 +236,7 @@ zmin   = zedges[0]; zmin = np.array(zmin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
 dz     = zedges[1:]-zedges[:-1]; dz = np.array(dz[0])
-file_name = folder + 'errmat_phi_phot_like.npz'
+file_name = folder + 'errmat_nest_phi_phot_like.npz'
 #print('eff: ', eff, 'xedges: ', xedges, 'yedges: ', yedges, 'zedges: ', zedges, 'xmin: ', xmin, 'ymin: ', ymin, 'zmin: ', zmin, 'dx: ', dx, 'dy: ', dy, 'dz: ', dz)
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
 
@@ -263,7 +263,7 @@ zmin   = zedges[0]; zmin = np.array(zmin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
 dz     = zedges[1:]-zedges[:-1]; dz = np.array(dz[0])
-file_name = folder + 'errmat_phi_compt_like.npz'
+file_name = folder + 'errmat_nest_phi_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
 
 print('Compt-like')
@@ -288,7 +288,7 @@ r_width = precision
 r_bins  = int((r_range[1] - r_range[0])/r_width)
 
 err_range_phot = (-3, 3)
-err_width_phot =  precision 
+err_width_phot =  precision
 err_bins_phot  = int((err_range_phot[1] - err_range_phot[0])/err_width_phot)
 
 err_range_compt = (-100, 100)
@@ -313,7 +313,7 @@ zmin   = zedges[0]; zmin = np.array(zmin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
 dz     = zedges[1:]-zedges[:-1]; dz = np.array(dz[0])
-file_name = folder + 'errmat_z_phot_like.npz'
+file_name = folder + 'errmat_nest_z_phot_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
 
 print('Phot-like')
@@ -338,7 +338,7 @@ zmin   = zedges[0]; zmin = np.array(zmin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
 dz     = zedges[1:]-zedges[:-1]; dz = np.array(dz[0])
-file_name = folder + 'errmat_z_compt_like.npz'
+file_name = folder + 'errmat_nest_z_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
 
 print('Compt-like')
@@ -359,7 +359,7 @@ r_width = precision
 r_bins  = int((r_range[1] - r_range[0])/r_width)
 
 err_range_phot = (-5, 15)
-err_width_phot = precision 
+err_width_phot = precision
 err_bins_phot  = int((err_range_phot[1] - err_range_phot[0])/err_width_phot)
 
 err_range_compt = (-30, 30)
@@ -380,7 +380,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_r_phot_like.npz'
+file_name = folder + 'errmat_nest_r_phot_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 print('Phot-like')
@@ -401,7 +401,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_r_compt_like.npz'
+file_name = folder + 'errmat_nest_r_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 print('Compt-like')
@@ -424,11 +424,11 @@ t_bins  = int((t_range[1] - t_range[0])/t_width)
 ### NO THRESHOLD IN CHARGE:
 print('')
 print('NO THRESHOLD IN CHARGE:')
-err_range_phot = (-400, 150)
-err_width_phot = precision 
+err_range_phot = (-400, 100)
+err_width_phot = precision
 err_bins_phot  = int((err_range_phot[1] - err_range_phot[0])/err_width_phot)
 
-err_range_compt = (-500, 400)
+err_range_compt = (-500, 300)
 err_width_compt =  precision
 err_bins_compt  = int((err_range_compt[1] - err_range_compt[0])/err_width_compt)
 print(f'Number bins: true t = {t_bins}, err phot = {err_bins_phot}, err compt = {err_bins_compt}')
@@ -446,7 +446,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr0pes_phot_like.npz'
+file_name = folder + 'errmat_nest_t_thr0pes_phot_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 
@@ -468,7 +468,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr0pes_compt_like.npz'
+file_name = folder + 'errmat_nest_t_thr0pes_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 print('Compt-like')
@@ -481,11 +481,11 @@ print(np.count_nonzero(a))
 ### THR = 0.5 PES IN CHARGE:
 print('')
 print('THR = 0.5 PES IN CHARGE:')
-err_range_phot = (-500, 150)
+err_range_phot = (-500, 100)
 err_width_phot = precision
 err_bins_phot  = int((err_range_phot[1] - err_range_phot[0])/err_width_phot)
 
-err_range_compt = (-600, 400)
+err_range_compt = (-550, 250)
 err_width_compt =  precision
 err_bins_compt  = int((err_range_compt[1] - err_range_compt[0])/err_width_compt)
 print(f'Number bins: true t = {t_bins}, err phot = {err_bins_phot}, err compt = {err_bins_compt}')
@@ -503,7 +503,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr0.5pes_phot_like.npz'
+file_name = folder + 'errmat_nest_t_thr0.5pes_phot_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 
@@ -525,7 +525,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr0.5pes_compt_like.npz'
+file_name = folder + 'errmat_nest_t_thr0.5pes_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 print('Compt-like')
@@ -538,11 +538,11 @@ print(np.count_nonzero(a))
 ### THR = 1.0 PES IN CHARGE:
 print('')
 print('THR = 1.0 PES IN CHARGE:')
-err_range_phot = (-1000, 150)
+err_range_phot = (-1400, 100)
 err_width_phot = precision
 err_bins_phot  = int((err_range_phot[1] - err_range_phot[0])/err_width_phot)
 
-err_range_compt = (-1100, 400)
+err_range_compt = (-1500, 200)
 err_width_compt =  precision
 err_bins_compt  = int((err_range_compt[1] - err_range_compt[0])/err_width_compt)
 print(f'Number bins: true t = {t_bins}, err phot = {err_bins_phot}, err compt = {err_bins_compt}')
@@ -560,7 +560,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr1.0pes_phot_like.npz'
+file_name = folder + 'errmat_nest_t_thr1.0pes_phot_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 
@@ -582,7 +582,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr1.0pes_compt_like.npz'
+file_name = folder + 'errmat_nest_t_thr1.0pes_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 print('Compt-like')
@@ -594,11 +594,11 @@ print(np.count_nonzero(a))
 ### THR = 1.5 PES IN CHARGE:
 print('')
 print('THR = 1.5 PES IN CHARGE:')
-err_range_phot = (-1100, 150)
+err_range_phot = (-1450, 100)
 err_width_phot = precision
 err_bins_phot  = int((err_range_phot[1] - err_range_phot[0])/err_width_phot)
 
-err_range_compt = (-1200, 400)
+err_range_compt = (-1600, 150)
 err_width_compt =  precision
 err_bins_compt  = int((err_range_compt[1] - err_range_compt[0])/err_width_compt)
 print(f'Number bins: true t = {t_bins}, err phot = {err_bins_phot}, err compt = {err_bins_compt}')
@@ -616,7 +616,7 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr1.5pes_phot_like.npz'
+file_name = folder + 'errmat_nest_t_thr1.5pes_phot_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 
@@ -638,11 +638,10 @@ xmin   = xedges[0]; xmin = np.array(xmin)
 ymin   = yedges[0]; ymin = np.array(ymin)
 dx     = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
 dy     = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
-file_name = folder + 'errmat_t_thr1.5pes_compt_like.npz'
+file_name = folder + 'errmat_nest_t_thr1.5pes_compt_like.npz'
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
 
 print('Compt-like')
 a = np.sum(h, axis=1)
 print(a.shape)
 print(np.count_nonzero(a))
-
