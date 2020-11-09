@@ -11,12 +11,12 @@ import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 import antea.elec.tof_functions    as tf
 
-from antea.utils.table_functions import load_rpos
-from antea.io   .mc_io           import load_mchits
-from antea.io   .mc_io           import load_mcparticles
-from antea.io   .mc_io           import load_mcsns_response
-from antea.io   .mc_io           import load_mcTOFsns_response
-from antea.io.mc_io import read_sensor_bin_width_from_conf
+from antea.utils.map_functions import load_map
+from antea.io   .mc_io         import load_mchits
+from antea.io   .mc_io         import load_mcparticles
+from antea.io   .mc_io         import load_mcsns_response
+from antea.io   .mc_io         import load_mcTOFsns_response
+from antea.io   .mc_io          import read_sensor_bin_width_from_conf
 
 
 ### read sensor positions from database
@@ -57,7 +57,12 @@ data_path  = arguments.data_path
 
 
 evt_file  = f"{data_path}/full_body_phantom_coincidences_phot_info_dist_tof_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
-Rpos = load_rpos(rpos_file, group="Radius", node=f"f{thr_r}pes200bins")
+#Rpos = load_rpos(rpos_file, group="Radius", node=f"f{thr_r}pes200bins")
+Rpos = load_map(rpos_file, group="Radius",
+                           node=f"f{thr_r}pes200bins",
+                           x_name='RmsPhi',
+                           y_name='Rpos',
+                           u_name='Uncertainty')
 
 ### TOF elec parameters:
 n_sipms        = len(DataSiPM)
