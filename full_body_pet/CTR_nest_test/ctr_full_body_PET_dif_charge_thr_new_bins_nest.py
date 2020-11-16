@@ -134,7 +134,7 @@ for number in range(start, start+numb):
 
     charge_range = (1050, 1300)
 
-    for evt in events[:]:
+    for evt in events:
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
         if len(evt_sns) == 0:
@@ -144,7 +144,7 @@ for number in range(start, start+numb):
         evt_hits  = hits            [hits            .event_id == evt]
         evt_tof   = sns_response_tof[sns_response_tof.event_id == evt]
 
-        pos1, pos2, q1, q2, _, _, _, _, _, _ = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, _, _, _, _, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
@@ -255,7 +255,7 @@ for number in range(start, start+numb):
         ## Trying different thresholds in charge for the sensor that sees the first pe:
         for k, th in enumerate(timestamp_thr):
             evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
-            min_id1, min_id2, min_t1, min_t2 = rf.find_first_times_of_coincidences(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+            min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2)
 
             min_t1 = min_t1*tof_bin_size/units.ps
             min_t2 = min_t2*tof_bin_size/units.ps
@@ -268,6 +268,7 @@ for number in range(start, start+numb):
             dp2 = np.linalg.norm(a_cart2 - min_pos2)
 
             delta_t = min_t2 - min_t1 + (dp1 - dp2)/ave_speed_in_LXe
+            print(delta_t)
 
             time_diff[k].append(delta_t)
 
