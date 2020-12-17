@@ -9,22 +9,27 @@ import mlem.mlem_reconstruct as mr
 
 """
 Example of calling this script:
-python reconstruct_coincidences_fast_sim.py 0 2 /data/PETALO/full_body/phantom/fastsim_tof_thr_charge/ full_body_phantom_sim_reco_thr 0.5 140 /home/rolucar/PETALO/full_body/fast\
-mc/images_reconstruction_mlem/ /home/rolucar/tofpet3d/lib/ 16 2
+python reconstruct_coincidences_fast_sim.py 0 2 /data/PETALO/full_body/phantom/fastsim_tof_thr_charge/ full_body_phantom_sim_reco_thr
+                                            0 2 /data/PETALO/full_body/phantom/fastsim_tof_thr_charge/validation/ full_body_phantom_sim_reco_thr
+                                            0.5 140 /home/rolucar/PETALO/full_body/fastmc/images_reconstruction_mlem/ /home/rolucar/tofpet3d/lib/ 16 2
 """
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('first_file'    , type = int, help = "first file (inclusive)"      )
-    parser.add_argument('n_files'       , type = int, help = "number of files to analize"  )
-    parser.add_argument('input_path'    ,             help = "input files path"            )
-    parser.add_argument('filename'      ,             help = "input files name"            )
-    parser.add_argument('threshold'     ,             help = "TOF threshold"               )
-    parser.add_argument('ctr'           , type = int, help = "time resolution for this thr")
-    parser.add_argument('output_im_path',             help = "output images path"          )
-    parser.add_argument('path_to_mlem'  ,             help = "path to the mlem algorithm"  )
-    parser.add_argument('n_iterations'  , type = int, help = "number of iterations"        )
-    parser.add_argument('save_every'    , type = int, help = "save every n iterations"     )
+    parser.add_argument('first_file'     , type = int, help = "first file (inclusive)"      )
+    parser.add_argument('n_files'        , type = int, help = "number of files to analize"  )
+    parser.add_argument('input_path'     ,             help = "input files path"            )
+    parser.add_argument('filename'       ,             help = "input files name"            )
+    parser.add_argument('first_file_full', type = int, help = "first file (inclusive) from fullsim"      )
+    parser.add_argument('n_files_full'   , type = int, help = "number of files to analize from fullsim"  )
+    parser.add_argument('input_path_full',             help = "input fullsim files path"            )
+    parser.add_argument('filename_full'  ,             help = "input fullsim files name"            )
+    parser.add_argument('threshold'      ,             help = "TOF threshold"               )
+    parser.add_argument('ctr'            , type = int, help = "time resolution for this thr")
+    parser.add_argument('output_im_path' ,             help = "output images path"          )
+    parser.add_argument('path_to_mlem'   ,             help = "path to the mlem algorithm"  )
+    parser.add_argument('n_iterations'   , type = int, help = "number of iterations"        )
+    parser.add_argument('save_every'     , type = int, help = "save every n iterations"     )
     return parser.parse_args()
 
 arguments     = parse_args(sys.argv)
@@ -32,6 +37,12 @@ start         = arguments.first_file
 numb_of_files = arguments.n_files
 folder_in     = arguments.input_path
 filename      = arguments.filename
+
+start_full         = arguments.first_file_full
+numb_of_files_full = arguments.n_files_full
+folder_in_full     = arguments.input_path_full
+filename_full      = arguments.filename_full
+
 th            = arguments.threshold
 tof           = arguments.ctr
 folder_out_im = arguments.output_im_path
@@ -52,12 +63,26 @@ for file_number in range(start, start+numb_of_files):
     print(file_number)
     try:
         table = pd.read_hdf(file_name, 'reco/table')
-        sel_below_th = (table.true_energy > 0.) & (table.true_r1 == 0.)
-        reco = table[~sel_below_th]
-        df = pd.concat([df, reco], ignore_index=True, sort=False)
-    except:
+    except FileNotFoundError:
         print(f'File {file_name} not found')
         continue
+    sel_below_th = (table.true_energy > 0.) & (table.true_r1 == 0.)
+    reco = table[~sel_below_th]
+    df = pd.concat([df, reco], ignore_index=True, sort=False)
+
+
+## FULLSIM FILES
+for file_number_full in range(start_full, start_full+numb_of_files_full):
+    file_name_full = folder_in_full + filename_full + f'{th}pes.{file_number_full}.h5'
+    print(file_number_full)
+    try:
+        table = pd.read_hdf(file_name_full, 'reco/table')
+    except FileNotFoundError:
+        print(f'File {file_name_full} not found')
+        continue
+    sel_below_th = (table.true_energy > 0.) & (table.true_r1 == 0.)
+    reco = table[~sel_below_th]
+    df = pd.concat([df, reco], ignore_index=True, sort=False)
 
 print('------------------------------------------------------------')
 print('--- Number of coincidences passing the energy threshold: ---')
