@@ -14,7 +14,7 @@ import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 
 """ To run thie script
-python pet_box_charge.py 2500 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5 PetBox_asymmetric_HamamatsuVUV /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_charge
+python pet_box_charge_using_true_info.py 2500 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5 PetBox_asymmetric_HamamatsuVUV /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_charge
 """
 
 print(datetime.datetime.now())

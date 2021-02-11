@@ -11,6 +11,10 @@ from antea.io.mc_io import load_sns_positions
 
 import antea.reco.reco_functions as rf
 
+""" To run thie script
+python pet_box_charge.py 2500 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5 PetBox_asymmetric_HamamatsuVUV /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_charge
+"""
+
 print(datetime.datetime.now())
 
 def parse_args(args):
