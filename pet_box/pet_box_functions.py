@@ -49,10 +49,14 @@ def select_phot_pet_box(evt_parts, evt_hits):
 
     ### Once the event has passed the selection, let's calculate the true position(s)
     ids      = sel_all.particle_id.values
+    sel_hits = mcf.find_hits_of_given_particles(ids, evt_hits)
     sel_hits = sel_hits.groupby(['particle_id'])
+
     true_pos = []
     for _, df in sel_hits:
         hit_positions = np.array([df.x.values, df.y.values, df.z.values]).transpose()
-        true_pos.append(np.average(hit_positions, axis=0, weights=df.energy))
-
-    return (True, true_pos)
+        ave_hit_pos   = np.average(hit_positions, axis=0, weights=df.energy)
+        if ave_hit_pos[2] > 0: continue
+        true_pos.append(ave_hit_pos)
+    if len(true_pos): return (True, true_pos[0])
+    else: return (False, [])
