@@ -16,6 +16,16 @@ def parse_args(args):
     parser.add_argument('out_path'     ,             help = "output files path"         )
     return parser.parse_args()
 
+
+def info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns):
+    sipms       = DataSiPM_idx.loc[evt_sns.sensor_id]
+    sns_ids     = sipms.index.astype('int64').values
+    sns_pos     = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
+    sns_charges = evt_sns.charge
+    sel         = sipms.Z.values<0 #Plane with 4 dices
+    return sns_ids[sel], sns_pos[sel], sns_charges[sel]
+
+
 def select_phot_pet_box(evt_parts, evt_hits):
     sel_volume   = (evt_parts.initial_volume == 'ACTIVE') & (evt_parts.final_volume == 'ACTIVE')
     sel_name     =  evt_parts.particle_name == 'e-'

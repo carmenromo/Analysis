@@ -56,13 +56,7 @@ for number in range(start, start+numb):
             evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=n_th)
             if len(evt_sns) == 0:
                 continue
-
-            sipms        = DataSiPM_idx.loc[evt_sns.sensor_id]
-            sns_ids      = sipms.index.astype('int64').values
-            sns_pos      = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-            sns_charges  = evt_sns.charge
-            sel          = sipms.Z.values<0 #Plane with high number of sensors
-            sns, pos, qs = sns_ids[sel], sns_pos[sel], sns_charges[sel]
+            ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
             tot_charges[n_th].append(sum(qs))
         evt_ids.append(evt)
 
