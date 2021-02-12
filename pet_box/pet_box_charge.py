@@ -5,6 +5,8 @@ import tables   as tb
 import numpy    as np
 import pandas   as pd
 
+import pet_box_functions as pbf
+
 from antea.io.mc_io import load_mcparticles
 from antea.io.mc_io import load_mcsns_response
 from antea.io.mc_io import load_sns_positions
@@ -17,18 +19,7 @@ python pet_box_charge.py 2500 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/
 
 print(datetime.datetime.now())
 
-def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('first_file'   , type = int, help = "first file (inclusive)"    )
-    parser.add_argument('n_files'      , type = int, help = "number of files to analize")
-    parser.add_argument('thr_ch_start' , type = int, help = "init threshold in charge"  )
-    parser.add_argument('thr_ch_nsteps', type = int, help = "numb steps thrs in charge" )
-    parser.add_argument('in_path'      ,             help = "input files path"          )
-    parser.add_argument('file_name'    ,             help = "name of input files"       )
-    parser.add_argument('out_path'     ,             help = "output files path"         )
-    return parser.parse_args()
-
-arguments     = parse_args(sys.argv)
+arguments     = pbf.parse_args(sys.argv)
 start         = arguments.first_file
 numb          = arguments.n_files
 thr_ch_start  = arguments.thr_ch_start
