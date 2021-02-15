@@ -38,7 +38,7 @@ def select_phot_pet_box(evt_parts, evt_hits):
 
     sel1 = rf.greater_or_equal(energies.energy, 0.476443, allowed_error=1.e-6)
     sel2 = rf.lower_or_equal  (energies.energy, 0.48,     allowed_error=1.e-6)
-    energy_sel = energies[sel1 & sel2]
+    energy_sel = energies[sel1]# & sel2]
 
     sel_vol_name_e  = sel_vol_name[sel_vol_name.particle_id.isin(energy_sel.particle_id)]
 
