@@ -62,9 +62,7 @@ for number in range(start, start+numb):
 
         if phot and true_pos[0][2]<0:
             for n_th, threshold in enumerate(range(thr_ch_start, thr_ch_nsteps)):
-                evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=n_th)
-                if len(evt_sns) == 0:
-                    continue
+                evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
                 ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
                 tot_charges[n_th].append(sum(qs))
             evt_ids.append(evt)

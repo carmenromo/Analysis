@@ -54,8 +54,6 @@ for number in range(start, start+numb):
         evt_sns = sns_response[sns_response.event_id == evt]
         for n_th, threshold in enumerate(range(thr_ch_start, thr_ch_nsteps)):
             evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
-            if len(evt_sns) == 0:
-                continue
             ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
             tot_charges[n_th].append(sum(qs))
         evt_ids.append(evt)
