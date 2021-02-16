@@ -12,7 +12,8 @@ from antea.io.mc_io import load_mchits
 from antea.io.mc_io import load_mcsns_response
 from antea.io.mc_io import load_sns_positions
 
-import antea.reco.reco_functions as rf
+import antea.reco.reco_functions   as rf
+import antea.reco.mctrue_functions as mcf
 
 """ To run this script
 python pet_box_charge_using_true_info.py 2500 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5 PetBox_asymmetric_HamamatsuVUV /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_charge
@@ -57,8 +58,9 @@ for number in range(start, start+numb):
         evt_parts = mcparticles [mcparticles .event_id == evt]
         evt_hits  = mchits      [mchits      .event_id == evt]
 
-        phot, _ = pbf.select_phot_pet_box(evt_parts, evt_hits)
-        if phot:
+        phot, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
+
+        if phot and true_pos[0][2]<0:
             for n_th, threshold in enumerate(range(thr_ch_start, thr_ch_nsteps)):
                 evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=n_th)
                 if len(evt_sns) == 0:

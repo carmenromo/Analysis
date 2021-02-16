@@ -55,22 +55,22 @@ for number in range(start, start+numb):
         evt_parts = mcparticles [mcparticles .event_id == evt]
         evt_hits  = mchits      [mchits      .event_id == evt]
 
-        phot, true_pos = pbf.select_phot_pet_box(evt_parts, evt_hits)
-        if not phot: continue
+        phot, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
 
-        for n_th, threshold in enumerate(range(thr_ch_start, thr_ch_nsteps)):
-            evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=n_th)
-            if len(evt_sns) == 0: continue
+        if phot and true_pos[0][2]<0:
+            for n_th, threshold in enumerate(range(thr_ch_start, thr_ch_nsteps)):
+                evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=n_th)
 
-            ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
-            if sum(qs) == 0: continue
+                ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+                if sum(qs) == 0:
+                    continue
 
-            pos_r  = np.array([np.sqrt(p[0]**2 + p[1]**2) for p in pos])
-            mean_r = np.average(pos_r, weights=qs)
-            var_rs = np.average((pos_r - mean_r)**2, weights=qs)
+                pos_r  = np.array([np.sqrt(p[0]**2 + p[1]**2) for p in pos])
+                mean_r = np.average(pos_r, weights=qs)
+                var_rs = np.average((pos_r - mean_r)**2, weights=qs)
 
-            var_r [n_th].append(var_rs)
-            true_z[n_th].append(true_pos[2])
+                var_r [n_th].append(var_rs)
+                true_z[n_th].append(true_pos[0][2])
 
 for i in range(thr_ch_nsteps):
     true_z[i] = np.array(true_z[i])
