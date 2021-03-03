@@ -33,11 +33,15 @@ out_path      = arguments.out_path
 area0 = [8, 28, 37, 57]
 threshold = 2
 
-evt_file   = f'{out_path}/pet_box_charge_select_area0_true_info_dists_{start}_{numb}_thr{threshold}pes'
+evt_file   = f'{out_path}/pet_box_charge_select_area0_true_info_dists_saveqs_{start}_{numb}_thr{threshold}pes'
 
 tot_charges           = []
 dist_ztrue_zsens      = []
 dist_true_sens_module = []
+all_true_pos          = []
+all_charges           = []
+all_sns_positions     = []
+all_sns_ids           = []
 touched_sipms         = []
 evt_ids               = []
 
@@ -98,19 +102,27 @@ for number in range(start, start+numb):
                     tot_charges          .append(sum(qs))
                     dist_ztrue_zsens     .append(dtz_sens)
                     dist_true_sens_module.append(dtz_truep)
+                    all_true_pos         .append(phot_neg_pos[0])
+                    all_charges          .append(qs)
+                    all_sns_positions    .append(pos)
+                    all_sns_ids          .append(ids)
                     touched_sipms        .append(len(qs))
                     evt_ids              .append(evt)
-
-                    print(sum(qs), dtz_sens, dtz_truep, evt)
         else:
             continue
 
 tot_charges           = np.array(tot_charges          )
 dist_ztrue_zsens      = np.array(dist_ztrue_zsens     )
 dist_true_sens_module = np.array(dist_true_sens_module)
+all_true_pos          = np.array(all_true_pos)
+all_charges           = np.array(all_charges)
+all_sns_positions     = np.array(all_sns_positions)
+all_sns_ids           = np.array(all_sns_ids)
 touched_sipms         = np.array(touched_sipms        )
 evt_ids               = np.array(evt_ids              )
 
-np.savez(evt_file, tot_charges=tot_charges, dist_ztrue_zsens=dist_ztrue_zsens, dist_true_sens_module=dist_true_sens_module, touched_sipms=touched_sipms, evt_ids=evt_ids)
+print(all_true_pos)
+np.savez(evt_file, tot_charges=tot_charges, dist_ztrue_zsens=dist_ztrue_zsens, dist_true_sens_module=dist_true_sens_module, all_true_pos=all_true_pos,
+         all_charges=all_charges, all_sns_positions=all_sns_positions, all_sns_ids=all_sns_ids, touched_sipms=touched_sipms, evt_ids=evt_ids)
 
 print(datetime.datetime.now())
