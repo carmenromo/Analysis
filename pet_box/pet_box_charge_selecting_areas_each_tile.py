@@ -44,16 +44,16 @@ area03 = [46, 47, 54, 55]
 area10 = [75, 74, 83, 82]
 
 
-areas = [area00, area01, area02, area03, area10]
+areas1 = [area00, area01, area02, area03]
 
 threshold = 2
 
 evt_file   = f'{out_path}/pet_box_charge_select_areas_each_tile_{start}_{numb}_thr{threshold}pes'
 
-chargs_phot   = [[] for i in range(len(areas))]
-truepos_phot  = [[] for i in range(len(areas))]
-id_max        = [[] for i in range(len(areas))]
-touched_sipms = [[] for i in range(len(areas))]
+chargs_phot   = [[] for i in range(len(areas1)+1)]
+truepos_phot  = [[] for i in range(len(areas1)+1)]
+id_max        = [[] for i in range(len(areas1)+1)]
+touched_sipms = [[] for i in range(len(areas1)+1)]
 evt_ids       = []
 num_tile      = []
 
@@ -83,34 +83,48 @@ for number in range(start, start+numb):
         he_gamma, true_pos_he = pbf.select_gamma_high_energy(evt_parts, evt_hits)
         phot, true_pos_phot   = mcf.select_photoelectric(evt_parts, evt_hits)
 
-        sel_neg_phot0 = np.array([pos[2] for pos in true_pos_phot])
-        sel_neg_phot = sel_neg_phot0[sel_neg_phot0<0]
-        phot_neg_pos = np.array(true_pos_phot)[sel_neg_phot0<0]
+        sel_phot0 = np.array([pos[2] for pos in true_pos_phot])
+        sel_neg_phot = sel_phot0[sel_phot0<0]
+        sel_pos_phot = sel_phot0[sel_phot0>0]
+        phot_neg_pos = np.array(true_pos_phot)[sel_phot0<0]
+        phot_pos_pos = np.array(true_pos_phot)[sel_phot0>0]
 
         sel_neg_he = np.array([pos[2] for pos in true_pos_he])
         sel_neg_he = sel_neg_he[sel_neg_he<0]
+        sel_pos_he = sel_neg_he[sel_neg_he>0]
 
-        if phot and len(sel_neg_phot)>0: ### Be careful with the meaning of this condition
-            if he_gamma and len(sel_neg_he)>0: ### Be careful with the meaning of this condition
+        if phot:
+            evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
+            if len(evt_sns) == 0:
                 continue
-            else:
-                evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
-                if len(evt_sns) == 0:
+            ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+            if len(qs) == 0:
+                continue
+            max_charge_s_id = ids[np.argmax(qs)]
+            if len(sel_neg_phot)>0: ### Be careful with the meaning of this condition
+                if he_gamma and len(sel_neg_he)>0: ### Be careful with the meaning of this condition
                     continue
-                ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
-                if len(qs) == 0:
-                    continue
-                max_charge_s_id = ids[np.argmax(qs)]
+                else:
+                    for num_ar, area in enumerate(areas1):
+                        if max_charge_s_id in area:
+                            chargs_phot  [num_ar].append(sum(qs))
+                            truepos_phot [num_ar].append(phot_neg_pos[0])
+                            id_max       [num_ar].append(max_charge_s_id)
+                            touched_sipms[num_ar].append(len(qs))
+                            evt_ids              .append(evt)
+                            num_tile             .append(num_ar)
 
-                for num_ar, area in enumerate(areas[:4]):
-                    if max_charge_s_id in area:
-                        print(phot_neg_pos)
-                        chargs_phot  [num_ar].append(sum(qs))
-                        truepos_phot [num_ar].append(phot_neg_pos[0])
-                        id_max       [num_ar].append(max_charge_s_id)
-                        touched_sipms[num_ar].append(len(qs))
+            elif len(sel_pos_phot)>0: ### Be careful with the meaning of this condition
+                if he_gamma and len(sel_pos_he)>0: ### Be careful with the meaning of this condition
+                    continue
+                else:
+                    if max_charge_s_id in area10:
+                        chargs_phot  [-1].append(sum(qs))
+                        truepos_phot [-1].append(phot_neg_pos[0])
+                        id_max       [-1].append(max_charge_s_id)
+                        touched_sipms[-1].append(len(qs))
                         evt_ids              .append(evt)
-                        num_tile             .append(num_ar)
+                        num_tile             .append(4)
         else:
             continue
 
