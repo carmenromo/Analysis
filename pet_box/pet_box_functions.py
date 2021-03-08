@@ -25,6 +25,14 @@ def info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns):
     sel         = sipms.Z.values<0 #Plane with 4 dices
     return sns_ids[sel], sns_pos[sel], sns_charges[sel]
 
+def info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns):
+    sipms       = DataSiPM_idx.loc[evt_sns.sensor_id]
+    sns_ids     = sipms.index.astype('int64').values
+    sns_pos     = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
+    sns_charges = evt_sns.charge.values
+    sel         = sipms.Z.values>0 #Plane with 1 dices
+    return sns_ids[sel], sns_pos[sel], sns_charges[sel]
+
 
 def select_gamma_high_energy(evt_parts, evt_hits):
     sel_volume   = (evt_parts.initial_volume == 'ACTIVE') & (evt_parts.final_volume == 'ACTIVE')

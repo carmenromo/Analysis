@@ -97,14 +97,15 @@ for number in range(start, start+numb):
             evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
             if len(evt_sns) == 0:
                 continue
-            ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
-            if len(qs) == 0:
-                continue
-            max_charge_s_id = ids[np.argmax(qs)]
+
             if len(sel_neg_phot)>0: ### Be careful with the meaning of this condition
                 if he_gamma and len(sel_neg_he)>0: ### Be careful with the meaning of this condition
                     continue
                 else:
+                    ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+                    if len(qs) == 0:
+                        continue
+                    max_charge_s_id = ids[np.argmax(qs)]
                     for num_ar, area in enumerate(areas1):
                         if max_charge_s_id in area:
                             chargs_phot  [num_ar].append(sum(qs))
@@ -118,13 +119,17 @@ for number in range(start, start+numb):
                 if he_gamma and len(sel_pos_he)>0: ### Be careful with the meaning of this condition
                     continue
                 else:
+                    ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                    if len(qs) == 0:
+                        continue
+                    max_charge_s_id = ids[np.argmax(qs)]
                     if max_charge_s_id in area10:
                         chargs_phot  [-1].append(sum(qs))
-                        truepos_phot [-1].append(phot_neg_pos[0])
+                        truepos_phot [-1].append(phot_pos_pos[0])
                         id_max       [-1].append(max_charge_s_id)
                         touched_sipms[-1].append(len(qs))
-                        evt_ids              .append(evt)
-                        num_tile             .append(4)
+                        evt_ids          .append(evt)
+                        num_tile         .append(4)
         else:
             continue
 
