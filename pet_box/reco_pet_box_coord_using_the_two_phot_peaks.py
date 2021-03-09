@@ -33,7 +33,7 @@ out_path      = arguments.out_path
 area0 = [8, 28, 37, 57]
 threshold = 2
 
-evt_file   = f'{out_path}/pet_box_charge_select_area0_true_info_dists_saveqs_{start}_{numb}_thr{threshold}pes'
+evt_file   = f'{out_path}/reco_pet_box_coord_using_the_two_phot_peaks_{start}_{numb}_thr{threshold}pes'
 
 tot_charges0 = []
 tot_charges1 = []
