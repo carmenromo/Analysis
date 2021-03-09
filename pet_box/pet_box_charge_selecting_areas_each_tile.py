@@ -89,9 +89,9 @@ for number in range(start, start+numb):
         phot_neg_pos = np.array(true_pos_phot)[sel_phot0<0]
         phot_pos_pos = np.array(true_pos_phot)[sel_phot0>0]
 
-        sel_neg_he = np.array([pos[2] for pos in true_pos_he])
-        sel_neg_he = sel_neg_he[sel_neg_he<0]
-        sel_pos_he = sel_neg_he[sel_neg_he>0]
+        sel_he0    = np.array([pos[2] for pos in true_pos_he])
+        sel_neg_he = sel_he0[sel_he0<0]
+        sel_pos_he = sel_he0[sel_he0>0]
 
         if phot:
             evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
@@ -115,8 +115,8 @@ for number in range(start, start+numb):
                             evt_ids              .append(evt)
                             num_tile             .append(num_ar)
 
-            elif len(sel_pos_phot)>0: ### Be careful with the meaning of this condition
-                if he_gamma and len(sel_pos_he)>0: ### Be careful with the meaning of this condition
+            elif len(sel_pos_phot)>0:
+                if he_gamma and len(sel_pos_he)>0:
                     continue
                 else:
                     ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
