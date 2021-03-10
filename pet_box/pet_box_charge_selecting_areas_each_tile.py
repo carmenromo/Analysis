@@ -43,8 +43,14 @@ area02 = [42, 43, 50, 51]
 area03 = [46, 47, 54, 55]
 area10 = [75, 74, 83, 82]
 
+tile1 = np.array([1, 2, 3, 4, 9, 10, 11, 12, 17, 18, 19, 20, 25, 26, 27, 28]) # + 1000
+tile2 = tile1 + 4
+tile3 = tile1 + 32
+tile4 = tile1 + 36
+tile5 = tile1 + 64
 
 areas1 = [area00, area01, area02, area03]
+tiles1 = [tile1, tile2, tile3, tile4]
 
 threshold = 2
 
@@ -102,11 +108,11 @@ for number in range(start, start+numb):
                 if he_gamma and len(sel_neg_he)>0: ### Be careful with the meaning of this condition
                     continue
                 else:
-                    ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
-                    if len(qs) == 0:
-                        continue
-                    max_charge_s_id = ids[np.argmax(qs)]
-                    for num_ar, area in enumerate(areas1):
+                    for num_ar, (area, tile) in enumerate(zip(areas1, tiles1)):
+                        ids, pos, qs = pbf.info_from_sensors_for_a_given_tile(DataSiPM_idx, evt_sns, tile)
+                        if len(qs) == 0:
+                            continue
+                        max_charge_s_id = ids[np.argmax(qs)]
                         if max_charge_s_id in area:
                             chargs_phot  [num_ar].append(sum(qs))
                             truepos_phot [num_ar].append(phot_neg_pos[0])
@@ -119,7 +125,7 @@ for number in range(start, start+numb):
                 if he_gamma and len(sel_pos_he)>0:
                     continue
                 else:
-                    ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                    ids, pos, qs = pbf.info_from_sensors_for_a_given_tile(DataSiPM_idx, evt_sns, tile5)
                     if len(qs) == 0:
                         continue
                     max_charge_s_id = ids[np.argmax(qs)]
