@@ -39,6 +39,10 @@ tot_charges0 = []
 tot_charges1 = []
 var_r0       = []
 var_r1       = []
+var_x0       = []
+var_x1       = []
+var_y0       = []
+var_y1       = []
 true_z0      = []
 true_z1      = []
 evt_ids0     = []
@@ -99,13 +103,22 @@ for number in range(start, start+numb):
                     mean_r = np.average(pos_r, weights=qs)
                     var_rs = np.average((pos_r - mean_r)**2, weights=qs)
 
+                    mean_x = np.average(pos_xs, weights=qs)
+                    mean_y = np.average(pos_ys, weights=qs)
+                    var_xs = np.average((pos_xs - mean_x)**2, weights=qs)
+                    var_ys = np.average((pos_ys - mean_y)**2, weights=qs)
+
                     if sum(qs) < 1370:
                         var_r0      .append(var_rs)
+                        var_x0      .append(var_xs)
+                        var_y0      .append(var_ys)
                         true_z0     .append(sel_neg_phot[0])
                         tot_charges0.append(sum(qs))
                         evt_ids0    .append(evt)
                     else:
                         var_r1      .append(var_rs)
+                        var_x1      .append(var_xs)
+                        var_y1      .append(var_ys)
                         true_z1     .append(sel_neg_phot[0])
                         tot_charges1.append(sum(qs))
                         evt_ids1    .append(evt)
@@ -117,11 +130,15 @@ tot_charges1 = np.array(tot_charges1)
 evt_ids0     = np.array(evt_ids0)
 evt_ids1     = np.array(evt_ids1)
 var_r0       = np.array(var_r0 )
+var_x0       = np.array(var_x0 )
+var_y0       = np.array(var_y0 )
 true_z0      = np.array(true_z0)
 var_r1       = np.array(var_r1 )
+var_x1       = np.array(var_x1 )
+var_y1       = np.array(var_y1 )
 true_z1      = np.array(true_z1)
 
 np.savez(evt_file, tot_charges0=tot_charges0, tot_charges1=tot_charges1, evt_ids0=evt_ids0, evt_ids1=evt_ids1,
-var_r0=var_r0, true_z0=true_z0, var_r1=var_r1, true_z1=true_z1)
+var_r0=var_r0, var_x0=var_x0, var_y0=var_y0, true_z0=true_z0, var_r1=var_r1, var_x1=var_x1, var_y1=var_y1, true_z1=true_z1)
 
 print(datetime.datetime.now())
