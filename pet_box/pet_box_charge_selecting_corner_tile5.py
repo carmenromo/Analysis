@@ -23,8 +23,10 @@ print(datetime.datetime.now())
 arguments     = pbf.parse_args(sys.argv)
 start         = arguments.first_file
 numb          = arguments.n_files
-thr_ch_start  = arguments.thr_ch_start
-thr_ch_nsteps = arguments.thr_ch_nsteps
+#thr_ch_start  = arguments.thr_ch_start
+#thr_ch_nsteps = arguments.thr_ch_nsteps
+thr_ch_start  = 0
+thr_ch_nsteps = 6
 in_path       = arguments.in_path
 file_name     = arguments.file_name
 out_path      = arguments.out_path
@@ -37,15 +39,17 @@ area3 = [1, 2, 3, 4, 5, 9, 13, 17, 21, 25, 29, 30, 31, 32, 33, 34, 35, 36, 40, 4
 
 threshold = 2
 
-evt_file   = f'{out_path}/pet_box_charge_selecting_corner_tile5_{start}_{numb}_thr{threshold}pes'
+evt_file   = f'{out_path}/pet_box_charge_selecting_corner_tile5_no_select_areas_{start}_{numb}_thr{threshold}pes'
 
 num_evt_max_id_tile5_corner = 0
-num_evt_max_id_tiles_area0  = 0
-num_evt_max_id_tiles_area1  = 0
-num_evt_max_id_tiles_area2  = 0
-num_evt_max_id_tiles_area3  = 0
+#num_evt_max_id_tiles_area0  = 0
+#num_evt_max_id_tiles_area1  = 0
+#num_evt_max_id_tiles_area2  = 0
+#num_evt_max_id_tiles_area3  = 0
 
-charge0, charge1, charge2, charge3, charge4 = [], [], [], [], []
+#charge0, charge1, charge2, charge3, charge4 = [], [], [], [], []
+charge_tile5     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+charge_det_plane = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 tot_evts = 0
 
 for number in range(start, start+numb):
@@ -68,43 +72,68 @@ for number in range(start, start+numb):
     for evt in events:
         tot_evts += 1
         evt_sns = sns_response[sns_response.event_id == evt]
-        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
-        if len(evt_sns) == 0:
-            continue
-        ids_pos, pos_pos, qs_pos = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
-        ids_neg, pos_neg, qs_neg = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+        for n_th, threshold in enumerate(range(thr_ch_start, thr_ch_nsteps)):
+            evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
+            if len(evt_sns) == 0:
+                continue
+            ids_pos, pos_pos, qs_pos = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+            ids_neg, pos_neg, qs_neg = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
 
-        if len(qs_pos)==0 or len(qs_neg)==0:
-            continue
+            if len(qs_pos)==0 or len(qs_neg)==0:
+                continue
 
-        max_charge_s_id_pos = ids_pos[np.argmax(qs_pos)]
-        max_charge_s_id_neg = ids_neg[np.argmax(qs_neg)]
+            max_charge_s_id_pos = ids_pos[np.argmax(qs_pos)]
+            max_charge_s_id_neg = ids_neg[np.argmax(qs_neg)]
 
-        if max_charge_s_id_pos == sensor_corner_tile5:
-            num_evt_max_id_tile5_corner += 1
-            charge4.append(sum(qs_pos))
-            if max_charge_s_id_neg in area0:
-                num_evt_max_id_tiles_area0 += 1
-                charge0.append(sum(qs_neg))
-            elif max_charge_s_id_neg in area1:
-                num_evt_max_id_tiles_area1 += 1
-                charge1.append(sum(qs_neg))
-            elif max_charge_s_id_neg in area2:
-                num_evt_max_id_tiles_area2 += 1
-                charge2.append(sum(qs_neg))
-            elif max_charge_s_id_neg in area3:
-                num_evt_max_id_tiles_area3 += 1
-                charge3.append(sum(qs_neg))
+            if max_charge_s_id_pos == sensor_corner_tile5:
+                num_evt_max_id_tile5_corner += 1
+                charge_tile5    [n_th].append(sum(qs_pos))
+                charge_det_plane[n_th].append(sum(qs_neg))
 
-charge0 = np.array(charge0)
-charge1 = np.array(charge1)
-charge2 = np.array(charge2)
-charge3 = np.array(charge3)
-charge4 = np.array(charge4)
+            # charge4.append(sum(qs_pos))
+            # if max_charge_s_id_neg in area0:
+            #     num_evt_max_id_tiles_area0 += 1
+            #     charge0.append(sum(qs_neg))
+            # elif max_charge_s_id_neg in area1:
+            #     num_evt_max_id_tiles_area1 += 1
+            #     charge1.append(sum(qs_neg))
+            # elif max_charge_s_id_neg in area2:
+            #     num_evt_max_id_tiles_area2 += 1
+            #     charge2.append(sum(qs_neg))
+            # elif max_charge_s_id_neg in area3:
+            #     num_evt_max_id_tiles_area3 += 1
+            #     charge3.append(sum(qs_neg))
 
-np.savez(evt_file, charge0=charge0, charge1=charge1, charge2=charge2, charge3=charge3, charge4=charge4,
-         num_evt_max_id_tile5_corner=num_evt_max_id_tile5_corner, num_evt_max_id_tiles_area0=num_evt_max_id_tiles_area0,
-         num_evt_max_id_tiles_area1=num_evt_max_id_tiles_area1, num_evt_max_id_tiles_area2=num_evt_max_id_tiles_area2,
-         num_evt_max_id_tiles_area3=num_evt_max_id_tiles_area3, tot_evts=tot_evts)
+charge_tile5_0 = np.array(charge_tile5[0])
+charge_tile5_1 = np.array(charge_tile5[1])
+charge_tile5_2 = np.array(charge_tile5[2])
+charge_tile5_3 = np.array(charge_tile5[3])
+charge_tile5_4 = np.array(charge_tile5[4])
+charge_tile5_5 = np.array(charge_tile5[5])
+
+charge_det_plane_0 = np.array(charge_det_plane[0])
+charge_det_plane_1 = np.array(charge_det_plane[1])
+charge_det_plane_2 = np.array(charge_det_plane[2])
+charge_det_plane_3 = np.array(charge_det_plane[3])
+charge_det_plane_4 = np.array(charge_det_plane[4])
+charge_det_plane_5 = np.array(charge_det_plane[5])
+
+# charge0 = np.array(charge0)
+# charge1 = np.array(charge1)
+# charge2 = np.array(charge2)
+# charge3 = np.array(charge3)
+# charge4 = np.array(charge4)
+
+print(charge_tile5_5)
+print(charge_det_plane_5)
+np.savez(evt_file, charge_tile5_0=charge_tile5_0, charge_tile5_1=charge_tile5_1, charge_tile5_2=charge_tile5_2,
+         charge_tile5_3=charge_tile5_3, charge_tile5_4=charge_tile5_4, charge_tile5_5=charge_tile5_5,
+         charge_det_plane_0=charge_det_plane_0, charge_det_plane_1=charge_det_plane_1, charge_det_plane_2=charge_det_plane_2,
+         charge_det_plane_3=charge_det_plane_3, charge_det_plane_4=charge_det_plane_4, charge_det_plane_5=charge_det_plane_5,
+         num_evt_max_id_tile5_corner=num_evt_max_id_tile5_corner, tot_evts=tot_evts)
+# np.savez(evt_file, charge0=charge0, charge1=charge1, charge2=charge2, charge3=charge3, charge4=charge4,
+#          num_evt_max_id_tile5_corner=num_evt_max_id_tile5_corner, num_evt_max_id_tiles_area0=num_evt_max_id_tiles_area0,
+#          num_evt_max_id_tiles_area1=num_evt_max_id_tiles_area1, num_evt_max_id_tiles_area2=num_evt_max_id_tiles_area2,
+#          num_evt_max_id_tiles_area3=num_evt_max_id_tiles_area3, tot_evts=tot_evts)
 
 print(datetime.datetime.now())
