@@ -29,34 +29,11 @@ in_path       = arguments.in_path
 file_name     = arguments.file_name
 out_path      = arguments.out_path
 
-## NEW ONES
-# area00 = [22, 23, 32, 33]
-# area01 = [26, 27, 36, 37]
-# area02 = [62, 63, 72, 73]
-# area03 = [66, 67, 76, 77]
-# area10 = [122, 123, 132, 133]
-
-## OLD
-# area00 = [10, 11, 18, 19]
-# area01 = [14, 15, 22, 23]
-# area02 = [42, 43, 50, 51]
-# area03 = [46, 47, 54, 55]
-# area10 = [75, 74, 83, 82]
-
 sensor_corner_tile5 = 89
 area0 = [8, 28, 37, 57]
 area1 = [7, 15, 16, 19, 20, 27, 38, 45, 46, 49, 50, 58]
 area2 = [6, 10, 11, 12, 14, 18, 22, 23, 24, 26, 39, 41, 42, 43, 47, 51, 53, 54, 55, 59]
 area3 = [1, 2, 3, 4, 5, 9, 13, 17, 21, 25, 29, 30, 31, 32, 33, 34, 35, 36, 40, 44, 48, 52, 56, 60, 61, 62, 63, 64]
-
-tile1 = np.array([1, 2, 3, 4, 9, 10, 11, 12, 17, 18, 19, 20, 25, 26, 27, 28]) # + 1000
-tile2 = tile1 + 4
-tile3 = tile1 + 32
-tile4 = tile1 + 36
-tile5 = tile1 + 64
-
-areas1 = [area00, area01, area02, area03]
-tiles1 = [tile1, tile2, tile3, tile4]
 
 threshold = 2
 
@@ -69,7 +46,7 @@ num_evt_max_id_tiles_area2  = 0
 num_evt_max_id_tiles_area3  = 0
 
 charge0, charge1, charge2, charge3, charge4 = [], [], [], [], []
-evt_ids = []
+tot_evts = 0
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -89,6 +66,7 @@ for number in range(start, start+numb):
 
     events = mcparticles.event_id.unique()
     for evt in events:
+        tot_evts += 1
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
         if len(evt_sns) == 0:
@@ -127,6 +105,6 @@ charge4 = np.array(charge4)
 np.savez(evt_file, charge0=charge0, charge1=charge1, charge2=charge2, charge3=charge3, charge4=charge4,
          num_evt_max_id_tile5_corner=num_evt_max_id_tile5_corner, num_evt_max_id_tiles_area0=num_evt_max_id_tiles_area0,
          num_evt_max_id_tiles_area1=num_evt_max_id_tiles_area1, num_evt_max_id_tiles_area2=num_evt_max_id_tiles_area2,
-         num_evt_max_id_tiles_area3=num_evt_max_id_tiles_area3)
+         num_evt_max_id_tiles_area3=num_evt_max_id_tiles_area3, tot_evts=tot_evts)
 
 print(datetime.datetime.now())
