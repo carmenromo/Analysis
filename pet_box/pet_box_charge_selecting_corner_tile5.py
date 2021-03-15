@@ -140,7 +140,7 @@ np.savez(evt_file, charge_tile5_0=charge_tile5_0, charge_tile5_1=charge_tile5_1,
          charge_det_plane_0=charge_det_plane_0, charge_det_plane_1=charge_det_plane_1, charge_det_plane_2=charge_det_plane_2,
          charge_det_plane_3=charge_det_plane_3, charge_det_plane_4=charge_det_plane_4, charge_det_plane_5=charge_det_plane_5,
          charge_max_id_89_0=charge_max_id_89_0, charge_max_id_89_1=charge_max_id_89_1, charge_max_id_89_2=charge_max_id_89_2,
-         charge_max_id_89_3=charge_max_id_89_3, charge_max_id_89_4=charge_max_id_89_4, charge_max_id_89_5=charge_max_id_89_5
+         charge_max_id_89_3=charge_max_id_89_3, charge_max_id_89_4=charge_max_id_89_4, charge_max_id_89_5=charge_max_id_89_5,
          num_evt_max_id_tile5_corner=num_evt_max_id_tile5_corner, tot_evts=tot_evts)
 # np.savez(evt_file, charge0=charge0, charge1=charge1, charge2=charge2, charge3=charge3, charge4=charge4,
 #          num_evt_max_id_tile5_corner=num_evt_max_id_tile5_corner, num_evt_max_id_tiles_area0=num_evt_max_id_tiles_area0,
