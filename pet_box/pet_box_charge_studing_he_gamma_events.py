@@ -29,16 +29,20 @@ in_path       = arguments.in_path
 file_name     = arguments.file_name
 out_path      = arguments.out_path
 
-evt_file   = f'{out_path}/pet_box_charge_studying_he_gamma_evts_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
-
+evt_file  = f'{out_path}/pet_box_charge_studying_he_gamma_evts_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
+threshold = 2
 
 evt_ids_phot_and_he_gamma    = []
 sig_phot0                    = []
+charge_phot0                 = []
 sig_gamma0                   = []
+charge_gamma0                = []
 evt_ids_phot_and_no_he_gamma = []
 sig_phot1                    = []
+charge_phot1                 = []
 evt_ids_no_phot_and_he_gamma = []
 sig_gamma1                   = []
+charge_gamma1                = []
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -86,42 +90,66 @@ for number in range(start, start+numb):
         sel_neg_he0 = np.array([pos[2] for pos in true_pos_he])
         sel_neg_he = sel_neg_he0[sel_neg_he0<0]
 
+        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=threshold)
         if phot:
             if he_gamma:
                 evt_ids_phot_and_he_gamma.append(evt)
                 if len(sel_neg_phot)>0:
-                     sig_phot0.append(True)
+                    ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+                    sig_phot0   .append(True)
+                    charge_phot0.append(sum(qs))
                 else:
-                     sig_phot0.append(False)
+                    ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                    sig_phot0   .append(False)
+                    charge_phot0.append(sum(qs))
+
                 if len(sel_neg_he)>0:
-                     sig_gamma0.append(True)
+                    ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+                    sig_gamma0   .append(True)
+                    charge_gamma0.append(sum(qs))
                 else:
-                    sig_gamma0.append(False)
+                    ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                    sig_gamma0   .append(False)
+                    charge_gamma0.append(sum(qs))
             else:
                 evt_ids_phot_and_no_he_gamma.append(evt)
                 if len(sel_neg_phot)>0:
-                     sig_phot1.append(True)
+                    ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+                    sig_phot1   .append(True)
+                    charge_phot1.append(sum(qs))
                 else:
-                     sig_phot1.append(False)
+                    ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                    sig_phot1   .append(False)
+                    charge_phot1.append(sum(qs))
 
         else:
             if he_gamma:
                 evt_ids_no_phot_and_he_gamma.append(evt)
                 if len(sel_neg_he)>0:
-                     sig_gamma1.append(True)
+                    ids, pos, qs = pbf.info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns)
+                    sig_gamma1   .append(True)
+                    charge_gamma1.append(sum(qs))
                 else:
-                    sig_gamma1.append(False)
+                    ids, pos, qs = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                    sig_gamma1   .append(False)
+                    charge_gamma1.append(sum(qs))
 
 evt_ids_phot_and_he_gamma    = np.array(evt_ids_phot_and_he_gamma)
-sig_phot0                    = np.array(sig_phot0)
-sig_gamma0                   = np.array(sig_gamma0)
 evt_ids_phot_and_no_he_gamma = np.array(evt_ids_phot_and_no_he_gamma)
-sig_phot1                    = np.array(sig_phot1)
 evt_ids_no_phot_and_he_gamma = np.array(evt_ids_no_phot_and_he_gamma)
-sig_gamma1                   = np.array(sig_gamma1)
 
-np.savez(evt_file, evt_ids_phot_and_he_gamma=evt_ids_phot_and_he_gamma, sig_phot0=sig_phot0, sig_gamma0=sig_gamma0,
-         evt_ids_phot_and_no_he_gamma=evt_ids_phot_and_no_he_gamma, sig_phot1=sig_phot1,
-         evt_ids_no_phot_and_he_gamma=evt_ids_no_phot_and_he_gamma, sig_gamma1=sig_gamma1)
+sig_phot0  = np.array(sig_phot0)
+sig_gamma0 = np.array(sig_gamma0)
+sig_phot1  = np.array(sig_phot1)
+sig_gamma1 = np.array(sig_gamma1)
+
+charge_phot0  = np.array(charge_phot0)
+charge_gamma0 = np.array(charge_gamma0)
+charge_phot1  = np.array(charge_phot1)
+charge_gamma1 = np.array(charge_gamma1)
+
+np.savez(evt_file, evt_ids_phot_and_he_gamma=evt_ids_phot_and_he_gamma, evt_ids_phot_and_no_he_gamma=evt_ids_phot_and_no_he_gamma,
+         evt_ids_no_phot_and_he_gamma=evt_ids_no_phot_and_he_gamma, sig_phot0=sig_phot0, sig_gamma0=sig_gamma0, sig_phot1=sig_phot1,
+         sig_gamma1=sig_gamma1, charge_phot0=charge_phot0, charge_gamma0=charge_gamma0, charge_phot1=charge_phot1, charge_gamma1=charge_gamma1)
 
 print(datetime.datetime.now())
