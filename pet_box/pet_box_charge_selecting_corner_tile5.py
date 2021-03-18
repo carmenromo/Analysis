@@ -87,7 +87,8 @@ for number in range(start, start+numb):
             max_charge_s_id_neg = ids_neg[np.argmax(qs_neg)]
 
             if max_charge_s_id_pos == sensor_corner_tile5:
-                num_evt_max_id_tile5_corner += 1
+                if n_th == 0:
+                    num_evt_max_id_tile5_corner += 1
                 charge_tile5    [n_th].append(sum(qs_pos))
                 charge_det_plane[n_th].append(sum(qs_neg))
                 charge_max_id_89[n_th].append(max(qs_pos))
@@ -120,12 +121,12 @@ charge_det_plane_3 = np.array(charge_det_plane[3])
 charge_det_plane_4 = np.array(charge_det_plane[4])
 charge_det_plane_5 = np.array(charge_det_plane[5])
 
-charge_max_id_89_0 = charge_max_id_89[0]
-charge_max_id_89_1 = charge_max_id_89[1]
-charge_max_id_89_2 = charge_max_id_89[2]
-charge_max_id_89_3 = charge_max_id_89[3]
-charge_max_id_89_4 = charge_max_id_89[4]
-charge_max_id_89_5 = charge_max_id_89[5]
+charge_max_id_89_0 = np.array(charge_max_id_89[0])
+charge_max_id_89_1 = np.array(charge_max_id_89[1])
+charge_max_id_89_2 = np.array(charge_max_id_89[2])
+charge_max_id_89_3 = np.array(charge_max_id_89[3])
+charge_max_id_89_4 = np.array(charge_max_id_89[4])
+charge_max_id_89_5 = np.array(charge_max_id_89[5])
 
 # charge0 = np.array(charge0)
 # charge1 = np.array(charge1)
@@ -133,8 +134,6 @@ charge_max_id_89_5 = charge_max_id_89[5]
 # charge3 = np.array(charge3)
 # charge4 = np.array(charge4)
 
-print(charge_tile5_5)
-print(charge_det_plane_5)
 np.savez(evt_file, charge_tile5_0=charge_tile5_0, charge_tile5_1=charge_tile5_1, charge_tile5_2=charge_tile5_2,
          charge_tile5_3=charge_tile5_3, charge_tile5_4=charge_tile5_4, charge_tile5_5=charge_tile5_5,
          charge_det_plane_0=charge_det_plane_0, charge_det_plane_1=charge_det_plane_1, charge_det_plane_2=charge_det_plane_2,
