@@ -114,13 +114,6 @@ for number in range(start, start+numb):
 
                         true_pos_neg_evt = true_pos_phot[sel_phot0<0][0]
 
-                        ids_pos, pos_pos, qs_pos = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
-                        max_charge_s_id_tile5 = ids_pos[np.argmax(qs_pos)]
-                        if max_charge_s_id_tile5 == sensor_corner_tile5:
-                            sensor_corner_tile5_max[th].append(True)
-                        else:
-                            sensor_corner_tile5_max[th].append(False)
-
                         sns_response_peak[th].append(sum(qs_neg))
 
                         reco_x[th].append(mean_x)
@@ -132,6 +125,16 @@ for number in range(start, start+numb):
                         true_z[th].append(true_pos_neg_evt[2])
 
                         event_ids[th].append(evt)
+
+                        ids_pos, pos_pos, qs_pos = pbf.info_from_sensors_with_pos_z(DataSiPM_idx, evt_sns)
+                        if len(qs_pos)!=0:
+                            max_charge_s_id_tile5 = ids_pos[np.argmax(qs_pos)]
+                            if max_charge_s_id_tile5 == sensor_corner_tile5:
+                                sensor_corner_tile5_max[th].append(True)
+                            else:
+                                sensor_corner_tile5_max[th].append(False)
+                        else:
+                            sensor_corner_tile5_max[th].append(False)
 
 true_x_a = np.array([np.array(i) for i in true_x])
 reco_x_a = np.array([np.array(i) for i in reco_x])
