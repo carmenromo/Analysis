@@ -16,6 +16,15 @@ def parse_args(args):
     parser.add_argument('out_path'     ,             help = "output files path"         )
     return parser.parse_args()
 
+def parse_args_no_ths_and_zpos(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('first_file'   , type = int, help = "first file (inclusive)"    )
+    parser.add_argument('n_files'      , type = int, help = "number of files to analize")
+    parser.add_argument('in_path'      ,             help = "input files path"          )
+    parser.add_argument('file_name'    ,             help = "name of input files"       )
+    parser.add_argument('zpos_file'    ,             help = "Zpos table"                )
+    parser.add_argument('out_path'     ,             help = "output files path"         )
+    return parser.parse_args()
 
 def info_from_sensors_with_neg_z(DataSiPM_idx, evt_sns):
     sipms       = DataSiPM_idx.loc[evt_sns.sensor_id]
@@ -94,7 +103,7 @@ def select_photoelectric_pet_box(evt_parts, evt_hits):
     sel_all   = sel_vol_name_e[sel_vol_name_e.mother_id.isin(primaries.particle_id.values)]
 
     if len(sel_all) == 0:
-        return (False, [])
+        return (False, np.array([]))
 
     ### Once the event has passed the selection, let's calculate the true position(s)
     ids      = sel_all.particle_id.values
@@ -106,4 +115,4 @@ def select_photoelectric_pet_box(evt_parts, evt_hits):
         hit_positions = np.array([df.x.values, df.y.values, df.z.values]).transpose()
         true_pos.append(np.average(hit_positions, axis=0, weights=df.energy))
 
-    return (True, true_pos)
+    return (True, np.array(true_pos))
