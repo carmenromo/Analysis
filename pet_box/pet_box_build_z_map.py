@@ -45,9 +45,8 @@ evts_max_id_89   = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 
 sensor_corner_tile5 = 89
 area0 = [8, 28, 37, 57]
-threshold    = 2
 
-evt_file   = f'{out_path}/pet_box_build_z_map_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_build_z_map_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
