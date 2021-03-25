@@ -36,7 +36,7 @@ event_ids = []
 
 list_coinc = []
 for filename in os.listdir(filepath):
-    if filename.endswith('_0_10_4_4_4_2.npz'):
+    if filename.endswith('.npz'):
         #print(filename)
         my_file = filepath+filename
         d       = np.load(my_file)
