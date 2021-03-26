@@ -67,9 +67,9 @@ energy_threshold = 0.98
 for file_number in range(start, start+numb_of_files):
     sim_file  = folder_in  + '/' + filename + f'.{file_number}.pet.h5'
     out_file0 = folder_out + '/' + filename + f'_reco_thr0pes.{file_number}.h5'
-    out_file1 = folder_out + '/' + filename + f'_reco_thr0.5pes.{file_number}.h5'
-    out_file2 = folder_out + '/' + filename + f'_reco_thr1.0pes.{file_number}.h5'
-    out_file3 = folder_out + '/' + filename + f'_reco_thr1.5pes.{file_number}.h5'
+    out_file1 = folder_out + '/' + filename + f'_reco_thr0.25pes.{file_number}.h5'
+    out_file2 = folder_out + '/' + filename + f'_reco_thr0.5pes.{file_number}.h5'
+    out_file3 = folder_out + '/' + filename + f'_reco_thr0.75pes.{file_number}.h5'
 
     try:
         particles = mcio.load_mcparticles(sim_file)
