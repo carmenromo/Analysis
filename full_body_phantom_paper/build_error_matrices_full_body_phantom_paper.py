@@ -221,7 +221,7 @@ phi_range = (-3.15, 3.15)
 phi_width = precision/r_max
 phi_bins  = int((phi_range[1] - phi_range[0])/phi_width)
 
-r_range = (380, 410)
+r_range = (380, 409.7)
 r_width = precision
 r_bins  = int((r_range[1] - r_range[0])/r_width)
 
@@ -298,7 +298,7 @@ z_range = (-975, 975)
 z_width = precision
 z_bins  = int((z_range[1] - z_range[0])/z_width)
 
-r_range = (380, 410)
+r_range = (380, 409.7)
 r_width = precision
 r_bins  = int((r_range[1] - r_range[0])/r_width)
 
@@ -369,7 +369,7 @@ print('')
 precision = .3 # mm
 r_max = 410
 
-r_range = (380, 410)
+r_range = (380, 409.7)
 r_width = precision
 r_bins  = int((r_range[1] - r_range[0])/r_width)
 
