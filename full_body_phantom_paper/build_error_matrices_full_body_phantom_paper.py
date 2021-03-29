@@ -215,7 +215,7 @@ print('**** Phi ****')
 print('')
 
 precision = .3 # mm
-r_max     = 410
+r_max     = 409.7
 
 phi_range = (-3.15, 3.15)
 phi_width = precision/r_max
@@ -292,7 +292,7 @@ print('**** Z ****')
 print('')
 
 precision = .3 # mm
-r_max = 410
+r_max = 409.7
 
 z_range = (-975, 975)
 z_width = precision
@@ -367,7 +367,7 @@ print('**** R ****')
 print('')
 
 precision = .3 # mm
-r_max = 410
+r_max = 409.7
 
 r_range = (380, 409.7)
 r_width = precision
