@@ -14,7 +14,7 @@ Requirements
 Steps
 -------
 
-#. Fetch :upstream/master:.
+#. Fetch ``upstream/master``.
 
 #. Reset or rebase your master branch to :upstream/master:.
 
