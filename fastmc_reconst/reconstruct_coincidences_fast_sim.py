@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+import datetime
 import numpy  as np
 import pandas as pd
 
@@ -12,6 +13,12 @@ Example of calling this script:
 python reconstruct_coincidences_fast_sim.py 0 2 /data/PETALO/full_body/phantom/fastsim_tof_thr_charge/ full_body_phantom_sim_reco_thr
                                             0 2 /data/PETALO/full_body/phantom/fastsim_tof_thr_charge/validation/ full_body_phantom_sim_reco_thr
                                             0.5 140 /home/rolucar/PETALO/full_body/fastmc/images_reconstruction_mlem/ /home/rolucar/tofpet3d/lib/ 16 2
+"""
+"""
+Example of calling this script:
+python reconstruct_coincidences_fast_sim.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/full-body-phantom-paper/fastsim/ full_body_phantom_paper_true_reco_thr
+                                            0 1 /Users/carmenromoluque/nexus_petit_analysis/full-body-phantom-paper/fastsim_from_full/ full_body_phantom_paper_reco_thr
+                                            0.5 140 /Users/carmenromoluque/nexus_petit_analysis/full-body-phantom-paper/images_reco/ /Users/carmenromoluque/tofpet3d/lib/ 16 2
 """
 
 def parse_args(args):
@@ -58,6 +65,10 @@ cols = ['event_id', 'true_energy',
 
 df = pd.DataFrame(columns=cols)
 
+times_fast = []
+times_full = []
+times_fast.append(datetime.datetime.now())
+
 for file_number in range(start, start+numb_of_files):
     file_name = folder_in + filename + f'{th}pes.{file_number}.h5'
     print(file_number)
@@ -66,12 +77,14 @@ for file_number in range(start, start+numb_of_files):
     except FileNotFoundError:
         print(f'File {file_name} not found')
         continue
+    times_fast.append(datetime.datetime.now())
     sel_below_th = (table.true_energy > 0.) & (table.true_r1 == 0.)
     reco = table[~sel_below_th]
     df = pd.concat([df, reco], ignore_index=True, sort=False)
 
 
 ## FULLSIM FILES
+times_full.append(datetime.datetime.now())
 for file_number_full in range(start_full, start_full+numb_of_files_full):
     file_name_full = folder_in_full + filename_full + f'{th}pes.{file_number_full}.h5'
     print(file_number_full)
@@ -80,9 +93,13 @@ for file_number_full in range(start_full, start_full+numb_of_files_full):
     except FileNotFoundError:
         print(f'File {file_name_full} not found')
         continue
+    times_full.append(datetime.datetime.now())
     sel_below_th = (table.true_energy > 0.) & (table.true_r1 == 0.)
     reco = table[~sel_below_th]
     df = pd.concat([df, reco], ignore_index=True, sort=False)
+
+print('times_fast: ', times_fast[0], times_fast[-1])
+print('times_full: ', times_full[0], times_full[-1])
 
 print('------------------------------------------------------------')
 print('--- Number of coincidences passing the energy threshold: ---')
@@ -117,3 +134,5 @@ rec.save_every     = save_every
 n_coincidences     = len(df)
 rec.prefix         = folder_out_im + f'im_th{th}_TOF{tof}ps_{n_coincidences}coinc_iter'
 img                = rec.reconstruct(lor_x1, lor_y1, lor_z1, lor_t1, lor_x2, lor_y2, lor_z2, lor_t2)
+
+print('End of the file: ', datetime.datetime.now())
