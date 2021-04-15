@@ -248,7 +248,7 @@ print(np.count_nonzero(a))
 
 ## compton-like events
 h, edges = np.histogramdd((true_phi[sel_compt_like], true_r[sel_compt_like],
-                           diff_phi_matrix[sel_compt_like]), bins=(phi_bins, r_bins, err_bins_phot),
+                           diff_phi_matrix[sel_compt_like]), bins=(phi_bins, r_bins, err_bins_compt),
                            range=(phi_range, r_range, err_range_compt))
 
 
