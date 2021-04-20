@@ -102,8 +102,11 @@ rec.TOF            = True
 rec.TOF_resolution = tof
 rec.niterations    = n_iterations
 rec.save_every     = save_every
-n_coincidences     = len(df)
-rec.prefix         = folder_out_im + f'im_th{th}_TOF{tof}ps_phot_like_phot_range3mm_{n_coincidences}coinc_iter'
-img                = rec.reconstruct(lor_x1, lor_y1, lor_z1, lor_t1, lor_x2, lor_y2, lor_z2, lor_t2)
+coincs = [100000, 500000, 1000000, 5000000, 10000000, 20000000, 30000000, len(df)]
+#coincs = [100, 200, 300]
+for nc in coincs:
+    n_coincidences     = nc #len(df)
+    rec.prefix         = folder_out_im + f'im_th{th}_TOF{tof}ps_phot_like_phot_range3mm_{n_coincidences}coinc_iter'
+    img                = rec.reconstruct(lor_x1[:nc], lor_y1[:nc], lor_z1[:nc], lor_t1[:nc], lor_x2[:nc], lor_y2[:nc], lor_z2[:nc], lor_t2[:nc])
 
 print('End of the file: ', datetime.datetime.now())
