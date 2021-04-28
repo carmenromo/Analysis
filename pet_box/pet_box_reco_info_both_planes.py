@@ -189,12 +189,12 @@ for number in range(start, start+numb):
                     true_z2.append(true_pos_pos_evt[2])
 
                 else:
-                    reco_x1.append(None)
-                    reco_y1.append(None)
-                    reco_z1.append(None)
-                    true_x1.append(None)
-                    true_y1.append(None)
-                    true_z1.append(None)
+                    reco_x2.append(None)
+                    reco_y2.append(None)
+                    reco_z2.append(None)
+                    true_x2.append(None)
+                    true_y2.append(None)
+                    true_z2.append(None)
 
                 event_ids.append(evt)
 
