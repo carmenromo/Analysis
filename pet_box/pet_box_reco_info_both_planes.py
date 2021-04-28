@@ -142,6 +142,9 @@ for number in range(start, start+numb):
                 sns_resp1.append(sum(qs1))
                 sns_resp2.append(sum(qs2))
 
+                true_pos_neg_evt = true_pos_phot[sel_phot0<0][0]
+                true_pos_pos_evt = true_pos_phot[sel_phot0>0][0]
+
                 if sum(qs1)>1420:
                     pos_xs1 = np.array(pos1.T[0])
                     mean_x1 = np.average(pos_xs1, weights=qs1)
@@ -155,9 +158,6 @@ for number in range(start, start+numb):
                     reco_x1.append(mean_x1)
                     reco_y1.append(mean_y1)
                     reco_z1.append(z_pos1)
-
-                    true_pos_neg_evt = true_pos_phot[sel_phot0<0][0]
-                    true_pos_pos_evt = true_pos_phot[sel_phot0>0][0]
 
                     true_x1.append(true_pos_neg_evt[0])
                     true_y1.append(true_pos_neg_evt[1])
