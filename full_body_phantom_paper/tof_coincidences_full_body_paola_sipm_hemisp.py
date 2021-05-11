@@ -116,17 +116,18 @@ thr_phi = 4
 thr_z   = 4
 thr_e   = 2
 
-evt_file = out_path + f'full_body_phantom_paper_coinc2_{start}_{numb}'
+evt_file = out_path + f'full_body_phantom_paper_coinc_ave_{start}_{numb}'
 print(f'Using r map: {rpos_file}')
 
 Rpos = load_map(rpos_file,
-                 group  = "Radius",
-                 node   = f"f{int(thr_r)}pes150bins",
-                 x_name = "PhiRms",
-                 y_name = "Rpos",
-                 u_name = "RposUncertainty")
+                group  = "Radius",
+                node   = f"f{int(thr_r)}pes150bins",
+                x_name = "PhiRms",
+                y_name = "Rpos",
+                u_name = "RposUncertainty")
 
-charge_range = (2000, 3000) # pde 0.30, n=1.6
+#charge_range = (2000, 3000) # pde 0.30, n=1.6
+charge_range = (0, 5000)
 
 print(f'Charge range = {charge_range}')
 c0 = c1 = c2 = c3 = c4 = 0
@@ -140,7 +141,7 @@ reco_r2, reco_phi2, reco_z2 = [], [], []
 sns_response1, sns_response2    = [], []
 max_hit_distance1, max_hit_distance2 = [], []
 event_ids = []
-max_pos  = []
+#max_pos  = []
 
 
 for ifile in range(start, start+numb):
@@ -288,7 +289,7 @@ for ifile in range(start, start+numb):
         true_z2          .append(true_pos2[2])
         sns_response2    .append(sum(q2e))
         max_hit_distance2.append(max_dist2)
-        max_pos          .append(max_p)
+        #max_pos          .append(max_p)
 
 
 a_true_r1           = np.array(true_r1)
@@ -299,7 +300,7 @@ a_reco_phi1         = np.array(reco_phi1)
 a_reco_z1           = np.array(reco_z1)
 a_sns_response1     = np.array(sns_response1)
 a_max_hit_distance1 = np.array(max_hit_distance1)
-max_pos             = np.array(max_pos)
+#max_pos             = np.array(max_pos)
 
 a_true_r2           = np.array(true_r2)
 a_true_phi2         = np.array(true_phi2)
@@ -319,7 +320,7 @@ np.savez(evt_file,
          a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2,
          a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2,
          a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
-         a_event_ids=a_event_ids, max_pos=max_pos)
+         a_event_ids=a_event_ids)#, max_pos=max_pos)
 
 print('Not a coincidence: {}'.format(c0))
 print(f'Number of coincidences: {len(a_event_ids)}')
