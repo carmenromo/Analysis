@@ -266,20 +266,6 @@ t_bins, t_err_bins_phot, t_err_bins_compt = get_bins(t_range,
                                                      t_err_width_phot,
                                                      t_err_width_compt)
 
-print('')
-print('**** R ****')
-print(f'Number bins: true r = {r_bins}, err phot = {r_err_bins_phot}, err compt = {r_err_bins_compt}')
-print('')
-print('**** Phi ****')
-print(f'Number bins: true phi = {phi_bins}, true r = {r_bins}, err phot = {phi_err_bins_phot}, err compt = {phi_err_bins_compt}')
-print('')
-print('**** Z ****')
-print(f'Number bins: true z = {z_bins}, true r = {r_bins}, err phot = {z_err_bins_phot}, err compt = {z_err_bins_compt}')
-pint('')
-print('**** T ****')
-print(f'Number bins: true t = {t_bins}, err phot = {t_err_bins_phot}, err compt = {t_err_bins_compt}')
-
-
 def extract_info_from_edges_2d(edges):
     eff    = np.array([1])
     xedges = edges[0]
@@ -303,131 +289,129 @@ def extract_info_from_edges_3d(edges):
     dz     = zedges[1:]-zedges[:-1]; dz = np.array(dz[0])
     return eff, xedges, yedges, zedges, xmin, ymin, zmin, dx, dy, dz
 
+def build_error_mat_2d(outfile, coord, diff_mat, bins, ranges):
+    h, edges = np.histogramdd((coord, diff_mat), bins=bins, range=ranges)
+    eff, xedges, yedges, xmin, ymin, dx, dy = extract_info_from_edges_2d(edges)
+    np.savez(outfile, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
+    return np.sum(h, axis=1)
+
+def build_error_mat_3d(outfile, coord1, coord2, diff_mat, bins, ranges):
+    h, edges = np.histogramdd((coord1, coord2, diff_mat), bins=bins, range=ranges)
+    eff, xedges, yedges, zedges, xmin, ymin, zmin, dx, dy, dz = extract_info_from_edges_3d(edges)
+    np.savez(outfile, errmat=h, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
+    return np.sum(h, axis=2)
+
 
 ### R
+print('')
+print('**** R ****')
+print(f'Number bins: true r = {r_bins}, err phot = {r_err_bins_phot}, err compt = {r_err_bins_compt}')
+print('')
+
 ## photoelectric-like events
-h_r, edges_r = np.histogramdd((true_r       [sel_phot_like],
-                               diff_r_matrix[sel_phot_like]),
-                               bins  = (r_bins,  r_err_bins_phot),
-                               range = (r_range, r_err_range_phot))
-
-
-eff, xedges, yedges, xmin, ymin, dx, dy = extract_info_from_edges_2d(edges_r)
-file_name = folder + f'errmat_{identifier}_r_phot_like.npz'
-np.savez(file_name, errmat=h_r, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
-
 print('Phot-like')
-a = np.sum(h_r, axis=1)
+file_name = folder + f'errmat_{identifier}_r_phot_like.npz'
+a = build_error_mat_2d(file_name,
+                       true_r       [sel_phot_like],
+                       diff_r_matrix[sel_phot_like]),
+                       bins  = (r_bins,  r_err_bins_phot),
+                       range = (r_range, r_err_range_phot)
 print(a.shape, np.count_nonzero(a))
 
 ## compton-like events
-h_r, edges_r = np.histogramdd((true_r       [sel_compt_like],
-                               diff_r_matrix[sel_compt_like]),
-                               bins  = (r_bins,  r_err_bins_compt),
-                               range = (r_range, r_err_range_compt))
-eff, xedges, yedges, xmin, ymin, dx, dy = extract_info_from_edges_2d(edges_r)
-file_name = folder + f'errmat_{identifier}_r_compt_like.npz'
-np.savez(file_name, errmat=h_r, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
-
-
 print('Compt-like')
-a = np.sum(h_r, axis=1)
+file_name = folder + f'errmat_{identifier}_r_compt_like.npz'
+a = build_error_mat_2d(file_name,
+                       true_r       [sel_compt_like],
+                       diff_r_matrix[sel_compt_like]),
+                       bins   = (r_bins,  r_err_bins_compt),
+                       ranges = (r_range, r_err_range_compt)
 print(a.shape, np.count_nonzero(a))
 
 
 ### Phi
+print('')
+print('**** Phi ****')
+print(f'Number bins: true phi = {phi_bins}, true r = {r_bins}, err phot = {phi_err_bins_phot}, err compt = {phi_err_bins_compt}')
+print('')
+
 ## photoelectric-like events
-h_phi, edges_phi = np.histogramdd((true_phi       [sel_phot_like],
-                                   true_r         [sel_phot_like],
-                                   diff_phi_matrix[sel_phot_like]),
-                                   bins  = (phi_bins,  r_bins,  phi_err_bins_phot),
-                                   range = (phi_range, r_range, phi_err_range_phot))
-
-eff, xedges, yedges, zedges, xmin, ymin, zmin, dx, dy, dz = extract_info_from_edges_3d(edges_phi)
-file_name = folder + f'errmat_{identifier}_phi_phot_like.npz'
-np.savez(file_name, errmat=h_phi, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
-
 print('Phot-like')
-a = np.sum(h_phi, axis=2)
+file_name = folder + f'errmat_{identifier}_phi_phot_like.npz'
+a = build_error_mat_3d(file_name,
+                       true_phi       [sel_phot_like],
+                       true_r         [sel_phot_like],
+                       diff_phi_matrix[sel_phot_like],
+                       bins   = (phi_bins,  r_bins,  phi_err_bins_phot),
+                       ranges = (phi_range, r_range, phi_err_range_phot))
 print(a.shape, a.shape[0]*a.shape[1], np.count_nonzero(a))
 
 
-
 ## compton-like events
-h_phi, edges_phi = np.histogramdd((true_phi       [sel_compt_like],
-                                   true_r         [sel_compt_like],
-                                   diff_phi_matrix[sel_compt_like]),
-                                   bins  = (phi_bins,  r_bins,  phi_err_bins_compt),
-                                   range = (phi_range, r_range, phi_err_range_compt))
-
-eff, xedges, yedges, zedges, xmin, ymin, zmin, dx, dy, dz = extract_info_from_edges_3d(edges_phi)
-file_name = folder + f'errmat_{identifier}_phi_compt_like.npz'
-np.savez(file_name, errmat=h_phi, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
-
 print('Compt-like')
-a = np.sum(h_phi, axis=2)
+file_name = folder + f'errmat_{identifier}_phi_compt_like.npz'
+a = build_error_mat_3d(file_name,
+                       true_phi       [sel_compt_like],
+                       true_r         [sel_compt_like],
+                       diff_phi_matrix[sel_compt_like],
+                       bins   = (phi_bins,  r_bins,  phi_err_bins_compt),
+                       ranges = (phi_range, r_range, phi_err_range_compt))
 print(a.shape, a.shape[0]*a.shape[1], np.count_nonzero(a))
 
 
 
 ### Z
+print('')
+print('**** Z ****')
+print(f'Number bins: true z = {z_bins}, true r = {r_bins}, err phot = {z_err_bins_phot}, err compt = {z_err_bins_compt}')
+print('')
+
 ## photoelectric-like events
-h_z, edges_z = np.histogramdd((true_z       [sel_phot_like],
-                               true_r       [sel_phot_like],
-                               diff_z_matrix[sel_phot_like]),
-                               bins  = (z_bins,  r_bins,  z_err_bins_phot),
-                               range = (z_range, r_range, z_err_range_phot))
-
-eff, xedges, yedges, zedges, xmin, ymin, zmin, dx, dy, dz = extract_info_from_edges_3d(edges_z)
-file_name = folder + f'errmat_{identifier}_z_phot_like.npz'
-np.savez(file_name, errmat=h_z, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
-
 print('Phot-like')
-a = np.sum(h_z, axis=2)
+file_name = folder + f'errmat_{identifier}_z_phot_like.npz'
+a = build_error_mat_3d(file_name,
+                       true_z       [sel_phot_like],
+                       true_r       [sel_phot_like],
+                       diff_z_matrix[sel_phot_like],
+                       bins   = (z_bins,  r_bins,  z_err_bins_phot),
+                       ranges = (z_range, r_range, z_err_range_phot))
 print(a.shape, a.shape[0]*a.shape[1], np.count_nonzero(a))
 
 ## compton-like events
-h_z, edges_z = np.histogramdd((true_z       [sel_compt_like],
-                               true_r       [sel_compt_like],
-                               diff_z_matrix[sel_compt_like]),
-                               bins  = (z_bins,  r_bins,  z_err_bins_compt),
-                               range = (z_range, r_range, z_err_range_compt))
-
-eff, xedges, yedges, zedges, xmin, ymin, zmin, dx, dy, dz = extract_info_from_edges_3d(edges_z)
-file_name = folder + f'errmat_{identifier}_z_compt_like.npz'
-np.savez(file_name, errmat=h_z, eff=eff, xmin=xmin, ymin=ymin, zmin=zmin, dx=dx, dy=dy, dz=dz)
-
 print('Compt-like')
-a = np.sum(h_z, axis=2)
+file_name = folder + f'errmat_{identifier}_z_compt_like.npz'
+a = build_error_mat_3d(file_name,
+                       true_z       [sel_compt_like],
+                       true_r       [sel_compt_like],
+                       diff_z_matrix[sel_compt_like],
+                       bins   = (z_bins,  r_bins,  z_err_bins_compt),
+                       ranges = (z_range, r_range, z_err_range_compt))
 print(a.shape, a.shape[0]*a.shape[1], np.count_nonzero(a))
 
 
 
 ### T
+print('')
+print('**** T ****')
+print(f'Number bins: true t = {t_bins}, err phot = {t_err_bins_phot}, err compt = {t_err_bins_compt}')
+print('')
+
 ## photoelectric-like events
-h_t, edges_t = np.histogramdd((true_t               [sel_phot_like],
-                               diff_reco_t_matrix[0][sel_phot_like]),
-                               bins  = (t_bins,  t_err_bins_phot),
-                               range = (t_range, t_err_range_phot))
-
-eff, xedges, yedges, xmin, ymin, dx, dy = extract_info_from_edges_2d(edges_t)
-file_name = folder + f'errmat_{identifier}_t_thr0pes_phot_like.npz'
-np.savez(file_name, errmat=h_t, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
-
 print('Phot-like')
-a = np.sum(h_t, axis=1)
+file_name = folder + f'errmat_{identifier}_t_thr0pes_phot_like.npz'
+a = build_error_mat_2d(file_name,
+                       true_t               [sel_phot_like],
+                       diff_reco_t_matrix[0][sel_phot_like],
+                       bins   = (t_bins,  t_err_bins_phot),
+                       ranges = (t_range, t_err_range_phot))
 print(a.shape, np.count_nonzero(a))
 
 ## compton-like events
-h_t, edges_t = np.histogramdd((true_t               [sel_compt_like],
-                               diff_reco_t_matrix[0][sel_compt_like]),
-                               bins  = (t_bins,  t_err_bins_compt),
-                               range = (t_range, t_err_range_compt))
-
-eff, xedges, yedges, xmin, ymin, dx, dy = extract_info_from_edges_2d(edges_t)
-file_name = folder + f'errmat_{identifier}_t_thr0pes_compt_like.npz'
-np.savez(file_name, errmat=h_t, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
-
 print('Compt-like')
-a = np.sum(h_t, axis=1)
+file_name = folder + f'errmat_{identifier}_t_thr0pes_compt_like.npz'
+a = build_error_mat_2d(file_name,
+                       true_t               [sel_compt_like],
+                       diff_reco_t_matrix[0][sel_compt_like],
+                       bins   = (t_bins,  t_err_bins_compt),
+                       ranges = (t_range, t_err_range_compt))
 print(a.shape, np.count_nonzero(a))
