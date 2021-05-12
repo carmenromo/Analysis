@@ -313,7 +313,7 @@ print('Phot-like')
 file_name = folder + f'errmat_{identifier}_r_phot_like.npz'
 a = build_error_mat_2d(file_name,
                        true_r       [sel_phot_like],
-                       diff_r_matrix[sel_phot_like]),
+                       diff_r_matrix[sel_phot_like],
                        bins  = (r_bins,  r_err_bins_phot),
                        range = (r_range, r_err_range_phot)
 print(a.shape, np.count_nonzero(a))
@@ -323,7 +323,7 @@ print('Compt-like')
 file_name = folder + f'errmat_{identifier}_r_compt_like.npz'
 a = build_error_mat_2d(file_name,
                        true_r       [sel_compt_like],
-                       diff_r_matrix[sel_compt_like]),
+                       diff_r_matrix[sel_compt_like],
                        bins   = (r_bins,  r_err_bins_compt),
                        ranges = (r_range, r_err_range_compt)
 print(a.shape, np.count_nonzero(a))
