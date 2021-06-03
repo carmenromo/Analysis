@@ -35,15 +35,13 @@ zpos_file     = arguments.zpos_file
 zpos_file2    = arguments.zpos_file2
 out_path      = arguments.out_path
 
-thr_ch_start  = 0
-thr_ch_nsteps = 6
 thr_charge1   = 1400 #pes
 thr_charge2   =  200 #pes
 
 area0       = [ 44,  45,  54,  55]
 area0_tile5 = [122, 123, 132, 133]
 
-evt_file   = f'{out_path}/pet_box_reco_info_both_planes_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
+evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_{start}_{numb}'
 
 Zpos1 = load_map(zpos_file, group="Zpos",
                             node=f"f2pes200bins",
@@ -102,7 +100,7 @@ for number in range(start, start+numb):
 
     events = mcparticles.event_id.unique()
     th     = 2
-    for evt in events[:]:
+    for evt in events:
         count1 = 0
         count2 = 0
         evt_sns   = sns_response[sns_response.event_id == evt]
