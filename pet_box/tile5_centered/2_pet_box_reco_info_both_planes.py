@@ -41,7 +41,7 @@ thr_charge2   =  200 #pes
 area0       = [ 44,  45,  54,  55]
 area0_tile5 = [122, 123, 132, 133]
 
-evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_evt_ids_{start}_{numb}'
 
 Zpos1 = load_map(zpos_file, group="Zpos",
                             node=f"f2pes200bins",
@@ -75,8 +75,11 @@ sns_resp1, sns_resp2 = [], []
 first_sipm1, first_sipm2 = [[] for i in range(len(timestamp_thr))], [[] for i in range(len(timestamp_thr))]
 first_time1, first_time2 = [[] for i in range(len(timestamp_thr))], [[] for i in range(len(timestamp_thr))]
 
-event_ids       = []
-event_ids_times = []
+event_ids1           = []
+event_ids2           = []
+event_ids1_th_charge = []
+event_ids2_th_charge = []
+event_ids_times      = []
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -138,31 +141,30 @@ for number in range(start, start+numb):
                 sns_resp1.append(sum(qs1))
                 true_pos_neg_evt = true_pos_phot[sel_phot0<0][0]
 
+                pos_xs1 = np.array(pos1.T[0])
+                mean_x1 = np.average(pos_xs1, weights=qs1)
+                var_xs1 = np.average((pos_xs1 - mean_x1)**2, weights=qs1)
+
+                pos_ys1 = np.array(pos1.T[1])
+                mean_y1 = np.average(pos_ys1, weights=qs1)
+
+                z_pos1 = Zpos1(var_xs1).value
+
+                reco_x1.append(mean_x1)
+                reco_y1.append(mean_y1)
+                reco_z1.append(z_pos1)
+
+                true_x1.append(true_pos_neg_evt[0])
+                true_y1.append(true_pos_neg_evt[1])
+                true_z1.append(true_pos_neg_evt[2])
+
+                event_ids1.append(evt)
+
                 if sum(qs1)>thr_charge1:
                     count1 = 1
-                    pos_xs1 = np.array(pos1.T[0])
-                    mean_x1 = np.average(pos_xs1, weights=qs1)
-                    var_xs1 = np.average((pos_xs1 - mean_x1)**2, weights=qs1)
+                    event_ids1_th_charge.append(evt)
 
-                    pos_ys1 = np.array(pos1.T[1])
-                    mean_y1 = np.average(pos_ys1, weights=qs1)
 
-                    z_pos1 = Zpos1(var_xs1).value
-
-                    reco_x1.append(mean_x1)
-                    reco_y1.append(mean_y1)
-                    reco_z1.append(z_pos1)
-
-                    true_x1.append(true_pos_neg_evt[0])
-                    true_y1.append(true_pos_neg_evt[1])
-                    true_z1.append(true_pos_neg_evt[2])
-                else:
-                    reco_x1.append(None)
-                    reco_y1.append(None)
-                    reco_z1.append(None)
-                    true_x1.append(None)
-                    true_y1.append(None)
-                    true_z1.append(None)
         if phot and len(sel_pos_phot)>0:
             if len(sel_pos_he)>0:
                 continue
@@ -174,34 +176,29 @@ for number in range(start, start+numb):
             if max_charge_s_id_tile5 in area0_tile5:
                 sns_resp2.append(sum(qs2))
                 true_pos_pos_evt = true_pos_phot[sel_phot0>0][0]
+
+                pos_xs2 = np.array(pos2.T[0])
+                mean_x2 = np.average(pos_xs2, weights=qs2)
+                var_xs2 = np.average((pos_xs2 - mean_x2)**2, weights=qs2)
+
+                pos_ys2 = np.array(pos2.T[1])
+                mean_y2 = np.average(pos_ys2, weights=qs2)
+
+                z_pos2 = Zpos2(var_xs2).value
+
+                reco_x2.append(mean_x2)
+                reco_y2.append(mean_y2)
+                reco_z2.append(z_pos2)
+
+                true_x2.append(true_pos_pos_evt[0])
+                true_y2.append(true_pos_pos_evt[1])
+                true_z2.append(true_pos_pos_evt[2])
+
+                event_ids2.append(evt)
+
                 if sum(qs2)>thr_charge2:
                     count2 = 1
-                    pos_xs2 = np.array(pos2.T[0])
-                    mean_x2 = np.average(pos_xs2, weights=qs2)
-                    var_xs2 = np.average((pos_xs2 - mean_x2)**2, weights=qs2)
-
-                    pos_ys2 = np.array(pos2.T[1])
-                    mean_y2 = np.average(pos_ys2, weights=qs2)
-
-                    z_pos2 = Zpos2(var_xs2).value
-
-                    reco_x2.append(mean_x2)
-                    reco_y2.append(mean_y2)
-                    reco_z2.append(z_pos2)
-
-                    true_x2.append(true_pos_pos_evt[0])
-                    true_y2.append(true_pos_pos_evt[1])
-                    true_z2.append(true_pos_pos_evt[2])
-
-                else:
-                    reco_x2.append(None)
-                    reco_y2.append(None)
-                    reco_z2.append(None)
-                    true_x2.append(None)
-                    true_y2.append(None)
-                    true_z2.append(None)
-
-                event_ids.append(evt)
+                    event_ids2_th_charge.append(evt)
 
                 #if sum(qs1)>thr_charge1 and sum(qs2)>thr_charge2:
                 if count1 and count2: ## Coincidences
@@ -246,8 +243,12 @@ true_z2 = np.array(true_z2)
 
 sns_resp1       = np.array(sns_resp1)
 sns_resp2       = np.array(sns_resp2)
-event_ids       = np.array(event_ids)
-event_ids_times = np.array(event_ids_times)
+
+event_ids1           = np.array(event_ids1)
+event_ids2           = np.array(event_ids2)
+event_ids1_th_charge = np.array(event_ids1_th_charge)
+event_ids2_th_charge = np.array(event_ids2_th_charge)
+event_ids_times      = np.array(event_ids_times)
 
 first_sipm1 = np.array([np.array(i) for i in first_sipm1])
 first_sipm2 = np.array([np.array(i) for i in first_sipm2])
@@ -256,7 +257,8 @@ first_time2 = np.array([np.array(i) for i in first_time2])
 
 np.savez(evt_file, reco_x1=reco_x1, reco_x2=reco_x2, reco_y1=reco_y1, reco_y2=reco_y2, reco_z1=reco_z1, reco_z2=reco_z2,
                    true_x1=true_x1, true_x2=true_x2, true_y1=true_y1, true_y2=true_y2, true_z1=true_z1, true_z2=true_z2,
-                   sns_resp1=sns_resp1, sns_resp2=sns_resp2, event_ids=event_ids, event_ids_times=event_ids_times,
+                   sns_resp1=sns_resp1, sns_resp2=sns_resp2, event_ids1=event_ids1, event_ids2=event_ids2,
+                   event_ids1_th_charge=event_ids1_th_charge, event_ids2_th_charge=event_ids2_th_charge, event_ids_times=event_ids_times,
                    first_sipm1_0=first_sipm1[0], first_sipm2_0=first_sipm2[0], first_time1_0=first_time1[0], first_time2_0=first_time2[0],
                    first_sipm1_1=first_sipm1[1], first_sipm2_1=first_sipm2[1], first_time1_1=first_time1[1], first_time2_1=first_time2[1],
                    first_sipm1_2=first_sipm1[2], first_sipm2_2=first_sipm2[2],first_time1_2=first_time1[2], first_time2_2=first_time2[2],
