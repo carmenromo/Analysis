@@ -94,11 +94,11 @@ for number in range(start, start+numb):
         sel_pos_phot = sel_phot0[sel_phot0>0]
 
         sel_phot0_x  = np.array([pos[0] for pos in true_pos_phot])
-        sel_neg_phot_x = sel_phot0_x[sel_phot0_x<0]
-        sel_pos_phot_x = sel_phot0_x[sel_phot0_x>0]
+        sel_neg_phot_x = sel_phot0_x[sel_phot0<0]
+        sel_pos_phot_x = sel_phot0_x[sel_phot0>0]
         sel_phot0_y  = np.array([pos[1] for pos in true_pos_phot])
-        sel_neg_phot_y = sel_phot0_y[sel_phot0_y<0]
-        sel_pos_phot_y = sel_phot0_y[sel_phot0_y>0]
+        sel_neg_phot_y = sel_phot0_y[sel_phot0<0]
+        sel_pos_phot_y = sel_phot0_y[sel_phot0>0]
 
         sel_he0    = np.array([pos[2] for pos in true_pos_he])
         sel_neg_he = sel_he0[sel_he0<0]
