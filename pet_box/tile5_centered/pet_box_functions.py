@@ -10,6 +10,8 @@ from typing import Sequence, Tuple
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 
+from antea.core.exceptions import WaveformEmptyTable
+
 def parse_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('first_file'   , type = int, help = "first file (inclusive)"    )
@@ -91,3 +93,41 @@ def select_phot_pet_box(evt_parts: pd.DataFrame,
         true_pos.append(np.average(hit_positions, axis=0, weights=df.energy))
 
     return (True, np.array(true_pos))
+
+
+def find_first_time_of_sensors(tof_response: pd.DataFrame,
+                               sns_ids: Sequence[int],
+                               sigma: float = 30, n_pe: int = 1)-> Tuple[int, int]:
+    """
+    This function looks for the time among all sensors for the first
+    photoelectron detected.
+    In case more than one photoelectron arrives at the same time,
+    the sensor with minimum id is chosen.
+    The positive value of the id of the sensor and the time of detection
+    are returned.
+    """
+    tof = tof_response[tof_response.sensor_id.isin(sns_ids)]
+    if tof.empty:
+        raise WaveformEmptyTable("Tof dataframe is empty")
+
+    tof.insert(4, 'jit_time', np.random.normal(tof.time.values, sigma))
+
+    first_times = tof.sort_values(by=['jit_time']).iloc[0:n_pe]
+    min_t       = first_times['jit_time'].mean()
+    min_ids     = first_times.sensor_id.values
+    min_charges = first_times.charge.values
+
+    return np.abs(min_ids), min_charges, min_t
+
+def find_coincidence_timestamps(tof_response: pd.DataFrame,
+                                sns1: Sequence[int],
+                                sns2: Sequence[int],
+                                sigma: float, npe: int)-> Tuple[int, int, int, int]:
+    """
+    Finds the first time and sensor of each one of two sets of sensors,
+    given a sensor response dataframe.
+    """
+    min1, q1, time1 = find_first_time_of_sensors(tof_response, -sns1, sigma, npe)
+    min2, q2, time2 = find_first_time_of_sensors(tof_response, -sns2, sigma, npe)
+
+    return min1, min2, q1, q2, time1, time2
