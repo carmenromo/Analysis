@@ -216,7 +216,8 @@ for number in range(start, start+numb):
     sns_ids       = sipms.index.values
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
 
-    charge_range = (0, 5000)
+    #charge_range = (0, 5000)
+    charge_range = (1050, 1300)
 
     for evt in events[:]:
         evt_sns = sns_response[sns_response.event_id == evt]
@@ -347,7 +348,6 @@ for number in range(start, start+numb):
         for k, th in enumerate(timestamp_thr):
             evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
             _, _, _, _, _, _, _, _, min_ids1, min_ids2, mean_tof1, mean_tof2, weig_tof1, weig_tof2, weig_pos1, weig_pos2 = reconstruct_coincidences2(evt_sns, evt_tof_exp_dist, charge_range, DataSiPM_idx, evt_parts, evt_hits, num_of_init_pes)
-
             for j, ipes in enumerate(num_of_init_pes):
                 if mean_tof1[j] == None or weig_tof1[j] == None:
                     mean_t1 = mean_tof1[j]

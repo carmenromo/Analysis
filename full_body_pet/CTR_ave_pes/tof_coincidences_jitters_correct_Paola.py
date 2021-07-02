@@ -28,6 +28,8 @@ def parse_args(args):
     parser.add_argument('thr_phi'    , type = int, help = "threshold in phi coordinate")
     parser.add_argument('thr_z'      , type = int, help = "threshold in z coordinate"  )
     parser.add_argument('thr_e'      , type = int, help = "threshold in the energy"    )
+    parser.add_argument('n_pe'       , type = int, help = "number of pes"              )
+    parser.add_argument('thr_charge' , type = float, help = "thr in charge"              )
     parser.add_argument('events_path',             help = "input files path"           )
     parser.add_argument('file_name'  ,             help = "name of input files"        )
     parser.add_argument('rpos_file'  ,             help = "File of the Rpos"           )
@@ -53,7 +55,7 @@ spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 sigma_sipm = 0 #80 #ps
 sigma_elec = 0 #30 #ps
-n_pe = 10
+#n_pe = 1
 
 arguments  = parse_args(sys.argv)
 start      = arguments.first_file
@@ -62,6 +64,8 @@ thr_r      = arguments.thr_r
 thr_phi    = arguments.thr_phi
 thr_z      = arguments.thr_z
 thr_e      = arguments.thr_e
+n_pe       = arguments.n_pe
+timestamp_thr = arguments.thr_charge
 eventsPath = arguments.events_path
 file_name  = arguments.file_name
 rpos_file  = arguments.rpos_file
@@ -69,7 +73,7 @@ data_path  = arguments.data_path
 
 print(f'Using r map: {rpos_file}')
 
-evt_file  = f"{data_path}/tof_coincidences_Paola_npe_{n_pe}_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
+evt_file  = f"{data_path}/tof_coincidences_Paola_npe{n_pe}_thr{timestamp_thr}_{start}_{numb}_{thr_r}_{thr_phi}_{thr_z}_{thr_e}"
 Rpos = load_map(rpos_file,
                 group  = "Radius",
                 node   = f"f{int(thr_r)}pes150bins",
@@ -78,7 +82,8 @@ Rpos = load_map(rpos_file,
                 u_name = "RposUncertainty")
 
 #charge_range = (2000, 2250) # pde 0.30, n=1.6
-charge_range = (0, 5000)
+#charge_range = (0, 5000)
+charge_range = (1050, 1300)
 print(f'Charge range = {charge_range}')
 c0 = c1 = c2 = c3 = c4 = 0
 bad = 0
@@ -93,7 +98,7 @@ reco_r2, reco_phi2, reco_z2 = [], [], []
 sns_response1, sns_response2    = [], []
 
 ### PETsys thresholds to extract the timestamp
-timestamp_thr = 0.25
+#timestamp_thr = 0.25
 first_sipm1 = []
 first_sipm2 = []
 first_time1 = []
@@ -129,8 +134,8 @@ for number in range(start, start+numb):
 
     particles = pd.read_hdf(filename, 'MC/particles')
     hits      = pd.read_hdf(filename, 'MC/hits')
-    sns_response = snsf.apply_sipm_pde(sns_response, 0.3)
-    sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
+    #sns_response = snsf.apply_sipm_pde(sns_response, 0.3)
+    #sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
     tof_response = pd.read_hdf(filename, 'MC/tof_waveforms')
 
