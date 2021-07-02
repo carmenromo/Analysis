@@ -188,9 +188,10 @@ speed_in_vacuum  = 0.299792458 # mm/ps
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
-    filename  = f"{eventsPath}/{file_name}.{number_str}.h5"
+    filename  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
     try:
-        sns_response = load_mcsns_response(filename)
+        #sns_response = load_mcsns_response(filename)
+        sns_response = pd.read_hdf(filename, 'MC/waveforms')
     except ValueError:
         print(f'File {filename} not found')
         continue
@@ -204,7 +205,8 @@ for number in range(start, start+numb):
 
     tof_bin_size = read_sensor_bin_width_from_conf(filename, tof=True)
 
-    sns_response_tof = load_mcTOFsns_response(filename)
+    #sns_response_tof = load_mcTOFsns_response(filename)
+    sns_response_tof = pd.read_hdf(filename, 'MC/tof_waveforms')
     particles        = load_mcparticles(filename)
     hits             = load_mchits(filename)
 
@@ -214,7 +216,7 @@ for number in range(start, start+numb):
     sns_ids       = sipms.index.values
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
 
-    charge_range = (2000, 2250)
+    charge_range = (0, 5000)
 
     for evt in events[:]:
         evt_sns = sns_response[sns_response.event_id == evt]
@@ -232,10 +234,10 @@ for number in range(start, start+numb):
             c0 += 1
             continue
 
-        q1   = np.array(q1);
-        q2   = np.array(q2);
-        pos1 = np.array(pos1);
-        pos2 = np.array(pos2);
+        q1   = np.array(q1)
+        q2   = np.array(q2)
+        pos1 = np.array(pos1)
+        pos2 = np.array(pos2)
 
         ## Calculate R
         r1 = r2 = None
@@ -329,7 +331,6 @@ for number in range(start, start+numb):
         dg1 = np.linalg.norm(a_cart1 - geo_center)
         dg2 = np.linalg.norm(a_cart2 - geo_center)
 
-
         times = evt_tof.time_bin.values * tof_bin_size / units.ps
         evt_tof['time'] = np.round(np.random.normal(times, 0)).astype(int)
 
@@ -366,8 +367,8 @@ for number in range(start, start+numb):
                 dp1 = np.linalg.norm(a_cart1 - weig_pos1[j])
                 dp2 = np.linalg.norm(a_cart2 - weig_pos2[j])
 
-                dg1 = np.linalg.norm(a_cart1, axis=1)
-                dg2 = np.linalg.norm(a_cart2, axis=1)
+                dg1 = np.linalg.norm(a_cart1)
+                dg2 = np.linalg.norm(a_cart2)
 
                 delta_t1 = mean_t2 - mean_t1 + (dp1 - dp2)/ave_speed_in_LXe + (dg1 - dg2)/speed_in_vacuum
                 delta_t2 = weig_t2 - weig_t1 + (dp1 - dp2)/ave_speed_in_LXe + (dg1 - dg2)/speed_in_vacuum
