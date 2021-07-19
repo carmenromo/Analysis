@@ -83,7 +83,7 @@ event_ids_times      = []
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
-    filename = in_path + f'PetBox_asymmetric_tile5centered_HamamatsuVUV.{number_str}.pet.h5'
+    filename = in_path + f'{file_name}.{number_str}.pet.h5'
     try:
         sns_response = mcio.load_mcsns_response(filename)
     except OSError:
