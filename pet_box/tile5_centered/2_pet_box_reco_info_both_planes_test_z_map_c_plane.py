@@ -212,6 +212,9 @@ for number in range(start, start+numb):
                 #if sum(qs1)>thr_charge1 and sum(qs2)>thr_charge2:
                 if count1 and count2: ## Coincidences
                     ## produce a TOF dataframe with convolved time response
+                    times = evt_tof.time_bin.values * tof_bin_size / units.ps
+                    evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+
                     tof_sns = evt_tof.sensor_id.unique()
                     evt_tof_exp_dist = []
                     for s_id in tof_sns:
