@@ -41,7 +41,7 @@ thr_charge2   =  200 #pes
 area0       = [ 44,  45,  54,  55]
 area0_tile5 = [122, 123, 132, 133]
 
-evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_evt_ids_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_test_z_map_c_plane_{start}_{numb}'
 zpos_file2 = zpos_file2_path + 'z_var_x_table_pet_box_HamamatsuVUV_coinc_plane_cent0.h5'
 zpos_file3 = zpos_file2_path + 'z_var_x_table_pet_box_HamamatsuVUV_coinc_plane_cent1.h5'
 
