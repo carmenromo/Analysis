@@ -111,6 +111,9 @@ for number in range(start, start+numb):
         evt_hits  = mchits      [mchits      .event_id == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
 
+        times = evt_tof.time_bin.values * tof_bin_size / units.ps
+        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+
         evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
         if len(evt_sns) == 0:
             continue
