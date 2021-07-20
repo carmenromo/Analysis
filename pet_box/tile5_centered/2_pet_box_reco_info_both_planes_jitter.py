@@ -52,7 +52,7 @@ Zpos2 = load_map(zpos_file2, group="Zpos",
                              node=f"f2pes200bins",
                              x_name='Var_x',
                              y_name='Zpos',
-                             u_name='ZposUncertainty')
+                             u_name='VarXUncertainty')
 
 timestamp_thr = [0, 0.25, 0.50, 0.75]
 ### parameters for single photoelectron convolution in SiPM response
