@@ -224,7 +224,7 @@ for number in range(start, start+numb):
                             if sigma_elec != 0:
                                 tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
 
-                            tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > timestamp_thr/norm]
+                            tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > th/norm]
                             tdc_conv_df = tdc_conv_df[tdc_conv_df.time == tdc_conv_df.time.min()]
                             tof_exp.append(tdc_conv_df)
                         tof_exp = pd.concat(tof_exp)
