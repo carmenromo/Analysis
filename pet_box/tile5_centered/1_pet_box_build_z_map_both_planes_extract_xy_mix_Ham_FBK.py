@@ -77,7 +77,7 @@ for number in range(start, start+numb):
     mchits        = mcio.load_mchits        (true_file)
     sns_response  = mcio.load_mcsns_response(true_file)
     sns_positions = mcio.load_sns_positions (true_file)
-    sns_positions_c = pbf.correct_FBK_sensor_pos(sns_pos, both_planes=False)
+    sns_positions_c = pbf.correct_FBK_sensor_pos(sns_positions, both_planes=False)
     DataSiPM      = sns_positions_c.rename(columns={"sensor_id": "SensorID","new_x": "X", "new_y": "Y", "z": "Z"})
     DataSiPM_idx  = DataSiPM.set_index('SensorID')
 
