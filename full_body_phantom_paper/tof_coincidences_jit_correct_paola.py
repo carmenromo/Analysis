@@ -131,7 +131,7 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
-    sns_response = snsf.apply_sipm_pde(sns_response, 0.3)
+    #sns_response = snsf.apply_sipm_pde(sns_response, 0.3)
     fluct_sns_response = apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
@@ -139,7 +139,7 @@ for ifile in range(start, start+numb):
     particles    = load_mcparticles      (file_name)
     hits         = load_mchits           (file_name)
     tof_response = load_mcTOFsns_response(file_name)
-    tof_response = snsf.apply_sipm_pde(tof_response, 0.3)
+    #tof_response = snsf.apply_sipm_pde(tof_response, 0.3)
 
     events = particles.event_id.unique()
     print(f'Number of events = {len(events)}')
