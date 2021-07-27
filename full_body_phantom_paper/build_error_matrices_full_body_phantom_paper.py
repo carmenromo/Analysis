@@ -361,8 +361,8 @@ timestamp_thr = 0.25
 ## photoelectric-like events
 print('Phot-like')
 file_name = folder + f'errmat_{identifier}_t_thr{timestamp_thr}pes_phot_like.npz'
-h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_t               [sel_phot_like],
-                                                      diff_reco_t_matrix[0][sel_phot_like],
+h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_t            [sel_phot_like],
+                                                      diff_reco_t_matrix[sel_phot_like],
                                                       bins   = (t_bins,  t_err_bins_phot),
                                                       ranges = (t_range, t_err_range_phot))
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
@@ -372,8 +372,8 @@ print(a.shape, np.count_nonzero(a))
 ## compton-like events
 print('Compt-like')
 file_name = folder + f'errmat_{identifier}_t_thr{timestamp_thr}pes_compt_like.npz'
-h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_t               [sel_compt_like],
-                                                      diff_reco_t_matrix[0][sel_compt_like],
+h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_t            [sel_compt_like],
+                                                      diff_reco_t_matrix[sel_compt_like],
                                                       bins   = (t_bins,  t_err_bins_compt),
                                                       ranges = (t_range, t_err_range_compt))
 np.savez(file_name, errmat=h, eff=eff, xmin=xmin, ymin=ymin, dx=dx, dy=dy)
