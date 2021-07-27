@@ -235,10 +235,10 @@ for number in range(start, start+numb):
                             min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
                         first_sipm1[k].append(min_id1)
-                        first_time1[k].append(min_t1*tof_bin_size/units.ps)
+                        first_time1[k].append(min_t1)
 
                         first_sipm2[k].append(min_id2)
-                        first_time2[k].append(min_t2*tof_bin_size/units.ps)
+                        first_time2[k].append(min_t2)
 
                     event_ids_times.append(evt)
 

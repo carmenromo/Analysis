@@ -18,7 +18,7 @@ from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
 
 """ To run this script
-python 2_pet_box_reco_info_both_planes_jitter_ave_phot_mix_Ham_FBK.py 2500 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_HamamatsuVUV
+python 2_pet_box_reco_info_both_planes_ave_phot_mix_Ham_FBK.py 2500 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_HamamatsuVUV
  /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/z_var_x_table_pet_box_HamamatsuVUV_det_plane_coinc_plane_cent.h5
 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/z_var_x_table_pet_box_HamamatsuVUV_coinc_plane_cent.h5
 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info
@@ -227,10 +227,10 @@ for number in range(start, start+numb):
                                 min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
                             first_sipm1[k][j].append(min_id1)
-                            first_time1[k][j].append(min_t1*tof_bin_size/units.ps)
+                            first_time1[k][j].append(min_t1)
 
                             first_sipm2[k][j].append(min_id2)
-                            first_time2[k][j].append(min_t2*tof_bin_size/units.ps)
+                            first_time2[k][j].append(min_t2)
 
                     event_ids_times.append(evt)
 
