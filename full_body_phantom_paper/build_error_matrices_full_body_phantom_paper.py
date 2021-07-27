@@ -70,8 +70,12 @@ for filename in os.listdir(filepath):
         first_time1 = np.concatenate((first_time1, d[f'a_first_time1']))
         first_time2 = np.concatenate((first_time2, d[f'a_first_time2']))
 
-        first_sipm1 = np.concatenate((first_sipm1, d[f'a_first_sipm1']))
-        first_sipm2 = np.concatenate((first_sipm2, d[f'a_first_sipm2']))
+        #first_sipm1 = np.concatenate((first_sipm1, d[f'a_first_sipm1']))
+        #first_sipm2 = np.concatenate((first_sipm2, d[f'a_first_sipm2']))
+        for i in d['a_first_sipm1']:
+            first_sipm1.append(i)
+        for i in d['a_first_sipm2']:
+            first_sipm2.append(i)
 
 
 true_r1   = np.array(true_r1)
