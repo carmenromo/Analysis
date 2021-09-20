@@ -30,9 +30,9 @@ file_name     = arguments.file_name
 out_path      = arguments.out_path
 
 
-evt_file   = f'{out_path}/study_phot_charge_max_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
+evt_file   = f'{out_path}/study_phot_charge_max_{start}_{numb}'
 
-charge_all, charge_max_sns = [[] for i in range(thr_ch_nsteps-thr_ch_start)], [[] for i in range(thr_ch_nsteps-thr_ch_start)]
+charge_all, charge_max_sns, all_touched_sns, n_touched_sns = [], [], [], []
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -53,45 +53,47 @@ for number in range(start, start+numb):
 
     events = mcparticles.event_id.unique()
 
-    for th in range(thr_ch_start, thr_ch_nsteps):
-        for evt in events:
-            evt_sns   = sns_response[sns_response.event_id == evt]
-            evt_parts = mcparticles [mcparticles .event_id == evt]
-            evt_hits  = mchits      [mchits      .event_id == evt]
+    th = 2 #pes
+    for evt in events:
+        evt_sns   = sns_response[sns_response.event_id == evt]
+        evt_parts = mcparticles [mcparticles .event_id == evt]
+        evt_hits  = mchits      [mchits      .event_id == evt]
 
-            evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
-            if len(evt_sns) == 0:
+        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
+        if len(evt_sns) == 0:
+            continue
+
+        ## True info
+        phot, true_pos_phot   = pbf.select_phot_pet_box(evt_parts, evt_hits, he_gamma=False)
+        he_gamma, true_pos_he = pbf.select_phot_pet_box(evt_parts, evt_hits, he_gamma=True)
+
+        sel_phot0    = np.array([pos[2] for pos in true_pos_phot])
+        sel_neg_phot = sel_phot0[sel_phot0<0]
+        sel_pos_phot = sel_phot0[sel_phot0>0]
+
+        sel_he0    = np.array([pos[2] for pos in true_pos_he])
+        sel_neg_he = sel_he0[sel_he0<0]
+        sel_pos_he = sel_he0[sel_he0>0]
+
+        if phot and len(sel_neg_phot)>0:
+            if len(sel_neg_he)>0:
                 continue
 
-            ## True info
-            phot, true_pos_phot   = pbf.select_phot_pet_box(evt_parts, evt_hits, he_gamma=False)
-            he_gamma, true_pos_he = pbf.select_phot_pet_box(evt_parts, evt_hits, he_gamma=True)
+            ids1, pos1, qs1, _, _, _ = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
+            if len(qs1)==0:
+                continue
 
-            sel_phot0    = np.array([pos[2] for pos in true_pos_phot])
-            sel_neg_phot = sel_phot0[sel_phot0<0]
-            sel_pos_phot = sel_phot0[sel_phot0>0]
+            if len(ids1) > 4:
+                charge_all     .append(np.sum(qs1))
+                charge_max_sns .append(np.max(qs1))
+                all_touched_sns.append(qs1)
+                n_touched_sns  .append(len(qs1))
 
-            sel_he0    = np.array([pos[2] for pos in true_pos_he])
-            sel_neg_he = sel_he0[sel_he0<0]
-            sel_pos_he = sel_he0[sel_he0>0]
+charge_all      = np.array(charge_all     )
+charge_max_sns  = np.array(charge_max_sns )
+all_touched_sns = np.array(all_touched_sns)
+n_touched_sns   = np.array(n_touched_sns  )
 
-            if phot and len(sel_neg_phot)>0:
-                if len(sel_neg_he)>0:
-                    continue
-
-                ids1, pos1, qs1, _, _, _ = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
-                if len(qs1)==0:
-                    continue
-
-                if len(ids1) > 4:
-                    charge_all    [th].append(np.sum(qs1))
-                    charge_max_sns[th].append(np.max(qs1))
-
-charge_all     = np.array([np.array(i) for i in charge_all    ])
-charge_max_sns = np.array([np.array(i) for i in charge_max_sns])
-
-np.savez(evt_file,  charge_all_0=charge_all[0], charge_all_1=charge_all[1], charge_all_2=charge_all[2], charge_all_3=charge_all[3], charge_all_4=charge_all[4],
-                    charge_max_sns_0=charge_max_sns[0], charge_max_sns_1=charge_max_sns[1], charge_max_sns_2=charge_max_sns[2],
-                    charge_max_sns_3=charge_max_sns[3], charge_max_sns_4=charge_max_phot[4])
+np.savez(evt_file,  charge_all=charge_all, charge_all=charge_all, all_touched_sns=all_touched_sns, n_touched_sns=n_touched_sns)
 
 print(datetime.datetime.now())
