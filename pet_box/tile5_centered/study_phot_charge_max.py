@@ -94,6 +94,6 @@ charge_max_sns  = np.array(charge_max_sns )
 all_touched_sns = np.array(all_touched_sns)
 n_touched_sns   = np.array(n_touched_sns  )
 
-np.savez(evt_file,  charge_all=charge_all, charge_all=charge_all, all_touched_sns=all_touched_sns, n_touched_sns=n_touched_sns)
+np.savez(evt_file,  charge_all=charge_all, charge_max_sns=charge_max_sns, all_touched_sns=all_touched_sns, n_touched_sns=n_touched_sns)
 
 print(datetime.datetime.now())
