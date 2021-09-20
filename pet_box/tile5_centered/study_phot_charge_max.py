@@ -87,11 +87,11 @@ for number in range(start, start+numb):
                     charge_all    [th].append(np.sum(qs1))
                     charge_max_sns[th].append(np.max(qs1))
 
-charge_phot     = np.array([np.array(i) for i in charge_phot    ])
-charge_max_phot = np.array([np.array(i) for i in charge_max_phot])
+charge_all     = np.array([np.array(i) for i in charge_all    ])
+charge_max_sns = np.array([np.array(i) for i in charge_max_sns])
 
-np.savez(evt_file,  charge_phot_0=charge_phot[0], charge_phot_1=charge_phot[1], charge_phot_2=charge_phot[2], charge_phot_3=charge_phot[3], charge_phot_4=charge_phot[4],
-                    charge_max_phot_0=charge_max_phot[0], charge_max_phot_1=charge_max_phot[1], charge_max_phot_2=charge_max_phot[2],
-                    charge_max_phot_3=charge_max_phot[3], charge_max_phot_4=charge_max_phot[4])
+np.savez(evt_file,  charge_all_0=charge_all[0], charge_all_1=charge_all[1], charge_all_2=charge_all[2], charge_all_3=charge_all[3], charge_all_4=charge_all[4],
+                    charge_max_sns_0=charge_max_sns[0], charge_max_sns_1=charge_max_sns[1], charge_max_sns_2=charge_max_sns[2],
+                    charge_max_sns_3=charge_max_sns[3], charge_max_sns_4=charge_max_phot[4])
 
 print(datetime.datetime.now())
