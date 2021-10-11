@@ -29,6 +29,10 @@ in_path       = arguments.in_path
 file_name     = arguments.file_name
 out_path      = arguments.out_path
 
+area0 = [44, 45, 54, 55]
+area1 = [33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66]
+area2 = [22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77]
+area5 = area0 + area1 + area2
 
 def divide_sns_planes(df):
     df_h = df[df.sensor_id<100]
