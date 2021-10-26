@@ -57,6 +57,9 @@ def filter_coincidences(df):
     return df_filter
 
 def filter_evt_with_max_charge_at_center(df):
+    df = df[df.sensor_id<100]
+    if len(df)==0:
+        return False
     argmax = df['charge'].argmax()
     return df.iloc[argmax].sensor_id in [44, 45, 54, 55]
 
@@ -65,6 +68,9 @@ def select_evts_with_max_charge_at_center(df):
     return df_filter_center
 
 def filter_evt_with_max_charge_at_center_coinc_plane(df):
+    df = df[df.sensor_id>100]
+    if len(df)==0:
+        return False
     argmax = df['charge'].argmax()
     return df.iloc[argmax].sensor_id in [122, 123, 132, 133]
 
