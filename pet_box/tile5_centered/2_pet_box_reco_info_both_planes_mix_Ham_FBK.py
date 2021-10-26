@@ -41,7 +41,7 @@ thr_charge2   =  200 #pes
 area0       = [ 44,  45,  54,  55]
 area0_tile5 = [122, 123, 132, 133]
 
-evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_evt_ids_mix_Ham_FBK_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_evt_ids_mix_Ham_FBK_no_cut_charge_{start}_{numb}'
 
 Zpos1 = load_map(zpos_file, group="Zpos",
                             node=f"f2pes200bins",
@@ -165,9 +165,9 @@ for number in range(start, start+numb):
 
                 event_ids1.append(evt)
 
-                if sum(qs1)>thr_charge1:
-                    count1 = 1
-                    event_ids1_th_charge.append(evt)
+                #if sum(qs1)>thr_charge1:
+                count1 = 1
+                event_ids1_th_charge.append(evt)
 
 
         if phot and len(sel_pos_phot)>0:
@@ -201,9 +201,9 @@ for number in range(start, start+numb):
 
                 event_ids2.append(evt)
 
-                if sum(qs2)>thr_charge2:
-                    count2 = 1
-                    event_ids2_th_charge.append(evt)
+                #if sum(qs2)>thr_charge2:
+                count2 = 1
+                event_ids2_th_charge.append(evt)
 
                 #if sum(qs1)>thr_charge1 and sum(qs2)>thr_charge2:
                 if count1 and count2: ## Coincidences
