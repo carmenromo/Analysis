@@ -89,7 +89,7 @@ def select_covered_evts(df):
     return df_filter_center
 
 
-evt_file   = f'{out_path}/get_sns_info_{start}_{numb}'
+evt_file   = f'{out_path}/get_sns_info_thr2_{start}_{numb}'
 
 
 df_sns_resp = pd.DataFrame({})
