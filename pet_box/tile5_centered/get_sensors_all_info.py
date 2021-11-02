@@ -49,7 +49,7 @@ def compute_coincidences(df):
     # The dataframe must be grouped by event_id
     sensors_h = df[df.sensor_id.unique()<100].sensor_id.nunique() # Ham
     sensors_f = df[df.sensor_id.unique()>100].sensor_id.nunique() # FBK
-    if sensors_h>1 and sensors_f>1: return True
+    if sensors_h>0 and sensors_f>0: return True
     else: return False
     
 def filter_coincidences(df):
