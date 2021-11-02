@@ -89,7 +89,8 @@ def select_covered_evts(df):
     return df_filter_center
 
 
-evt_file   = f'{out_path}/get_sns_info_thr2_{start}_{numb}'
+thr = 2
+evt_file   = f'{out_path}/get_sns_info_thr{thr}_{start}_{numb}'
 
 
 df_sns_resp = pd.DataFrame({})
@@ -104,7 +105,7 @@ for number in range(start, start+numb):
 
     df_sns_resp = pd.concat([df_sns_resp, sns_response0], ignore_index=False, sort=False)
     
-df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, 2)
+df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, thr)
 
 df_h, df_f = divide_sns_planes(df_sns_resp)
 tot_charge_evt_h, max_charge_evt_h, touched_sns_evt_h = get_sns_info(df_h)
