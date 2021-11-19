@@ -42,11 +42,12 @@ def divide_sns_planes(df):
     df_f = df[df.sensor_id>100]
     return df_h, df_f
 
-def get_sns_info(df):
+def get_sns_info_tot(df):
     tot_charge_evt  = df.groupby('event_id').charge.sum()
     max_charge_evt  = df.groupby('event_id').charge.max()
     touched_sns_evt = df.groupby('event_id').sensor_id.nunique()
-    return tot_charge_evt, max_charge_evt, touched_sns_evt
+    tot_intg_w_evt  = df.groupby('event_id').intg_w.sum()
+    return tot_charge_evt, max_charge_evt, touched_sns_evt, tot_intg_w_evt
 
 def compute_coincidences(df):
     # The dataframe must be grouped by event_id
@@ -122,7 +123,7 @@ for number in range(start, start+numb):
 #df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, thr)
 
 df_h, df_f = divide_sns_planes(df_sns_resp)
-tot_charge_evt_h, _, _ = get_sns_info(df_h)
+tot_charge_evt_h, _, _, tot_intgw_evt_h = get_sns_info_tot(df_h)
 #tot_charge_evt_f, max_charge_evt_f, touched_sns_evt_f = get_sns_info(df_f)
 
 # df_th2_h, _                = divide_sns_planes(df_sns_resp_th2)
@@ -132,14 +133,14 @@ tot_charge_evt_h, _, _ = get_sns_info(df_h)
 ## Coincidences:
 df_coinc      = filter_coincidences(df_sns_resp.groupby('event_id'))
 df_coinc_h, _ = divide_sns_planes(df_coinc)
-tot_charge_evt_coinc_h, _, _ = get_sns_info(df_coinc_h)
+tot_charge_evt_coinc_h, _, _, tot_intgw_evt_coinc_h = get_sns_info_tot(df_coinc_h)
 #tot_charge_evt_coinc_f, max_charge_evt_coinc_f, touched_sns_evt_coinc_f = get_sns_info(df_coinc_f)
 
 ## Centered events:
 # Hamamatsu
 df_sns_resp_cent = select_evts_with_max_charge_at_center(df_sns_resp.groupby('event_id'))
 df_cent_h, _     = divide_sns_planes(df_sns_resp_cent)
-tot_charge_evt_cent_h, _, _ = get_sns_info(df_cent_h)
+tot_charge_evt_cent_h, _, _, tot_intgw_evt_cent_h = get_sns_info_tot(df_cent_h)
 # FBK
 # df_sns_resp_cent_c = select_evts_with_max_charge_at_center_coinc_plane(df_sns_resp_th2.groupby('event_id'))
 # _, df_cent_f       = divide_sns_planes(df_sns_resp_cent_c)
@@ -149,7 +150,7 @@ tot_charge_evt_cent_h, _, _ = get_sns_info(df_cent_h)
 # Hamamatsu
 df_sns_resp_coinc_cent = select_evts_with_max_charge_at_center(df_coinc.groupby('event_id'))
 df_coinc_cent_h, _     = divide_sns_planes(df_sns_resp_coinc_cent)
-tot_charge_evt_coinc_cent_h, _, _ = get_sns_info(df_coinc_cent_h)
+tot_charge_evt_coinc_cent_h, _, _, tot_intgw_evt_coinc_cent_h = get_sns_info_tot(df_coinc_cent_h)
 # FBK
 # df_sns_resp_coinc_cent_c = select_evts_with_max_charge_at_center_coinc_plane(df_coinc.groupby('event_id'))
 # _, df_coinc_cent_f       = divide_sns_planes(df_sns_resp_coinc_cent_c)
@@ -170,7 +171,7 @@ df_coinc_cent_h['perc_cor_intgw'] = perc_intgw_corona[df_coinc_cent_h.event_id].
 np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, tot_charge_evt_coinc_h=tot_charge_evt_coinc_h,
          tot_charge_evt_cent_h=tot_charge_evt_cent_h, tot_charge_evt_coinc_cent_h=tot_charge_evt_coinc_cent_h, perc_ch_corona=perc_ch_corona.values,
          perc_intgw_corona=perc_intgw_corona.values, df_event_id=df_coinc_cent_h.event_id, df_sensor_id=df_coinc_cent_h.sensor_id,
-         df_charge=df_coinc_cent_h.charge, df_perc_cor_ch=df_coinc_cent_h.perc_cor_ch, df_perc_cor_intgw=df_coinc_cent_h.perc_cor_intgw)
+         df_charge=df_coinc_cent_h.charge, df_intg_w=df_coinc_cent_h.intg_w, df_perc_cor_ch=df_coinc_cent_h.perc_cor_ch, df_perc_cor_intgw=df_coinc_cent_h.perc_cor_intgw)
 
 # np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, max_charge_evt_h=max_charge_evt_h, touched_sns_evt_h=touched_sns_evt_h,
 #         tot_charge_evt_f=tot_charge_evt_f, max_charge_evt_f=max_charge_evt_f, touched_sns_evt_f=touched_sns_evt_f,
