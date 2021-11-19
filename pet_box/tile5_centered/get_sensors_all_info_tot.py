@@ -14,7 +14,7 @@ import antea.reco.mctrue_functions as mcf
 import antea.io  .mc_io            as mcio
 
 """ To run this script
-python get_sensors_all_info.py 0 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_tile5centered_HamamatsuVUV
+python get_sensors_all_info_tot.py 0 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_tile5centered_HamamatsuVUV
 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info
 """
 
@@ -96,53 +96,48 @@ def get_perc_ch_corona(df):
     cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id').charge.sum()
     return (cor_ch/tot_ch).fillna(0)*100
 
-# def filter_evt_percent_ch_corona(df, lo_p=0, hi_p=100):
-#     perc_cor_total = get_perc_ch_corona(df)
-#     return (perc_cor_total > lo_p) & (perc_cor_total < hi_p)
-#
-# def select_evt_percent_ch_corona(df, lo_p=0, hi_p=100):
-#     df_filter = df.groupby('event_id').filter(filter_evt_percent_ch_corona,
-#                                                              dropna=True,
-#                                                              lo_p=lo_p,
-#                                                              hi_p=hi_p)
-#     return df_filter
+def get_perc_intgw_corona(df):
+    tot_ch = df.groupby('event_id').intg_w.sum()
+    cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id').intg_w.sum()
+    return (cor_ch/tot_ch).fillna(0)*100
 
 
-thr = 2
-evt_file   = f'{out_path}/get_sns_info_cov_corona_thr{thr}_{start}_{numb}'
+#thr = 2
+evt_file   = f'{out_path}/get_sns_info_cov_corona_tot_{start}_{numb}'
 
 
 df_sns_resp = pd.DataFrame({})
 for number in range(start, start+numb):
-    number_str = "{:03d}".format(number)
-    filename = in_path + f'{file_name}.{number_str}.pet.h5'
+    #number_str = "{:03d}".format(number)
+    filename = in_path + f'{file_name}.{number}.h5'
     try:
-        sns_response0 = mcio.load_mcsns_response(filename)
+        sns_response0 = pd.read_hdf(filename, '/conv')
+        sns_response0 = sns_response0[sns_response0.charge != 0]
     except OSError:
         print(f'File {filename} does not exist')
         continue
 
     df_sns_resp = pd.concat([df_sns_resp, sns_response0], ignore_index=False, sort=False)
 
-df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, thr)
+#df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, thr)
 
 df_h, df_f = divide_sns_planes(df_sns_resp)
 tot_charge_evt_h, _, _ = get_sns_info(df_h)
 #tot_charge_evt_f, max_charge_evt_f, touched_sns_evt_f = get_sns_info(df_f)
 
-df_th2_h, _                = divide_sns_planes(df_sns_resp_th2)
-tot_charge_evt_th2_h, _, _ = get_sns_info(df_th2_h)
+# df_th2_h, _                = divide_sns_planes(df_sns_resp_th2)
+# tot_charge_evt_th2_h, _, _ = get_sns_info(df_th2_h)
 #tot_charge_evt_th2_f, max_charge_evt_th2_f, touched_sns_evt_th2_f = get_sns_info(df_th2_f)
 
 ## Coincidences:
-df_coinc      = filter_coincidences(df_sns_resp_th2.groupby('event_id'))
+df_coinc      = filter_coincidences(df_sns_resp.groupby('event_id'))
 df_coinc_h, _ = divide_sns_planes(df_coinc)
 tot_charge_evt_coinc_h, _, _ = get_sns_info(df_coinc_h)
 #tot_charge_evt_coinc_f, max_charge_evt_coinc_f, touched_sns_evt_coinc_f = get_sns_info(df_coinc_f)
 
 ## Centered events:
 # Hamamatsu
-df_sns_resp_cent = select_evts_with_max_charge_at_center(df_sns_resp_th2.groupby('event_id'))
+df_sns_resp_cent = select_evts_with_max_charge_at_center(df_sns_resp.groupby('event_id'))
 df_cent_h, _     = divide_sns_planes(df_sns_resp_cent)
 tot_charge_evt_cent_h, _, _ = get_sns_info(df_cent_h)
 # FBK
@@ -166,13 +161,16 @@ tot_charge_evt_coinc_cent_h, _, _ = get_sns_info(df_coinc_cent_h)
 # df_cov_h, _     = divide_sns_planes(df_sns_resp_cov)
 # tot_charge_evt_cov_h, max_charge_evt_cov_h, touched_sns_evt_cov_h = get_sns_info(df_cov_h)
 
-perc_ch_corona = get_perc_ch_corona(df_coinc_cent_h)
+perc_ch_corona    = get_perc_ch_corona   (df_coinc_cent_h)
+perc_intgw_corona = get_perc_intgw_corona(df_coinc_cent_h)
 
-df_coinc_cent_h['perc_cor'] = perc_ch_corona[df_coinc_cent_h.event_id].values
+df_coinc_cent_h['perc_cor_ch']    = perc_ch_corona   [df_coinc_cent_h.event_id].values
+df_coinc_cent_h['perc_cor_intgw'] = perc_intgw_corona[df_coinc_cent_h.event_id].values
 
-np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, tot_charge_evt_th2_h=tot_charge_evt_th2_h, tot_charge_evt_coinc_h=tot_charge_evt_coinc_h,
+np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, tot_charge_evt_coinc_h=tot_charge_evt_coinc_h,
          tot_charge_evt_cent_h=tot_charge_evt_cent_h, tot_charge_evt_coinc_cent_h=tot_charge_evt_coinc_cent_h, perc_ch_corona=perc_ch_corona.values,
-         df_event_id=df_coinc_cent_h.event_id, df_sensor_id=df_coinc_cent_h.sensor_id, df_charge=df_coinc_cent_h.charge, df_perc_cor=df_coinc_cent_h.perc_cor)
+         perc_intgw_corona=perc_intgw_corona.values, df_event_id=df_coinc_cent_h.event_id, df_sensor_id=df_coinc_cent_h.sensor_id,
+         df_charge=df_coinc_cent_h.charge, df_perc_cor_ch=df_coinc_cent_h.perc_cor_ch, df_perc_cor_intgw=df_coinc_cent_h.perc_cor_intgw)
 
 # np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, max_charge_evt_h=max_charge_evt_h, touched_sns_evt_h=touched_sns_evt_h,
 #         tot_charge_evt_f=tot_charge_evt_f, max_charge_evt_f=max_charge_evt_f, touched_sns_evt_f=touched_sns_evt_f,
