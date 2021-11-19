@@ -109,7 +109,7 @@ def select_evt_percent_ch_corona(df, lo_p=0, hi_p=100):
 
 
 thr = 2
-evt_file   = f'{out_path}/get_sns_info_thr{thr}_{start}_{numb}'
+evt_file   = f'{out_path}/get_sns_info_cov_corona_thr{thr}_{start}_{numb}'
 
 
 df_sns_resp = pd.DataFrame({})
