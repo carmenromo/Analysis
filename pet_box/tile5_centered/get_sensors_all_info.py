@@ -172,8 +172,7 @@ df_coinc_cent_h['perc_cor'] = perc_ch_corona[df_coinc_cent_h.event_id].values
 
 np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, tot_charge_evt_th2_h=tot_charge_evt_th2_h, tot_charge_evt_coinc_h=tot_charge_evt_coinc_h,
          tot_charge_evt_cent_h=tot_charge_evt_cent_h, tot_charge_evt_coinc_cent_h=tot_charge_evt_coinc_cent_h, perc_ch_corona=perc_ch_corona.values,
-         df_event_id=df_coinc_cent_h.event_id, df_sensor_id=df_coinc_cent_h.sensor_id, df_charge=df_coinc_cent_h.charge,
-         df_time_bin=df_coinc_cent_h.time_bin, df_perc_cor=df_coinc_cent_h.perc_cor)
+         df_event_id=df_coinc_cent_h.event_id, df_sensor_id=df_coinc_cent_h.sensor_id, df_charge=df_coinc_cent_h.charge, df_perc_cor=df_coinc_cent_h.perc_cor)
 
 # np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, max_charge_evt_h=max_charge_evt_h, touched_sns_evt_h=touched_sns_evt_h,
 #         tot_charge_evt_f=tot_charge_evt_f, max_charge_evt_f=max_charge_evt_f, touched_sns_evt_f=touched_sns_evt_f,
