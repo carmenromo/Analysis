@@ -51,7 +51,7 @@ def compute_coincidences(df):
     sensors_f = df[df.sensor_id.unique()>100].sensor_id.nunique() # FBK
     if sensors_h>0 and sensors_f>0: return True
     else: return False
-    
+
 def filter_coincidences(df):
     df_filter = df.filter(compute_coincidences)
     return df_filter
@@ -78,15 +78,31 @@ def select_evts_with_max_charge_at_center_coinc_plane(df):
     df_filter_center = df.filter(filter_evt_with_max_charge_at_center_coinc_plane)
     return df_filter_center
 
-def filter_covered_evt(df):
-    df = df[df.sensor_id<100]
-    sens_unique = df.sensor_id.unique()
-    if len(sens_unique) > 1: return set(sens_unique).issubset(set(area5))
-    else: return False
+# def filter_covered_evt(df):
+#     df = df[df.sensor_id<100]
+#     sens_unique = df.sensor_id.unique()
+#     if len(sens_unique) > 1: return set(sens_unique).issubset(set(area5))
+#     else: return False
+#
+# def select_covered_evts(df):
+#     df_filter_center = df.filter(filter_covered_evt)
+#     return df_filter_center
 
-def select_covered_evts(df):
-    df_filter_center = df.filter(filter_covered_evt)
-    return df_filter_center
+def get_perc_ch_corona(df):
+    tot_ch = df.groupby('event_id').charge.sum()
+    cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id').charge.sum()
+    return (cor_ch/tot_ch).fillna(0)*100
+
+def filter_evt_percent_ch_corona(df, lo_p=0, hi_p=100):
+    perc_cor_total = get_perc_ch_corona(df)
+    return (perc_cor_total > lo_p) & (perc_cor_total < hi_p)
+
+def select_evt_percent_ch_corona(df, lo_p=0, hi_p=100):
+    df_filter = df.groupby('event_id').filter(filter_evt_percent_ch_corona,
+                                                             dropna=True,
+                                                             lo_p=lo_p,
+                                                             hi_p=hi_p)
+    return df_filter
 
 
 thr = 2
@@ -104,59 +120,68 @@ for number in range(start, start+numb):
         continue
 
     df_sns_resp = pd.concat([df_sns_resp, sns_response0], ignore_index=False, sort=False)
-    
+
 df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, thr)
 
 df_h, df_f = divide_sns_planes(df_sns_resp)
-tot_charge_evt_h, max_charge_evt_h, touched_sns_evt_h = get_sns_info(df_h)
-tot_charge_evt_f, max_charge_evt_f, touched_sns_evt_f = get_sns_info(df_f)
+tot_charge_evt_h, _, _ = get_sns_info(df_h)
+#tot_charge_evt_f, max_charge_evt_f, touched_sns_evt_f = get_sns_info(df_f)
 
-df_th2_h, df_th2_f = divide_sns_planes(df_sns_resp_th2)
-tot_charge_evt_th2_h, max_charge_evt_th2_h, touched_sns_evt_th2_h = get_sns_info(df_th2_h)
-tot_charge_evt_th2_f, max_charge_evt_th2_f, touched_sns_evt_th2_f = get_sns_info(df_th2_f)
+df_th2_h, _                = divide_sns_planes(df_sns_resp_th2)
+tot_charge_evt_th2_h, _, _ = get_sns_info(df_th2_h)
+#tot_charge_evt_th2_f, max_charge_evt_th2_f, touched_sns_evt_th2_f = get_sns_info(df_th2_f)
 
 ## Coincidences:
-df_coinc               = filter_coincidences(df_sns_resp_th2.groupby('event_id'))
-df_coinc_h, df_coinc_f = divide_sns_planes(df_coinc)
-tot_charge_evt_coinc_h, max_charge_evt_coinc_h, touched_sns_evt_coinc_h = get_sns_info(df_coinc_h)
-tot_charge_evt_coinc_f, max_charge_evt_coinc_f, touched_sns_evt_coinc_f = get_sns_info(df_coinc_f)
+df_coinc      = filter_coincidences(df_sns_resp_th2.groupby('event_id'))
+df_coinc_h, _ = divide_sns_planes(df_coinc)
+tot_charge_evt_coinc_h, _, _ = get_sns_info(df_coinc_h)
+#tot_charge_evt_coinc_f, max_charge_evt_coinc_f, touched_sns_evt_coinc_f = get_sns_info(df_coinc_f)
 
 ## Centered events:
 # Hamamatsu
 df_sns_resp_cent = select_evts_with_max_charge_at_center(df_sns_resp_th2.groupby('event_id'))
 df_cent_h, _     = divide_sns_planes(df_sns_resp_cent)
-tot_charge_evt_cent_h, max_charge_evt_cent_h, touched_sns_evt_cent_h = get_sns_info(df_cent_h)
+tot_charge_evt_cent_h, _, _ = get_sns_info(df_cent_h)
 # FBK
-df_sns_resp_cent_c = select_evts_with_max_charge_at_center_coinc_plane(df_sns_resp_th2.groupby('event_id'))
-_, df_cent_f       = divide_sns_planes(df_sns_resp_cent_c)
-tot_charge_evt_cent_f, max_charge_evt_cent_f, touched_sns_evt_cent_f = get_sns_info(df_cent_f)
+# df_sns_resp_cent_c = select_evts_with_max_charge_at_center_coinc_plane(df_sns_resp_th2.groupby('event_id'))
+# _, df_cent_f       = divide_sns_planes(df_sns_resp_cent_c)
+# tot_charge_evt_cent_f, max_charge_evt_cent_f, touched_sns_evt_cent_f = get_sns_info(df_cent_f)
 
 ## Coincidences + Centered events
 # Hamamatsu
 df_sns_resp_coinc_cent = select_evts_with_max_charge_at_center(df_coinc.groupby('event_id'))
 df_coinc_cent_h, _     = divide_sns_planes(df_sns_resp_coinc_cent)
-tot_charge_evt_coinc_cent_h, max_charge_evt_coinc_cent_h, touched_sns_evt_coinc_cent_h = get_sns_info(df_coinc_cent_h)
+tot_charge_evt_coinc_cent_h, _, _ = get_sns_info(df_coinc_cent_h)
 # FBK
-df_sns_resp_coinc_cent_c = select_evts_with_max_charge_at_center_coinc_plane(df_coinc.groupby('event_id'))
-_, df_coinc_cent_f       = divide_sns_planes(df_sns_resp_coinc_cent_c)
-tot_charge_evt_coinc_cent_f, max_charge_evt_coinc_cent_f, touched_sns_evt_coinc_cent_f = get_sns_info(df_coinc_cent_f)
+# df_sns_resp_coinc_cent_c = select_evts_with_max_charge_at_center_coinc_plane(df_coinc.groupby('event_id'))
+# _, df_coinc_cent_f       = divide_sns_planes(df_sns_resp_coinc_cent_c)
+# tot_charge_evt_coinc_cent_f, max_charge_evt_coinc_cent_f, touched_sns_evt_coinc_cent_f = get_sns_info(df_coinc_cent_f)
 
 
 ## Covered events:
-df_sns_resp_cov = select_covered_evts(df_sns_resp_th2.groupby('event_id'))
-df_cov_h, _     = divide_sns_planes(df_sns_resp_cov)
-tot_charge_evt_cov_h, max_charge_evt_cov_h, touched_sns_evt_cov_h = get_sns_info(df_cov_h)
+# df_sns_resp_cov = select_covered_evts(df_sns_resp_th2.groupby('event_id'))
+# df_cov_h, _     = divide_sns_planes(df_sns_resp_cov)
+# tot_charge_evt_cov_h, max_charge_evt_cov_h, touched_sns_evt_cov_h = get_sns_info(df_cov_h)
 
-np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, max_charge_evt_h=max_charge_evt_h, touched_sns_evt_h=touched_sns_evt_h,
-        tot_charge_evt_f=tot_charge_evt_f, max_charge_evt_f=max_charge_evt_f, touched_sns_evt_f=touched_sns_evt_f,
-        tot_charge_evt_th2_h=tot_charge_evt_th2_h, max_charge_evt_th2_h=max_charge_evt_th2_h, touched_sns_evt_th2_h=touched_sns_evt_th2_h,
-        tot_charge_evt_th2_f=tot_charge_evt_th2_f, max_charge_evt_th2_f=max_charge_evt_th2_f, touched_sns_evt_th2_f=touched_sns_evt_th2_f,
-        tot_charge_evt_coinc_h=tot_charge_evt_coinc_h, max_charge_evt_coinc_h=max_charge_evt_coinc_h, touched_sns_evt_coinc_h=touched_sns_evt_coinc_h,
-        tot_charge_evt_coinc_f=tot_charge_evt_coinc_f, max_charge_evt_coinc_f=max_charge_evt_coinc_f, touched_sns_evt_coinc_f=touched_sns_evt_coinc_f,
-        tot_charge_evt_cent_h=tot_charge_evt_cent_h, max_charge_evt_cent_h=max_charge_evt_cent_h, touched_sns_evt_cent_h=touched_sns_evt_cent_h,
-        tot_charge_evt_cent_f=tot_charge_evt_cent_f, max_charge_evt_cent_f=max_charge_evt_cent_f, touched_sns_evt_cent_f=touched_sns_evt_cent_f,
-        tot_charge_evt_coinc_cent_h=tot_charge_evt_coinc_cent_h, max_charge_evt_coinc_cent_h=max_charge_evt_coinc_cent_h, touched_sns_evt_coinc_cent_h=touched_sns_evt_coinc_cent_h,
-        tot_charge_evt_coinc_cent_f=tot_charge_evt_coinc_cent_f, max_charge_evt_coinc_cent_f=max_charge_evt_coinc_cent_f, touched_sns_evt_coinc_cent_f=touched_sns_evt_coinc_cent_f,
-        tot_charge_evt_cov_h=tot_charge_evt_cov_h, max_charge_evt_cov_h=max_charge_evt_cov_h, touched_sns_evt_cov_h=touched_sns_evt_cov_h)
+perc_ch_corona = get_perc_ch_corona(df_coinc_cent_h)
+
+df_coinc_cent_h['perc_cor'] = perc_ch_corona[df_coinc_cent_h.event_id].values
+
+np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, tot_charge_evt_th2_h=tot_charge_evt_th2_h, tot_charge_evt_coinc_h=tot_charge_evt_coinc_h,
+         tot_charge_evt_cent_h=tot_charge_evt_cent_h, tot_charge_evt_coinc_cent_h=tot_charge_evt_coinc_cent_h, perc_ch_corona=perc_ch_corona.values,
+         df_event_id=df_coinc_cent_h.event_id, df_sensor_id=df_coinc_cent_h.sensor_id, df_charge=df_coinc_cent_h.charge,
+         df_time_bin=df_coinc_cent_h.time_bin, df_perc_cor=df_coinc_cent_h.perc_cor)
+
+# np.savez(evt_file,  tot_charge_evt_h=tot_charge_evt_h, max_charge_evt_h=max_charge_evt_h, touched_sns_evt_h=touched_sns_evt_h,
+#         tot_charge_evt_f=tot_charge_evt_f, max_charge_evt_f=max_charge_evt_f, touched_sns_evt_f=touched_sns_evt_f,
+#         tot_charge_evt_th2_h=tot_charge_evt_th2_h, max_charge_evt_th2_h=max_charge_evt_th2_h, touched_sns_evt_th2_h=touched_sns_evt_th2_h,
+#         tot_charge_evt_th2_f=tot_charge_evt_th2_f, max_charge_evt_th2_f=max_charge_evt_th2_f, touched_sns_evt_th2_f=touched_sns_evt_th2_f,
+#         tot_charge_evt_coinc_h=tot_charge_evt_coinc_h, max_charge_evt_coinc_h=max_charge_evt_coinc_h, touched_sns_evt_coinc_h=touched_sns_evt_coinc_h,
+#         tot_charge_evt_coinc_f=tot_charge_evt_coinc_f, max_charge_evt_coinc_f=max_charge_evt_coinc_f, touched_sns_evt_coinc_f=touched_sns_evt_coinc_f,
+#         tot_charge_evt_cent_h=tot_charge_evt_cent_h, max_charge_evt_cent_h=max_charge_evt_cent_h, touched_sns_evt_cent_h=touched_sns_evt_cent_h,
+#         tot_charge_evt_cent_f=tot_charge_evt_cent_f, max_charge_evt_cent_f=max_charge_evt_cent_f, touched_sns_evt_cent_f=touched_sns_evt_cent_f,
+#         tot_charge_evt_coinc_cent_h=tot_charge_evt_coinc_cent_h, max_charge_evt_coinc_cent_h=max_charge_evt_coinc_cent_h, touched_sns_evt_coinc_cent_h=touched_sns_evt_coinc_cent_h,
+#         tot_charge_evt_coinc_cent_f=tot_charge_evt_coinc_cent_f, max_charge_evt_coinc_cent_f=max_charge_evt_coinc_cent_f, touched_sns_evt_coinc_cent_f=touched_sns_evt_coinc_cent_f,
+#         tot_charge_evt_cov_h=tot_charge_evt_cov_h, max_charge_evt_cov_h=max_charge_evt_cov_h, touched_sns_evt_cov_h=touched_sns_evt_cov_h)
 
 print(datetime.datetime.now())
