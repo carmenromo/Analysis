@@ -9,6 +9,9 @@ def parse_args(args):
     parser.add_argument('out_path'  ,             help = "Output path")
     return parser.parse_args()
 
+def from_ToT_to_pes(x):
+    return 9.98597793 * np.exp(x/252.69045094)
+
 def save_df(df0, outfile):
     np.savez(outfile, evt_number=np.array([i[0] for i in df0.index]),        t1=df0.t1,
                       cluster   =np.array([i[1] for i in df0.index]),        t2=df0.t2,

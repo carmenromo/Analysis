@@ -35,7 +35,7 @@ for i in range(start, start+numb):
 
         df_coinc  = drf.compute_coincidences(df)
         df_center = drf.select_evts_with_max_charge_at_center(df_coinc, tot_mode=True)
-        df_center['ToT_pe'] = from_ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
+        df_center['ToT_pe'] = pf.from_ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
 
         perc_ch_corona = drf.compute_charge_percentage_in_corona(df_center)
         df_center['perc_cor'] = perc_ch_corona[df_center.index].values

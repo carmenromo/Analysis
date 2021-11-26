@@ -35,13 +35,13 @@ for i in range(start, start+numb):
 
         df_coinc  = drf.compute_coincidences(df)
         df_center = drf.select_evts_with_max_charge_at_center(df_coinc, tot_mode=True)
-        df_center['ToT_pe'] = from_ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
+        df_center['ToT_pe'] = pf.from_ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
 
         df_cov = drf.select_contained_evts_in_det_plane(df_center)
 
         df0 = pd.concat([df0, df_cov], ignore_index=False, sort=False)
 
-    evt_file  = f'{out_path}/data_coinc_area0_intgw_perc_ch_R{run_no}_{i}'
+    evt_file  = f'{out_path}/data_cov_evts_R{run_no}_{i}'
     pf.save_df(df0, evt_file)
 
 print(datetime.datetime.now())
