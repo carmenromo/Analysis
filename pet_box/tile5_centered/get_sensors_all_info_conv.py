@@ -59,16 +59,16 @@ def get_perc_ch_corona(df, variable='charge'):
     cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id')[variable].sum()
     return (cor_ch/tot_ch)*100
 
-
-evt_file   = f'{out_path}/get_sns_info_conv_{start}_{numb}'
-
+thr = 9.9 #pes
+evt_file   = f'{out_path}/get_sns_info_conv_thr{thr}_{start}_{numb}'
 df_sns_resp = pd.DataFrame({})
 for number in range(start, start+numb):
     #number_str = "{:03d}".format(number)
     filename = in_path + f'{file_name}.{number}.h5'
     try:
         sns_response0 = pd.read_hdf(filename, '/conv')
-        sns_response0 = sns_response0[sns_response0.ToT>0]
+        #sns_response0 = sns_response0[sns_response0.ToT>0]
+        sns_response0 = sns_response0[sns_response0.charge_mc >= thr]
     except OSError:
         print(f'File {filename} does not exist')
         continue
