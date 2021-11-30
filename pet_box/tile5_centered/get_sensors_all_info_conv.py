@@ -81,6 +81,7 @@ df_coinc = filter_coincidences(df_sns_resp)
 df_sns_resp_coinc_cent1 = select_evts_with_max_charge_at_center(df_coinc, variable='charge_data')
 df_sns_resp_coinc_cent2 = select_evts_with_max_charge_at_center(df_coinc, variable='charge_conv')
 df_sns_resp_coinc_cent3 = select_evts_with_max_charge_at_center(df_coinc, variable='charge_mc')
+df_sns_resp_coinc_cent4 = select_evts_with_max_charge_at_center(df_coinc, variable='ToT')
 
 perc_ch_corona1 = get_perc_ch_corona(df_sns_resp_coinc_cent1, variable='charge_data')
 perc_ch_corona2 = get_perc_ch_corona(df_sns_resp_coinc_cent2, variable='charge_conv')
@@ -115,6 +116,12 @@ np.savez(evt_file, event_id1   =df_sns_resp_coinc_cent1.index,
                    charge_conv3=df_sns_resp_coinc_cent3.charge_conv,
                    charge_mc3  =df_sns_resp_coinc_cent3.charge_mc,
                    ToT3        =df_sns_resp_coinc_cent3.ToT,
-                   perc_cor3   =df_sns_resp_coinc_cent3.perc_cor)
+                   perc_cor3   =df_sns_resp_coinc_cent3.perc_cor,
+                   event_id4   =df_sns_resp_coinc_cent4.index,
+                   sensor_id4  =df_sns_resp_coinc_cent4.sensor_id,
+                   charge_data4=df_sns_resp_coinc_cent4.charge_data,
+                   charge_conv4=df_sns_resp_coinc_cent4.charge_conv,
+                   charge_mc4  =df_sns_resp_coinc_cent4.charge_mc,
+                   ToT4        =df_sns_resp_coinc_cent4.ToT)
 
 print(datetime.datetime.now())
