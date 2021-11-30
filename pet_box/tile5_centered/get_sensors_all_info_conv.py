@@ -68,6 +68,7 @@ for number in range(start, start+numb):
     filename = in_path + f'{file_name}.{number}.h5'
     try:
         sns_response0 = pd.read_hdf(filename, '/conv')
+        sns_response0 = sns_response0[sns_response0.ToT>0]
     except OSError:
         print(f'File {filename} does not exist')
         continue
