@@ -34,7 +34,7 @@ numb      = arguments.n_files
 in_path   = arguments.in_path
 file_name = arguments.file_name
 out_path  = arguments.out_path
-varible   = arguments.variable
+variable  = arguments.variable
 apply_thr = arguments.apply_thr
 
 
