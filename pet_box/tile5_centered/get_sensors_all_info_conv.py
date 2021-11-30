@@ -54,6 +54,7 @@ def select_evts_with_max_charge_at_center(df, variable):
     return df_filter_center
 
 def get_perc_ch_corona(df, variable='charge'):
+    df = df[df.sensor_id<100]
     tot_ch = df.groupby('event_id')[variable].sum()
     cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id')[variable].sum()
     return (cor_ch/tot_ch)*100
