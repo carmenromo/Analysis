@@ -82,7 +82,7 @@ def get_perc_ch_corona(df, variable='charge'):
     df = df[df.sensor_id<100]
     tot_ch = df.groupby('event_id')[variable].sum()
     cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id')[variable].sum()
-    return (cor_ch/tot_ch)*100
+    return (cor_ch/tot_ch).fillna(0)*100
 
 thr = 9.9 #pes
 evt_file   = f'{out_path}/get_sns_info_conv_{variable}_{apply_thr}_thr{thr}_{start}_{numb}'
