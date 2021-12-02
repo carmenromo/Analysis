@@ -17,15 +17,29 @@ python get_sensors_all_info_conv.py 0 1 0 5 /Users/carmenromoluque/nexus_petit_a
 
 print(datetime.datetime.now())
 
+def str2bool(v):
+    """
+    This function is added because the argparse add_argument('use_db_gain_seeds', type=bool)
+    was not working in False case, everytime True was taken.
+    """
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def parse_args(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('first_file'   , type = int, help = "first file (inclusive)"        )
-    parser.add_argument('n_files'      , type = int, help = "number of files to analize"    )
-    parser.add_argument('in_path'      ,             help = "input files path"              )
-    parser.add_argument('file_name'    ,             help = "name of input files"           )
-    parser.add_argument('out_path'     ,             help = "output files path"             )
-    parser.add_argument('variable'     ,             help = "Variable to extract max charge")
-    parser.add_argument('apply_thr'    ,             help = "Apply threshold in charge"     )
+    parser.add_argument('first_file'   , type = int,    help = "first file (inclusive)"        )
+    parser.add_argument('n_files'      , type = int,    help = "number of files to analize"    )
+    parser.add_argument('in_path'      ,                help = "input files path"              )
+    parser.add_argument('file_name'    ,                help = "name of input files"           )
+    parser.add_argument('out_path'     ,                help = "output files path"             )
+    parser.add_argument('variable'     ,                help = "Variable to extract max charge")
+    parser.add_argument('apply_thr'    , type=str2bool, help = "Apply threshold in charge"     )
     return parser.parse_args()
 
 arguments = parse_args(sys.argv)
