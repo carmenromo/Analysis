@@ -114,41 +114,44 @@ for number in range(start, start+numb):
 
     df_sns_resp = pd.concat([df_sns_resp, sns_response0], ignore_index=False, sort=False)
 
-
 ## Coincidences:
 df_coinc = filter_coincidences(df_sns_resp)
 
 ## Coincidences + Centered events Hamamatsu
-df_sns_resp_coinc_cent = select_evts_with_max_charge_at_center(df_coinc, variable='ToT')
-perc_ch_corona = get_perc_ch_corona(df_sns_resp_coinc_cent, variable='charge_conv')
-df_sns_resp_coinc_cent = df_sns_resp_coinc_cent.set_index(['event_id'])
+df_center = select_evts_with_max_charge_at_center(df_coinc, variable='ToT')
 
-charge_conv_sum = df_sns_resp_coinc_cent.groupby('event_id').charge_conv.sum()
-evt_ids         = df_sns_resp_coinc_cent.groupby('event_id').charge_conv.sum().index
-df_sns_resp_coinc_cent['charge_conv_sum'] = pd.Series(data=charge_conv_sum, index=evt_ids)[df_sns_resp_coinc_cent.index].values
+df_center       = df_center[df_center.sensor_id<100]
+perc_ch_corona  = get_perc_ch_corona(df_center, variable='charge_conv')
+df_center       = df_center.set_index(['event_id'])
+charge_conv_sum = df_center.groupby('event_id').charge_conv.sum()
+
+df_center['charge_conv_sum'] = pd.Series(data=charge_conv_sum, index=charge_conv_sum.index)[df_center.index].values
 
 #perc_cor --> ratio
-df_sns_resp_coinc_cent['ratio_conv']      = perc_ch_corona[df_sns_resp_coinc_cent.index].values
+df_center['ratio_conv'] = perc_ch_corona[df_center.index].values
 
-charge_conv_fluct1 = fluctuate_charge(df_sns_resp_coinc_cent, variable='charge_conv', peak_pe=1450)
-df_sns_resp_coinc_cent['f1_conv_1450'] = charge_conv_fluct1
+charge_conv_fluct1 = fluctuate_charge(df_center, variable='charge_conv', peak_pe=1450)
+df_center['f1_conv_1450'] = charge_conv_fluct1
 
-df_fluct2 = fluctuate_sum_charge_det_plane(df_sns_resp_coinc_cent, variable='charge_conv', peak_pe=1450)
+sum_ch_fluct = fluctuate_sum_charge_det_plane(df_center, variable='charge_conv', peak_pe=1450)
 
-df_fluct2['f3_conv'] = df_fluct2.charge_conv * df_fluct2.f2_conv_1450 / df_fluct2.charge_conv_sum
-perc_ch_corona2 = get_perc_ch_corona(df_fluct2, variable='f3_conv')
-df_fluct2['ratio_fl_conv'] = perc_ch_corona2[df_fluct2.index].values
+df_center['f2_conv_1450'] = pd.Series(data=sum_ch_fluct, index=sum_ch_fluct.index)[df_center.index].values
+df_center['f3_conv'] = df_center.charge_conv * df_center.f2_conv_1450 / df_center.charge_conv_sum
 
-np.savez(evt_file, event_id       =df_fluct2.index,
-                   sensor_id      =df_fluct2.sensor_id,
-                   charge_data    =df_fluct2.charge_data,
-                   charge_conv    =df_fluct2.charge_conv,
-                   charge_mc      =df_fluct2.charge_mc,
-                   ToT            =df_fluct2.ToT,
-                   charge_conv_sum=df_fluct2.charge_conv_sum,
-                   ratio_conv     =df_fluct2.ratio_conv,
-                   f1_conv_1450   =df_fluct2.f1_conv_1450,
-                   f2_conv_1450   =df_fluct2.f2_conv_1450,
-                   f3_conv        =df_fluct2.f3_conv,
-                   ratio_fl_conv  =df_fluct2.ratio_fl_conv)
+
+perc_ch_corona2 = get_perc_ch_corona(df_center, variable='f3_conv')
+df_center['ratio_fl_conv'] = perc_ch_corona2[df_center.index].values
+
+np.savez(evt_file, event_id       =df_center.index,
+                   sensor_id      =df_center.sensor_id,
+                   charge_data    =df_center.charge_data,
+                   charge_conv    =df_center.charge_conv,
+                   charge_mc      =df_center.charge_mc,
+                   ToT            =df_center.ToT,
+                   charge_conv_sum=df_center.charge_conv_sum,
+                   ratio_conv     =df_center.ratio_conv,
+                   f1_conv_1450   =df_center.f1_conv_1450,
+                   f2_conv_1450   =df_center.f2_conv_1450,
+                   f3_conv        =df_center.f3_conv,
+                   ratio_fl_conv  =df_center.ratio_fl_conv)
 print(datetime.datetime.now())
