@@ -92,6 +92,7 @@ def select_evts_with_max_charge_at_center_coinc_plane(df):
 #     return df_filter_center
 
 def get_perc_ch_corona(df):
+    df = df[df.sensor_id<100]
     tot_ch = df.groupby('event_id').charge.sum()
     cor_ch = df[df.sensor_id.isin(corona)].groupby('event_id').charge.sum()
     return (cor_ch/tot_ch).fillna(0)*100

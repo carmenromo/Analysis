@@ -7,8 +7,6 @@ import tables as tb
 import numpy  as np
 import pandas as pd
 
-import pet_box_functions as pbf
-
 import antea.database.load_db as db
 from invisible_cities.reco.sensor_functions import charge_fluctuation
 
@@ -95,14 +93,11 @@ def fluctuate_charge(df_h, variable='charge', peak_pe=1600):
 
 def fluctuate_sum_charge_det_plane(df, variable='charge_conv', peak_pe=1600):
     xe_fluct           = 0.06
-    df_filt            = df[df.sensor_id < 100]
-    sum_charges        = df_filt.groupby('event_id')[variable].sum()
-    sum_charges_n_axis = sum_charges.values[:, np.newaxis]
-    evt_ids            = df_filt.groupby('event_id')[variable].sum().index
-    pe_res             = np.repeat(np.sqrt(peak_pe)*xe_fluct, len(sum_charges_n_axis))
-    sum_ch_fluct       = np.array(tuple(map(charge_fluctuation, sum_charges_n_axis, pe_res))).flatten()
-    df_filt['f2_conv_'+str(peak_pe)] = pd.Series(data=sum_ch_fluct, index=evt_ids)[df_filt.index].values
-    return df_filt
+    sum_charges        = df.groupby('event_id')[variable].sum()
+    pe_res             = np.sqrt(peak_pe)*xe_fluct
+    sum_ch_fluct       = charge_fluctuation(sum_charges, pe_res)
+    return sum_ch_fluct
+
 
 evt_file   = f'{out_path}/get_sns_info_conv_chconv_{start}_{numb}'
 df_sns_resp = pd.DataFrame({})
