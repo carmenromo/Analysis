@@ -4,7 +4,7 @@ import datetime
 import numpy  as np
 import pandas as pd
 
-from antea.reco import data_reco_functions as drf
+from antea.reco import petit_data_reco_functions as drf
 
 import data_taking_petalo_functions as pf
 
@@ -17,6 +17,9 @@ numb      = arguments.n_files
 run_no    = arguments.run_no
 out_path  = arguments.out_path
 
+"""
+If the script process_data.py has been executed, you can get the covered events by taking the ratio_cor == 0.
+"""
 
 for i in range(start, start+numb):
     df0 = pd.DataFrame({})
@@ -41,7 +44,11 @@ for i in range(start, start+numb):
 
         df0 = pd.concat([df0, df_cov], ignore_index=False, sort=False)
 
-    evt_file  = f'{out_path}/data_cov_evts_R{run_no}_{i}'
-    pf.save_df(df0, evt_file)
+    out_file  = f'{out_path}/data_cov_evts_R{run_no}_{i}.h5'
+
+    df    = df0.reset_index()
+    store = pd.HDFStore(out_file, "w", complib=str("zlib"), complevel=4)
+    store.put('data', df, format='table', data_columns=True)
+    store.close()
 
 print(datetime.datetime.now())
