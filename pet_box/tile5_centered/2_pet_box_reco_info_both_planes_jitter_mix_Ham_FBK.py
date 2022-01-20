@@ -9,10 +9,10 @@ import pandas as pd
 
 import pet_box_functions as pbf
 
-import antea.reco.reco_functions   as rf
-import antea.elec.tof_functions    as tf
-import antea.reco.mctrue_functions as mcf
-import antea.io  .mc_io            as mcio
+import antea.reco.reco_functions    as rf
+import antea.elec.shaping_functions as shf
+import antea.reco.mctrue_functions  as mcf
+import antea.io  .mc_io             as mcio
 
 from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
@@ -59,7 +59,7 @@ timestamp_thr = [0, 0.25, 0.50, 0.75]
 tau_sipm       = [100, 15000]
 time_window    = 5000
 time           = np.arange(0, 5000)
-spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
 sigma_sipm = 40 #ps
 sigma_elec = 30 #ps
@@ -220,8 +220,8 @@ for number in range(start, start+numb):
                     for k, th in enumerate(timestamp_thr):
                         tof_exp = []
                         for s_id in tof_sns:
-                            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
-                            tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+                            tdc_conv    = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+                            tdc_conv_df = shf.build_convoluted_df(evt, s_id, tdc_conv)
                             if sigma_elec != 0:
                                 tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
 
