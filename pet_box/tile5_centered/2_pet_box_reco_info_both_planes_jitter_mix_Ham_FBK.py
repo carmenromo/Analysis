@@ -61,7 +61,7 @@ time_window    = 5000
 time           = np.arange(0, 5000)
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
-sigma_sipm = 80 #ps
+sigma_sipm = 40 #ps
 sigma_elec = 30 #ps
 
 reco_x1, reco_x2 = [], []
