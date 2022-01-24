@@ -99,7 +99,7 @@ def fluctuate_sum_charge_det_plane(df, variable='charge_conv', peak_pe=1600):
     return sum_ch_fluct
 
 
-evt_file   = f'{out_path}/get_sns_info_conv_chconv_{start}_{numb}'
+evt_file   = f'{out_path}/get_sns_info_conv_chconv_{start}_{numb}.h5'
 df_sns_resp = pd.DataFrame({})
 for number in range(start, start+numb):
     #number_str = "{:03d}".format(number)
@@ -120,38 +120,29 @@ df_coinc = filter_coincidences(df_sns_resp)
 ## Coincidences + Centered events Hamamatsu
 df_center = select_evts_with_max_charge_at_center(df_coinc, variable='ToT')
 
-df_center       = df_center[df_center.sensor_id<100]
-perc_ch_corona  = get_perc_ch_corona(df_center, variable='charge_conv')
+df_center         = df_center[df_center.sensor_id<100]
+fluct_charge_conv = fluctuate_sum_charge_det_plane(df_center)
+#perc_ch_corona  = get_perc_ch_corona(df_center, variable='charge_conv')
 df_center       = df_center.set_index(['event_id'])
 charge_conv_sum = df_center.groupby('event_id').charge_conv.sum()
 
-df_center['charge_conv_sum'] = pd.Series(data=charge_conv_sum, index=charge_conv_sum.index)[df_center.index].values
+df_center['charge_conv_sum']   = pd.Series(data=charge_conv_sum,   index=charge_conv_sum.index)  [df_center.index].values
+df_center['fluct_charge_conv'] = pd.Series(data=fluct_charge_conv, index=fluct_charge_conv.index)[df_center.index].values
 
-#perc_cor --> ratio
-df_center['ratio_conv'] = perc_ch_corona[df_center.index].values
+df_center = df_center.reset_index()
+#df_center['perc_cor'] = perc_ch_corona[df_center.event_id].values
+df_center = df_center.astype({'event_id':  'int32',
+                              'sensor_id': 'int32',
+                              'charge_data':    'float64',
+                              'charge_conv': 'float64',
+                              'charge_mc': 'float64',
+                              'ToT': 'float64',
+                              'charge_conv_sum':  'float64',
+                              'fluct_charge_conv': 'float64'})
 
-charge_conv_fluct1 = fluctuate_charge(df_center, variable='charge_conv', peak_pe=1450)
-df_center['f1_conv_1450'] = charge_conv_fluct1
-
-sum_ch_fluct = fluctuate_sum_charge_det_plane(df_center, variable='charge_conv', peak_pe=1450)
-
-df_center['f2_conv_1450'] = pd.Series(data=sum_ch_fluct, index=sum_ch_fluct.index)[df_center.index].values
-df_center['f3_conv'] = df_center.charge_conv * df_center.f2_conv_1450 / df_center.charge_conv_sum
+store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
+store.put('data', df_center, format='table', data_columns=True)
+store.close()
 
 
-perc_ch_corona2 = get_perc_ch_corona(df_center, variable='f3_conv')
-df_center['ratio_fl_conv'] = perc_ch_corona2[df_center.index].values
-
-np.savez(evt_file, event_id       =df_center.index,
-                   sensor_id      =df_center.sensor_id,
-                   charge_data    =df_center.charge_data,
-                   charge_conv    =df_center.charge_conv,
-                   charge_mc      =df_center.charge_mc,
-                   ToT            =df_center.ToT,
-                   charge_conv_sum=df_center.charge_conv_sum,
-                   ratio_conv     =df_center.ratio_conv,
-                   f1_conv_1450   =df_center.f1_conv_1450,
-                   f2_conv_1450   =df_center.f2_conv_1450,
-                   f3_conv        =df_center.f3_conv,
-                   ratio_fl_conv  =df_center.ratio_fl_conv)
 print(datetime.datetime.now())
