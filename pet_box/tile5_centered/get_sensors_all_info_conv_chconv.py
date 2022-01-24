@@ -127,7 +127,7 @@ df_center       = df_center.set_index(['event_id'])
 #charge_conv_sum = df_center.groupby('event_id').charge_conv.sum()
 
 #df_center['charge_conv_sum']   = pd.Series(data=charge_conv_sum,   index=charge_conv_sum.index)  [df_center.index].values
-df_center['fluct_charge_mc'] = pd.Series(data=fluct_charge_mc, index=fluct_charge_conv.index)[df_center.index].values
+df_center['fluct_charge_mc'] = pd.Series(data=fluct_charge_mc, index=fluct_charge_mc.index)[df_center.index].values
 
 df_center = df_center.reset_index()
 #df_center['perc_cor'] = perc_ch_corona[df_center.event_id].values
@@ -137,8 +137,8 @@ df_center = df_center.astype({'event_id':            'int32',
                               'charge_conv':       'float64',
                               'charge_mc':         'float64',
                               'ToT':               'float64',
-                              'charge_conv_sum':   'float64',
-                              'fluct_charge_conv': 'float64'})
+#                              'charge_conv_sum':   'float64',
+                              'fluct_charge_mc':   'float64'})
 
 store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
 store.put('data', df_center, format='table', data_columns=True)
