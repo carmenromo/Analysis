@@ -9,10 +9,10 @@ import pandas as pd
 
 import pet_box_functions as pbf
 
-import antea.reco.reco_functions   as rf
-import antea.elec.tof_functions    as tf
-import antea.reco.mctrue_functions as mcf
-import antea.io  .mc_io            as mcio
+import antea.reco.reco_functions    as rf
+import antea.elec.shaping_functions as shf
+import antea.reco.mctrue_functions  as mcf
+import antea.io  .mc_io             as mcio
 
 from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
@@ -60,7 +60,7 @@ timestamp_thr = [0, 0.25, 0.50, 0.75]
 tau_sipm       = [100, 15000]
 time_window    = 5000
 time           = np.arange(0, 5000)
-spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
 
 reco_x1, reco_x2 = [], []
@@ -140,7 +140,7 @@ for number in range(start, start+numb):
             if len(qs1)==0:
                 continue
 
-            max_charge_s_id       = ids1[np.argmax(qs1)]
+            max_charge_s_id = ids1[np.argmax(qs1)]
 
             if max_charge_s_id in area0:
                 sns_resp1.append(sum(qs1))
@@ -211,8 +211,8 @@ for number in range(start, start+numb):
                     tof_sns = evt_tof.sensor_id.unique()
                     evt_tof_exp_dist = []
                     for s_id in tof_sns:
-                        tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
-                        tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+                        tdc_conv    = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+                        tdc_conv_df = shf.build_convoluted_df(evt, s_id, tdc_conv)
                         evt_tof_exp_dist.append(tdc_conv_df)
                     evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
 
