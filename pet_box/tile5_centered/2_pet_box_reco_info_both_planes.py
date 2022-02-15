@@ -9,10 +9,10 @@ import pandas as pd
 
 import pet_box_functions as pbf
 
-import antea.reco.reco_functions   as rf
-import antea.elec.tof_functions    as tf
-import antea.reco.mctrue_functions as mcf
-import antea.io  .mc_io            as mcio
+import antea.reco.reco_functions    as rf
+import antea.elec.shaping_functions as shf
+import antea.reco.mctrue_functions  as mcf
+import antea.io  .mc_io             as mcio
 
 from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
@@ -35,13 +35,13 @@ zpos_file     = arguments.zpos_file
 zpos_file2    = arguments.zpos_file2
 out_path      = arguments.out_path
 
-thr_charge1   = 1400 #pes
-thr_charge2   =  200 #pes
+#thr_charge1   = 1400 #pes
+#thr_charge2   =  200 #pes
 
 area0       = [ 44,  45,  54,  55]
-area0_tile5 = [122, 123, 132, 133]
+area0_tile5 = [144, 145, 154, 155]
 
-evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_evt_ids_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_{start}_{numb}'
 
 Zpos1 = load_map(zpos_file, group="Zpos",
                             node=f"f2pes200bins",
@@ -49,18 +49,18 @@ Zpos1 = load_map(zpos_file, group="Zpos",
                             y_name='Zpos',
                             u_name='ZposUncertainty')
 
-Zpos2 = load_map(zpos_file2, group="Zpos",
-                             node=f"f2pes200bins",
-                             x_name='Var_x',
-                             y_name='Zpos',
-                             u_name='VarXUncertainty')
+# Zpos2 = load_map(zpos_file2, group="Zpos",
+#                              node=f"f2pes200bins",
+#                              x_name='Var_x',
+#                              y_name='Zpos',
+#                              u_name='VarXUncertainty')
 
 timestamp_thr = [0, 0.25, 0.50, 0.75]
 ### parameters for single photoelectron convolution in SiPM response
 tau_sipm       = [100, 15000]
 time_window    = 5000
 time           = np.arange(0, 5000)
-spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
 
 reco_x1, reco_x2 = [], []
@@ -139,7 +139,7 @@ for number in range(start, start+numb):
             if len(qs1)==0:
                 continue
 
-            max_charge_s_id       = ids1[np.argmax(qs1)]
+            max_charge_s_id = ids1[np.argmax(qs1)]
 
             if max_charge_s_id in area0:
                 sns_resp1.append(sum(qs1))
@@ -164,9 +164,9 @@ for number in range(start, start+numb):
 
                 event_ids1.append(evt)
 
-                if sum(qs1)>thr_charge1:
-                    count1 = 1
-                    event_ids1_th_charge.append(evt)
+                #if sum(qs1)>thr_charge1:
+                count1 = 1
+                event_ids1_th_charge.append(evt)
 
 
         if phot and len(sel_pos_phot)>0:
@@ -188,7 +188,8 @@ for number in range(start, start+numb):
                 pos_ys2 = np.array(pos2.T[1])
                 mean_y2 = np.average(pos_ys2, weights=qs2)
 
-                z_pos2 = Zpos2(var_xs2).value
+                #### Because planes are symmetric!!
+                z_pos2 = -Zpos1(var_xs2).value
 
                 reco_x2.append(mean_x2)
                 reco_y2.append(mean_y2)
@@ -200,9 +201,9 @@ for number in range(start, start+numb):
 
                 event_ids2.append(evt)
 
-                if sum(qs2)>thr_charge2:
-                    count2 = 1
-                    event_ids2_th_charge.append(evt)
+                #if sum(qs2)>thr_charge2:
+                count2 = 1
+                event_ids2_th_charge.append(evt)
 
                 #if sum(qs1)>thr_charge1 and sum(qs2)>thr_charge2:
                 if count1 and count2: ## Coincidences
@@ -210,8 +211,8 @@ for number in range(start, start+numb):
                     tof_sns = evt_tof.sensor_id.unique()
                     evt_tof_exp_dist = []
                     for s_id in tof_sns:
-                        tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
-                        tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+                        tdc_conv    = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+                        tdc_conv_df = shf.build_convoluted_df(evt, s_id, tdc_conv)
                         evt_tof_exp_dist.append(tdc_conv_df)
                     evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
 
@@ -245,8 +246,8 @@ true_y2 = np.array(true_y2)
 true_z1 = np.array(true_z1)
 true_z2 = np.array(true_z2)
 
-sns_resp1       = np.array(sns_resp1)
-sns_resp2       = np.array(sns_resp2)
+sns_resp1 = np.array(sns_resp1)
+sns_resp2 = np.array(sns_resp2)
 
 event_ids1           = np.array(event_ids1)
 event_ids2           = np.array(event_ids2)
