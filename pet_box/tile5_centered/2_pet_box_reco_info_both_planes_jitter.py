@@ -1,18 +1,16 @@
 import sys
-import math
 import argparse
 import datetime
 
-import tables as tb
 import numpy  as np
 import pandas as pd
 
 import pet_box_functions as pbf
 
-import antea.reco.reco_functions   as rf
-import antea.elec.tof_functions    as tf
-import antea.reco.mctrue_functions as mcf
-import antea.io  .mc_io            as mcio
+import antea.reco.reco_functions    as rf
+import antea.elec.shaping_functions as shf
+import antea.reco.mctrue_functions  as mcf
+import antea.io  .mc_io             as mcio
 
 from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
@@ -35,33 +33,33 @@ zpos_file     = arguments.zpos_file
 zpos_file2    = arguments.zpos_file2
 out_path      = arguments.out_path
 
-thr_charge1   = 1400 #pes
-thr_charge2   =  200 #pes
+# thr_charge1   = 1400 #pes
+# thr_charge2   =  200 #pes
 
 area0       = [ 44,  45,  54,  55]
-area0_tile5 = [122, 123, 132, 133]
+area0_tile5 = [144, 145, 154, 155]
 
-evt_file   = f'{out_path}/pet_box_reco_info_tile5_centered_evt_ids_jitter_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_jitter_{start}_{numb}'
 
 Zpos1 = load_map(zpos_file, group="Zpos",
                             node=f"f2pes200bins",
                             x_name='Var_x',
                             y_name='Zpos',
                             u_name='ZposUncertainty')
-Zpos2 = load_map(zpos_file2, group="Zpos",
-                             node=f"f2pes200bins",
-                             x_name='Var_x',
-                             y_name='Zpos',
-                             u_name='VarXUncertainty')
+# Zpos2 = load_map(zpos_file2, group="Zpos",
+#                              node=f"f2pes200bins",
+#                              x_name='Var_x',
+#                              y_name='Zpos',
+#                              u_name='VarXUncertainty')
 
 timestamp_thr = [0, 0.25, 0.50, 0.75]
 ### parameters for single photoelectron convolution in SiPM response
 tau_sipm       = [100, 15000]
 time_window    = 5000
 time           = np.arange(0, 5000)
-spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
-sigma_sipm = 80 #ps
+sigma_sipm = 40 #ps
 sigma_elec = 30 #ps
 
 reco_x1, reco_x2 = [], []
@@ -172,9 +170,9 @@ for number in range(start, start+numb):
 
                 event_ids1.append(evt)
 
-                if sum(qs1)>thr_charge1:
-                    count1 = 1
-                    event_ids1_th_charge.append(evt)
+                #if sum(qs1)>thr_charge1:
+                count1 = 1
+                event_ids1_th_charge.append(evt)
 
 
         if phot and len(sel_pos_phot)>0:
@@ -196,7 +194,9 @@ for number in range(start, start+numb):
                 pos_ys2 = np.array(pos2.T[1])
                 mean_y2 = np.average(pos_ys2, weights=qs2)
 
-                z_pos2 = Zpos2(var_xs2).value
+                #### Because planes are symmetric!!
+                #z_pos2 = Zpos2(var_xs2).value
+                z_pos2 = -Zpos1(var_xs2).value
 
                 reco_x2.append(mean_x2)
                 reco_y2.append(mean_y2)
@@ -208,29 +208,28 @@ for number in range(start, start+numb):
 
                 event_ids2.append(evt)
 
-                if sum(qs2)>thr_charge2:
-                    count2 = 1
-                    event_ids2_th_charge.append(evt)
+                #if sum(qs2)>thr_charge2:
+                count2 = 1
+                event_ids2_th_charge.append(evt)
 
                 #if sum(qs1)>thr_charge1 and sum(qs2)>thr_charge2:
                 if count1 and count2: ## Coincidences
                     ## produce a TOF dataframe with convolved time response
                     tof_sns = evt_tof.sensor_id.unique()
+                    evt_tof_exp_dist = []
+                    for s_id in tof_sns:
+                        tdc_conv    = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+                        tdc_conv_df = shf.build_convoluted_df(evt, s_id, tdc_conv)
+                        if sigma_elec != 0:
+                            tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
+                        evt_tof_exp_dist.append(tdc_conv_df)
+                    evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
+
+                    ## Calculate different thresholds in charge
                     for k, th in enumerate(timestamp_thr):
-                        tof_exp = []
-                        for s_id in tof_sns:
-                            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
-                            tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
-                            if sigma_elec != 0:
-                                tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
-
-                            tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > th/norm]
-                            tdc_conv_df = tdc_conv_df[tdc_conv_df.time == tdc_conv_df.time.min()]
-                            tof_exp.append(tdc_conv_df)
-                        tof_exp = pd.concat(tof_exp)
-
+                        evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
                         try:
-                            min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(tof_exp, ids1, ids2)
+                            min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, ids1, ids2)
                         except:
                             min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
@@ -256,8 +255,8 @@ true_y2 = np.array(true_y2)
 true_z1 = np.array(true_z1)
 true_z2 = np.array(true_z2)
 
-sns_resp1       = np.array(sns_resp1)
-sns_resp2       = np.array(sns_resp2)
+sns_resp1 = np.array(sns_resp1)
+sns_resp2 = np.array(sns_resp2)
 
 event_ids1           = np.array(event_ids1)
 event_ids2           = np.array(event_ids2)
