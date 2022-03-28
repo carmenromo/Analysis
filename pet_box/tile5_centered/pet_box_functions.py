@@ -23,6 +23,16 @@ def parse_args(args):
     parser.add_argument('out_path'     ,             help = "output files path"         )
     return parser.parse_args()
 
+def parse_args_no_ths_coinc_pl_4tiles(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('first_file'        , type = int,  help = "first file (inclusive)"              )
+    parser.add_argument('n_files'           , type = int,  help = "number of files to analize"          )
+    parser.add_argument('in_path'           ,              help = "input files path"                    )
+    parser.add_argument('file_name'         ,              help = "name of input files"                 )
+    parser.add_argument('out_path'          ,              help = "output files path"                   )
+    parser.add_argument('coinc_plane_4tiles', type = bool, help = "True if Coinc plane contains 4 tiles")
+    return parser.parse_args()
+
 def parse_args_no_ths_and_zpos(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('first_file', type = int, help = "first file (inclusive)"    )
