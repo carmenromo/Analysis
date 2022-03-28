@@ -14,21 +14,19 @@ import antea.reco.petit_reco_functions as prf
 import antea.io  .mc_io                as mcio
 
 """ To run this script
-python get_sensors_all_info_ANTEA_update.py 0 1 0 5 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_tile5centered_HamamatsuVUV
-/Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info
+python get_sensors_all_info_ANTEA_update.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_tile5centered_HamamatsuVUV
+/Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info True
 """
 
 print(datetime.datetime.now())
 
-arguments     = pbf.parse_args(sys.argv)
-start         = arguments.first_file
-numb          = arguments.n_files
-thr_ch_start  = arguments.thr_ch_start
-thr_ch_nsteps = arguments.thr_ch_nsteps
-in_path       = arguments.in_path
-file_name     = arguments.file_name
-out_path      = arguments.out_path
-
+arguments          = pbf.parse_args_no_ths_coinc_pl_4tiles(sys.argv)
+start              = arguments.first_file
+numb               = arguments.n_files
+in_path            = arguments.in_path
+file_name          = arguments.file_name
+out_path           = arguments.out_path
+coinc_plane_4tiles = arguments.coinc_plane_4tiles
 
 thr = 2
 evt_file   = f'{out_path}/get_sns_info_cov_corona_thr{thr}_{start}_{numb}.h5'
@@ -60,14 +58,16 @@ df_coinc = prf.compute_coincidences(df_sns_resp_th2, evt_groupby)
 
 ## Coincidences + Centered events Hamamatsu
 df_center = prf.select_evts_with_max_charge_at_center(df_coinc,
-                                                      evt_groupby = evt_groupby,
-                                                      det_plane   = det_plane,
-                                                      variable    = variable,
-                                                      tot_mode    = tot_mode)
+                                                      evt_groupby        = evt_groupby,
+                                                      det_plane          = det_plane,
+                                                      variable           = variable,
+                                                      tot_mode           = tot_mode,
+                                                      coinc_plane_4tiles = coinc_plane_4tiles)
 
 ratios = prf.compute_charge_ratio_in_corona(df_center,
-                                            evt_groupby = evt_groupby,
-                                            variable    = variable)
+                                            evt_groupby        = evt_groupby,
+                                            variable           = variable,
+                                            coinc_plane_4tiles = coinc_plane_4tiles)
 df_center['ratio_cor'] = ratios[df_center.index].values
 df_center = df_center.reset_index()
 df_center = df_center.astype({'event_id':  'int32',
@@ -79,6 +79,5 @@ df_center = df_center.astype({'event_id':  'int32',
 store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
 store.put('data', df_center, format='table', data_columns=True)
 store.close()
-
 
 print(datetime.datetime.now())
