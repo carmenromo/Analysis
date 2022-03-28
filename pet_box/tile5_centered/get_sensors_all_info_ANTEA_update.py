@@ -41,6 +41,9 @@ for number in range(start, start+numb):
     except OSError:
         print(f'File {filename} does not exist')
         continue
+    except KeyError:
+        print(f'File {filename} is corrupt')
+        continue
 
     df_sns_resp = pd.concat([df_sns_resp, sns_response0], ignore_index=False, sort=False)
 
