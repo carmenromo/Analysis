@@ -52,35 +52,41 @@ df_sns_resp_th2 = rf.find_SiPMs_over_threshold(df_sns_resp, thr)
 df_sns_resp_th2['tofpet_id'] = df_sns_resp_th2['sensor_id'].apply(prf.tofpetid)
 
 evt_groupby = ['event_id']
-det_plane   = True
 variable    = 'charge'
 tot_mode    = False
 
 ## Coincidences:
 df_coinc = prf.compute_coincidences(df_sns_resp_th2, evt_groupby)
 
-## Coincidences + Centered events Hamamatsu
+## Coincidences + Centered events det plane
 df_center = prf.select_evts_with_max_charge_at_center(df_coinc,
                                                       evt_groupby        = evt_groupby,
-                                                      det_plane          = det_plane,
+                                                      det_plane          = True,
                                                       variable           = variable,
                                                       tot_mode           = tot_mode,
                                                       coinc_plane_4tiles = coinc_plane_4tiles)
+## Coincidences + Centered events det plane + Centered events coinc plane
+df_center_c = prf.select_evts_with_max_charge_at_center(df_center,
+                                                        evt_groupby        = evt_groupby,
+                                                        det_plane          = False,
+                                                        variable           = variable,
+                                                        tot_mode           = tot_mode,
+                                                        coinc_plane_4tiles = coinc_plane_4tiles)
 
-ratios = prf.compute_charge_ratio_in_corona(df_center,
+ratios = prf.compute_charge_ratio_in_corona(df_center_c,
                                             evt_groupby        = evt_groupby,
                                             variable           = variable,
                                             coinc_plane_4tiles = coinc_plane_4tiles)
-df_center['ratio_cor'] = ratios[df_center.index].values
-df_center = df_center.reset_index()
-df_center = df_center.astype({'event_id':  'int32',
-                              'sensor_id': 'int32',
-                              'charge':    'int32',
-                              'tofpet_id': 'int32',
-                              'ratio_cor': 'float64'})
+df_center_c['ratio_cor'] = ratios[df_center_c.index].values
+df_center_c = df_center_c.reset_index()
+df_center_c = df_center_c.astype({'event_id':  'int32',
+                                  'sensor_id': 'int32',
+                                  'charge':    'int32',
+                                  'tofpet_id': 'int32',
+                                  'ratio_cor': 'float64'})
 
 store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
-store.put('data', df_center, format='table', data_columns=True)
+store.put('data', df_center_c, format='table', data_columns=True)
 store.close()
 
 print(datetime.datetime.now())
