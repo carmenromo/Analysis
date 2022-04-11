@@ -74,6 +74,7 @@ first_time1, first_time2 = [[] for i in range(len(timestamp_thr))], [[] for i in
 
 event_ids1 = []
 event_ids2 = []
+event_ids_times = []
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -185,6 +186,7 @@ for number in range(start, start+numb):
 
                 first_sipm2[k].append(min_id2)
                 first_time2[k].append(min_t2)
+            event_ids_times.append(evt)
 
 reco_x1 = np.array(reco_x1)
 reco_x2 = np.array(reco_x2)
@@ -198,6 +200,7 @@ sns_resp2 = np.array(sns_resp2)
 
 event_ids1 = np.array(event_ids1)
 event_ids2 = np.array(event_ids2)
+event_ids_times = np.array(event_ids_times)
 
 first_sipm1 = np.array([np.array(i) for i in first_sipm1])
 first_sipm2 = np.array([np.array(i) for i in first_sipm2])
@@ -205,7 +208,7 @@ first_time1 = np.array([np.array(i) for i in first_time1])
 first_time2 = np.array([np.array(i) for i in first_time2])
 
 np.savez(evt_file, reco_x1=reco_x1, reco_x2=reco_x2, reco_y1=reco_y1, reco_y2=reco_y2, reco_z1=reco_z1, reco_z2=reco_z2,
-                   sns_resp1=sns_resp1, sns_resp2=sns_resp2, event_ids1=event_ids1, event_ids2=event_ids2,
+                   sns_resp1=sns_resp1, sns_resp2=sns_resp2, event_ids1=event_ids1, event_ids2=event_ids2, event_ids_times=event_ids_times,
                    first_sipm1_0=first_sipm1[0], first_sipm2_0=first_sipm2[0], first_time1_0=first_time1[0], first_time2_0=first_time2[0],
                    first_sipm1_1=first_sipm1[1], first_sipm2_1=first_sipm2[1], first_time1_1=first_time1[1], first_time2_1=first_time2[1],
                    first_sipm1_2=first_sipm1[2], first_sipm2_2=first_sipm2[2],first_time1_2=first_time1[2], first_time2_2=first_time2[2],
