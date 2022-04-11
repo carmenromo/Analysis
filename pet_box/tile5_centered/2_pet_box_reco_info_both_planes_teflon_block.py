@@ -108,6 +108,9 @@ for number in range(start, start+numb):
         if len(evt_sns) == 0:
             continue
 
+        ids_over_thr = evt_sns.sensor_id.astype('int64').values
+        evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
+
         ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
         if len(qs1)==0 or len(qs2)==0:
             continue
