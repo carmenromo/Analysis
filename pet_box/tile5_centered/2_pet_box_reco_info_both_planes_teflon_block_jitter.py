@@ -33,11 +33,8 @@ zpos_file     = arguments.zpos_file
 zpos_file2    = arguments.zpos_file2
 out_path      = arguments.out_path
 
-#thr_charge1   = 1400 #pes
-#thr_charge2   =  200 #pes
-
-area0       = [ 44,  45,  54,  55]
-area0_tile5 = [144, 145, 154, 155]
+int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
+                     33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
 evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_jitter_{start}_{numb}'
 
@@ -47,11 +44,6 @@ Zpos = load_map(zpos_file, group="Zpos",
                             y_name='Zpos',
                             u_name='ZposUncertainty')
 
-# Zpos2 = load_map(zpos_file2, group="Zpos",
-#                              node=f"f2pes200bins",
-#                              x_name='Var_x',
-#                              y_name='Zpos',
-#                              u_name='VarXUncertainty')
 
 timestamp_thr = [0, 0.25, 0.50, 0.75]
 ### parameters for single photoelectron convolution in SiPM response
@@ -125,7 +117,7 @@ for number in range(start, start+numb):
         max_charge_s_id = ids1[np.argmax(qs1)]
         max_charge_s_id_tile5 = ids2[np.argmax(qs2)]
 
-        if (max_charge_s_id in area0) and (max_charge_s_id_tile5 in area0_tile5):
+        if (max_charge_s_id in int_area) and (max_charge_s_id_tile5 in int_area+100):
             sns_resp1.append(sum(qs1))
 
             pos_xs1 = np.array(pos1.T[0])
@@ -171,7 +163,10 @@ for number in range(start, start+numb):
                 if sigma_elec != 0:
                     tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
                 evt_tof_exp_dist.append(tdc_conv_df)
-            evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
+            if len(evt_tof_exp_dist) == 0:
+                continue
+            else:
+                evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
 
             ## Calculate different thresholds in charge
             for k, th in enumerate(timestamp_thr):
