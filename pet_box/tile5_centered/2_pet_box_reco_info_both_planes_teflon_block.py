@@ -155,7 +155,10 @@ for number in range(start, start+numb):
                 tdc_conv    = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
                 tdc_conv_df = shf.build_convoluted_df(evt, s_id, tdc_conv)
                 evt_tof_exp_dist.append(tdc_conv_df)
-            evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
+            if len(evt_tof_exp_dist) == 0:
+                continue
+            else:
+                evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
 
             ## Calculate different thresholds in charge
             for k, th in enumerate(timestamp_thr):
