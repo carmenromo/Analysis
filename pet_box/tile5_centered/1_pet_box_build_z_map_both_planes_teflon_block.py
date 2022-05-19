@@ -29,25 +29,29 @@ in_path       = arguments.in_path
 file_name     = arguments.file_name
 out_path      = arguments.out_path
 
-true_z1_all = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-var_x1_all  = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-charge1_all = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-evts1_all   = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+true_z1_all     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+var_x1_all      = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+charge1_all     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+max_charge1_all = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+evts1_all       = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 
-true_z1 = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-var_x1  = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-charge1 = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-evts1   = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+true_z1     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+var_x1      = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+charge1     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+max_charge1 = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+evts1       = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 
-true_z2_all = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-var_x2_all  = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-charge2_all = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-evts2_all   = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+true_z2_all     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+var_x2_all      = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+charge2_all     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+max_charge2_all = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+evts2_all       = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 
-true_z2 = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-var_x2  = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-charge2 = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
-evts2   = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+true_z2     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+var_x2      = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+charge2     = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+max_charge2 = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
+evts2       = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 
 
 int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
@@ -95,17 +99,19 @@ for number in range(start, start+numb):
                 mean_x = np.average(pos_xs, weights=qs1)
                 var_xs = np.average((pos_xs - mean_x)**2, weights=qs1)
 
-                true_z1_all[th].append(sel_neg_phot[0])
-                var_x1_all [th].append(var_xs)
-                charge1_all[th].append(sum(qs1))
-                evts1_all  [th].append(evt)
+                true_z1_all    [th].append(sel_neg_phot[0])
+                var_x1_all     [th].append(var_xs)
+                charge1_all    [th].append(sum(qs1))
+                max_charge1_all[th].append(max(qs1))
+                evts1_all      [th].append(evt)
 
                 max_charge_s_id = ids1[np.argmax(qs1)]
                 if max_charge_s_id in int_area:
-                    true_z1[th].append(sel_neg_phot[0])
-                    var_x1 [th].append(var_xs)
-                    charge1[th].append(sum(qs1))
-                    evts1  [th].append(evt)
+                    true_z1    [th].append(sel_neg_phot[0])
+                    var_x1     [th].append(var_xs)
+                    charge1    [th].append(sum(qs1))
+                    max_charge1[th].append(max(qs1))
+                    evts1      [th].append(evt)
 
         elif phot and len(sel_pos_phot)>0: ### Be careful with the meaning of this condition
             for th in range(thr_ch_start, thr_ch_nsteps):
@@ -118,17 +124,19 @@ for number in range(start, start+numb):
                 mean_x = np.average(pos_xs, weights=qs2)
                 var_xs = np.average((pos_xs - mean_x)**2, weights=qs2)
 
-                true_z2_all[th].append(sel_pos_phot[0])
-                var_x2_all [th].append(var_xs)
-                charge2_all[th].append(sum(qs2))
-                evts2_all  [th].append(evt)
+                true_z2_all    [th].append(sel_pos_phot[0])
+                var_x2_all     [th].append(var_xs)
+                charge2_all    [th].append(sum(qs2))
+                max_charge2_all[th].append(max(qs2))
+                evts2_all      [th].append(evt)
 
                 max_charge_s_id = ids2[np.argmax(qs2)]
                 if max_charge_s_id in int_area+100:
-                    true_z2[th].append(sel_pos_phot[0])
-                    var_x2 [th].append(var_xs)
-                    charge2[th].append(sum(qs2))
-                    evts2  [th].append(evt)
+                    true_z2    [th].append(sel_pos_phot[0])
+                    var_x2     [th].append(var_xs)
+                    charge2    [th].append(sum(qs2))
+                    max_charge2[th].append(max(qs2))
+                    evts2      [th].append(evt)
 
 true_z1_all_a = np.array([np.array(i) for i in true_z1_all])
 var_x1_all_a  = np.array([np.array(i) for i in var_x1_all ])
@@ -146,6 +154,11 @@ true_z2_a     = np.array([np.array(i) for i in true_z2    ])
 var_x2_a      = np.array([np.array(i) for i in var_x2     ])
 charge2_a     = np.array([np.array(i) for i in charge2    ])
 evts2_a       = np.array([np.array(i) for i in evts2      ])
+
+max_charge1_all_a = np.array([np.array(i) for i in max_charge1_all])
+max_charge1_a     = np.array([np.array(i) for i in max_charge1    ])
+max_charge2_all_a = np.array([np.array(i) for i in max_charge2_all])
+max_charge2_a     = np.array([np.array(i) for i in max_charge2    ])
 
 
 np.savez(evt_file, true_z1_all_0=true_z1_all_a[0], true_z1_all_1=true_z1_all_a[1], true_z1_all_2=true_z1_all_a[2],
@@ -179,6 +192,16 @@ np.savez(evt_file, true_z1_all_0=true_z1_all_a[0], true_z1_all_1=true_z1_all_a[1
         charge2_0=charge2_a[0], charge2_1=charge2_a[1], charge2_2=charge2_a[2],
         charge2_3=charge2_a[3], charge2_4=charge2_a[4], charge2_5=charge2_a[5],
         evts2_0=evts2_a[0], evts2_1=evts2_a[1], evts2_2=evts2_a[2],
-        evts2_3=evts2_a[3], evts2_4=evts2_a[4], evts2_5=evts2_a[5])
+        evts2_3=evts2_a[3], evts2_4=evts2_a[4], evts2_5=evts2_a[5],
+        max_charge1_all_0=max_charge1_all[0], max_charge1_all_1=max_charge1_all[1],
+        max_charge1_all_2=max_charge1_all[2], max_charge1_all_3=max_charge1_all[3],
+        max_charge1_all_4=max_charge1_all[4], max_charge1_all_5=max_charge1_all[5],
+        max_charge1_0=max_charge1[0], max_charge1_1=max_charge1[1], max_charge1_2=max_charge1[2],
+        max_charge1_3=max_charge1[3], max_charge1_4=max_charge1[4], max_charge1_5=max_charge1[5],
+        max_charge2_all_0=max_charge2_all[0], max_charge2_all_1=max_charge2_all[1],
+        max_charge2_all_2=max_charge2_all[2], max_charge2_all_3=max_charge2_all[3],
+        max_charge2_all_4=max_charge2_all[4], max_charge2_all_5=max_charge2_all[5],
+        max_charge2_0=max_charge2[0], max_charge2_1=max_charge2[1], max_charge2_2=max_charge2[2],
+        max_charge2_3=max_charge2[3], max_charge2_4=max_charge2[4], max_charge2_5=max_charge2[5])
 
 print(datetime.datetime.now())
