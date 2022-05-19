@@ -114,7 +114,7 @@ for number in range(start, start+numb):
         if len(qs1)==0 or len(qs2)==0:
             continue
 
-        max_charge_s_id = ids1[np.argmax(qs1)]
+        max_charge_s_id       = ids1[np.argmax(qs1)]
         max_charge_s_id_tile5 = ids2[np.argmax(qs2)]
 
         if (max_charge_s_id in int_area) and (max_charge_s_id_tile5 in int_area+100):
