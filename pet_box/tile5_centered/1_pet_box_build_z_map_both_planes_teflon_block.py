@@ -124,7 +124,7 @@ for number in range(start, start+numb):
                 evts1_all      [th].append(evt)
 
                 max_charge_s_id = ids1[np.argmax(qs1)]
-                if max_charge_s_id in int_area:
+                if max_charge_s_id in int_area+100:
                     true_z1    [th].append(sel_pos_phot[0])
                     true_x1    [th].append(sel_pos_phot_x[0])
                     true_y1    [th].append(sel_pos_phot_y[0])
@@ -153,7 +153,7 @@ for number in range(start, start+numb):
                 evts2_all      [th].append(evt)
 
                 max_charge_s_id = ids2[np.argmax(qs2)]
-                if max_charge_s_id in int_area+100:
+                if max_charge_s_id in int_area:
                     true_z2    [th].append(sel_neg_phot[0])
                     true_x2    [th].append(sel_neg_phot_x[0])
                     true_y2    [th].append(sel_neg_phot_y[0])
