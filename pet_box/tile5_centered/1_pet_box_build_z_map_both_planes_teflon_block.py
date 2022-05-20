@@ -65,7 +65,7 @@ evts2   = [[] for i in range(thr_ch_start, thr_ch_nsteps)]
 int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
                      33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
-evt_file   = f'{out_path}/pet_box_true_info_teflon_block_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
+evt_file   = f'{out_path}/pet_box_true_info_teflon_block_test_{start}_{numb}_{thr_ch_start}_{thr_ch_nsteps}'
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -104,7 +104,7 @@ for number in range(start, start+numb):
         sel_pos_phot_y = sel_phot0_y[sel_phot0>0]
 
 
-        if phot and len(sel_neg_phot)>0: ### Be careful with the meaning of this condition
+        if phot and len(sel_pos_phot)>0: ### Be careful with the meaning of this condition
             for th in range(thr_ch_start, thr_ch_nsteps):
                 evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
                 ids1, pos1, qs1, _, _, _ = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
@@ -115,9 +115,9 @@ for number in range(start, start+numb):
                 mean_x = np.average(pos_xs, weights=qs1)
                 var_xs = np.average((pos_xs - mean_x)**2, weights=qs1)
 
-                true_z1_all    [th].append(sel_neg_phot[0])
-                true_x1_all    [th].append(sel_neg_phot_x[0])
-                true_y1_all    [th].append(sel_neg_phot_y[0])
+                true_z1_all    [th].append(sel_pos_phot[0])
+                true_x1_all    [th].append(sel_pos_phot_x[0])
+                true_y1_all    [th].append(sel_pos_phot_y[0])
                 var_x1_all     [th].append(var_xs)
                 charge1_all    [th].append(sum(qs1))
                 max_charge1_all[th].append(max(qs1))
@@ -125,15 +125,15 @@ for number in range(start, start+numb):
 
                 max_charge_s_id = ids1[np.argmax(qs1)]
                 if max_charge_s_id in int_area:
-                    true_z1    [th].append(sel_neg_phot[0])
-                    true_x1    [th].append(sel_neg_phot_x[0])
-                    true_y1    [th].append(sel_neg_phot_y[0])
+                    true_z1    [th].append(sel_pos_phot[0])
+                    true_x1    [th].append(sel_pos_phot_x[0])
+                    true_y1    [th].append(sel_pos_phot_y[0])
                     var_x1     [th].append(var_xs)
                     charge1    [th].append(sum(qs1))
                     max_charge1[th].append(max(qs1))
                     evts1      [th].append(evt)
 
-        elif phot and len(sel_pos_phot)>0: ### Be careful with the meaning of this condition
+        elif phot and len(sel_neg_phot)>0: ### Be careful with the meaning of this condition
             for th in range(thr_ch_start, thr_ch_nsteps):
                 evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
                 _, _, _, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
@@ -144,9 +144,9 @@ for number in range(start, start+numb):
                 mean_x = np.average(pos_xs, weights=qs2)
                 var_xs = np.average((pos_xs - mean_x)**2, weights=qs2)
 
-                true_z2_all    [th].append(sel_pos_phot[0])
-                true_x2_all    [th].append(sel_pos_phot_x[0])
-                true_y2_all    [th].append(sel_pos_phot_y[0])
+                true_z2_all    [th].append(sel_neg_phot[0])
+                true_x2_all    [th].append(sel_neg_phot_x[0])
+                true_y2_all    [th].append(sel_neg_phot_y[0])
                 var_x2_all     [th].append(var_xs)
                 charge2_all    [th].append(sum(qs2))
                 max_charge2_all[th].append(max(qs2))
@@ -154,9 +154,9 @@ for number in range(start, start+numb):
 
                 max_charge_s_id = ids2[np.argmax(qs2)]
                 if max_charge_s_id in int_area+100:
-                    true_z2    [th].append(sel_pos_phot[0])
-                    true_x2    [th].append(sel_pos_phot_x[0])
-                    true_y2    [th].append(sel_pos_phot_y[0])
+                    true_z2    [th].append(sel_neg_phot[0])
+                    true_x2    [th].append(sel_neg_phot_x[0])
+                    true_y2    [th].append(sel_neg_phot_y[0])
                     var_x2     [th].append(var_xs)
                     charge2    [th].append(sum(qs2))
                     max_charge2[th].append(max(qs2))
