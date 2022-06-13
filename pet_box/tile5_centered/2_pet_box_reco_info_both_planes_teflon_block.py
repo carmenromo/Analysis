@@ -16,10 +16,8 @@ from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
 
 """ To run this script
-python 2_pet_box_reco_info_both_planes.py 2500 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_HamamatsuVUV
- /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/z_var_x_table_pet_box_HamamatsuVUV_det_plane_coinc_plane_cent.h5
-/Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/z_var_x_table_pet_box_HamamatsuVUV_coinc_plane_cent.h5
-/Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info
+python 2_pet_box_reco_info_both_planes_teflon_block.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_HamamatsuVUV
+ teflon_block /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info
 """
 
 def parse_args(args):
@@ -28,6 +26,7 @@ def parse_args(args):
     parser.add_argument('n_files'   , type = int, help = "number of files to analize")
     parser.add_argument('in_path'   ,             help = "input files path"          )
     parser.add_argument('file_name' ,             help = "name of input files"       )
+    parser.add_argument('out_name' ,              help = "name of output files"      )
     parser.add_argument('out_path'  ,             help = "output files path"         )
     return parser.parse_args()
 
@@ -40,12 +39,13 @@ in_path       = arguments.in_path
 file_name     = arguments.file_name
 #zpos_file     = arguments.zpos_file
 #zpos_file2    = arguments.zpos_file2
+out_name      = arguments.out_name
 out_path      = arguments.out_path
 
 # int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
 #                      33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
-evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_teflon_block_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_{out_name}_{start}_{numb}'
 
 # Zpos = load_map(zpos_file, group="Zpos",
 #                             node=f"f2pes200bins",
@@ -67,6 +67,7 @@ reco_y1, reco_y2 = [], []
 reco_z1, reco_z2 = [], []
 
 sns_resp1, sns_resp2 = [], []
+max_resp1, max_resp2 = [], []
 
 first_sipm1, first_sipm2 = [[] for i in range(len(timestamp_thr))], [[] for i in range(len(timestamp_thr))]
 first_time1, first_time2 = [[] for i in range(len(timestamp_thr))], [[] for i in range(len(timestamp_thr))]
@@ -122,6 +123,7 @@ for number in range(start, start+numb):
 
         #if (max_charge_s_id in int_area) and (max_charge_s_id_tile5 in int_area+100):
         sns_resp1.append(sum(qs1))
+        max_resp1.append(max(qs1))
 
         pos_xs1 = np.array(pos1.T[0])
         mean_x1 = np.average(pos_xs1, weights=qs1)
@@ -140,6 +142,7 @@ for number in range(start, start+numb):
 
 
         sns_resp2.append(sum(qs2))
+        max_resp2.append(max(qs2))
 
         pos_xs2 = np.array(pos2.T[0])
         mean_x2 = np.average(pos_xs2, weights=qs2)
@@ -194,6 +197,9 @@ reco_z2 = np.array(reco_z2)
 sns_resp1 = np.array(sns_resp1)
 sns_resp2 = np.array(sns_resp2)
 
+max_resp1 = np.array(max_resp1)
+max_resp2 = np.array(max_resp2)
+
 event_ids1 = np.array(event_ids1)
 event_ids2 = np.array(event_ids2)
 event_ids_times = np.array(event_ids_times)
@@ -204,7 +210,8 @@ first_time1 = np.array([np.array(i) for i in first_time1])
 first_time2 = np.array([np.array(i) for i in first_time2])
 
 np.savez(evt_file, reco_x1=reco_x1, reco_x2=reco_x2, reco_y1=reco_y1, reco_y2=reco_y2, reco_z1=reco_z1, reco_z2=reco_z2,
-                   sns_resp1=sns_resp1, sns_resp2=sns_resp2, event_ids1=event_ids1, event_ids2=event_ids2, event_ids_times=event_ids_times,
+                   sns_resp1=sns_resp1, sns_resp2=sns_resp2, max_resp1=max_resp1, max_resp2=max_resp2,
+                   event_ids1=event_ids1, event_ids2=event_ids2, event_ids_times=event_ids_times,
                    first_sipm1_0=first_sipm1[0], first_sipm2_0=first_sipm2[0], first_time1_0=first_time1[0], first_time2_0=first_time2[0],
                    first_sipm1_1=first_sipm1[1], first_sipm2_1=first_sipm2[1], first_time1_1=first_time1[1], first_time2_1=first_time2[1],
                    first_sipm1_2=first_sipm1[2], first_sipm2_2=first_sipm2[2],first_time1_2=first_time1[2], first_time2_2=first_time2[2],
