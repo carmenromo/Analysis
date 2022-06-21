@@ -30,7 +30,7 @@ for i in range(start, start+numb):
         df = store.get(key)
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
-        df_coinc  = drf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
+        df_coinc  = prf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
         df0 = pd.concat([df0, df_coinc], ignore_index=False, sort=False)
 
     out_file  = f'{out_path}/data_coinc_runII_ch_R{run_no}_{i}.h5'
