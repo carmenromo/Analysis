@@ -82,7 +82,7 @@ df_coinc = df_coinc.astype({'event_id':  'int32',
                             'max_sns2': 'int32'})
 
 store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
-store.put('data', df_int_c, format='table', data_columns=True)
+store.put('data', df_coinc, format='table', data_columns=True)
 store.close()
 
 print(datetime.datetime.now())
