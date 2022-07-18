@@ -46,7 +46,7 @@ for i in range(start, start+numb):
         df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
         df0 = pd.concat([df0, df_coinc], ignore_index=False, sort=False)
 
-    out_file  = f'{out_path}/data_coinc_runII_ch_R{run_no}_{i}.h5'
+    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_R{run_no}_{i}.h5'
 
     df    = df0.reset_index()
     store = pd.HDFStore(out_file, "w", complib=str("zlib"), complevel=4)
