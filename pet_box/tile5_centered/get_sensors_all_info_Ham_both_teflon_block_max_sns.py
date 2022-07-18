@@ -14,7 +14,7 @@ import antea.reco.petit_reco_functions as prf
 import antea.io  .mc_io                as mcio
 
 """ To run this script
-python get_sensors_all_info_ANTEA_update.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_tile5centered_HamamatsuVUV
+python get_sensors_all_info_Ham_both_teflon_block_max_sns.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_tile5centered_HamamatsuVUV
 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info True
 """
 
@@ -29,7 +29,7 @@ out_path           = arguments.out_path
 coinc_plane_4tiles = arguments.coinc_plane_4tiles
 
 thr = 2
-evt_file = f'{out_path}/get_sns_info_cov_corona_teflon_block_thr{thr}_{start}_{numb}.h5'
+evt_file = f'{out_path}/get_sns_info_coinc_max_sns_teflon_block_thr{thr}_{start}_{numb}.h5'
 
 
 def compute_max_sns_per_plane(df, variable='charge', det_plane=True):
