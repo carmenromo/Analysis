@@ -34,7 +34,7 @@ evt_file = f'{out_path}/get_sns_info_cov_corona_teflon_block_thr{thr}_{start}_{n
 int_area = [22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
             33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55]
 
-def is_max_charge_at_center(df, det_plane, coinc_plane_4tiles,variable):
+def is_max_charge_at_int_area(df, det_plane, coinc_plane_4tiles,variable):
     tofpet_id, central_sns, _, _ = prf.sensor_params(det_plane, coinc_plane_4tiles)
 
     df = df[df.tofpet_id == tofpet_id]
@@ -48,8 +48,8 @@ def is_max_charge_at_center(df, det_plane, coinc_plane_4tiles,variable):
         return df.iloc[argmax].sensor_id in np.array(int_area) + 100
 
 
-def select_evts_with_max_charge_at_center(df, evt_groupby, det_plane, coinc_plane_4tiles, variable):
-    df_filter_center = df.groupby(evt_groupby).filter(is_max_charge_at_center,
+def select_evts_with_max_charge_at_int_area(df, evt_groupby, det_plane, coinc_plane_4tiles, variable):
+    df_filter_center = df.groupby(evt_groupby).filter(is_max_charge_at_int_area,
                                                       dropna             = True,
                                                       det_plane          = det_plane,
                                                       coinc_plane_4tiles = coinc_plane_4tiles,
