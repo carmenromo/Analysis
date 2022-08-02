@@ -54,17 +54,21 @@ norm_s_id_R12252 = {11: 296.84, 12: 328.07, 13: 343.80, 14: 296.74, 15: 310.26, 
                     181: 452.64, 182: 420.27, 183: 412.27, 184: 416.74, 185: 367.68, 186: 399.08, 187: 413.27, 188: 433.34}
 
 def apply_norm_s_id_R12252(sid: int) -> float:
-    return norm_s_id_R12252[sid]
+    if sid < 100:
+        norm = 270
+    else:
+        norm = 415
+    return norm_s_id_R12252[sid]/norm
 
 def filter_evt_peak(df, det_plane=True):
     if det_plane:
         tofpet_id = 5
-        min_ch    = 260
-        max_ch    = 300
+        min_ch    = 245
+        max_ch    = 290
     else:
         tofpet_id = 1
-        min_ch    = 380
-        max_ch    = 420
+        min_ch    = 390
+        max_ch    = 435
 
     df         = df[df.tofpet_id == tofpet_id]
     charge_max = df.efine_norm.max()
