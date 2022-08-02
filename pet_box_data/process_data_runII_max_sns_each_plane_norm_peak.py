@@ -109,7 +109,7 @@ for i in range(start, start+numb):
         df0.drop('tcoarse_extended', axis=1)
         df0.drop('tfine_corrected',  axis=1)
 
-    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_R{run_no}_{i}.h5'
+    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_R{run_no}_{i}_{i_key}.h5'
 
     df    = df0.reset_index()
     store = pd.HDFStore(out_file, "w", complib=str("zlib"), complevel=4)
