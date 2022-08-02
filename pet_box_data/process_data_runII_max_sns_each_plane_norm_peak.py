@@ -86,14 +86,9 @@ for i in range(start, start+numb):
         continue
     for key in store.keys()[i_key:i_key+n_key]:
         df = store.get(key)
-        df = df[df.cluster != -1] ## Filtering events with only one sensor
 
-        df.drop('ct_data',          axis=1)
-        df.drop('tac_id',           axis=1)
-        df.drop('ecoarse',          axis=1)
-        df.drop('tfine',            axis=1)
-        df.drop('tcoarse_extended', axis=1)
-        df.drop('tfine_corrected',  axis=1)
+        df = df.drop(columns='ct_data', 'ctdaq', 'tac_id', 'ecoarse', 'tfine', 'tcoarse_extended', 'tfine_corrected') #Remove unused columns
+        df = df[df.cluster != -1] ## Filtering events with only one sensor
 
         df_coinc  = prf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
         max_sns_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=True)
