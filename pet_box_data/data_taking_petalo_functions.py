@@ -9,6 +9,16 @@ def parse_args(args):
     parser.add_argument('out_path'  ,             help = "Output path")
     return parser.parse_args()
 
+def parse_args_n_keys(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('first_file', type = int, help = "first file (inclusive)"    )
+    parser.add_argument('n_files'   , type = int, help = "number of files to analize")
+    parser.add_argument('i_key'     , type = int, help = "first key (inclusive)"     )
+    parser.add_argument('f_key'     , type = int, help = "number of keys to analize" )
+    parser.add_argument('run_no'    , type = int, help = "Run number" )
+    parser.add_argument('out_path'  ,             help = "Output path")
+    return parser.parse_args()
+
 def from_ToT_to_pes(x):
     return 9.98597793 * np.exp(x/252.69045094)
 

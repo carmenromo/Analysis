@@ -11,9 +11,11 @@ import data_taking_petalo_functions as pf
 
 print(datetime.datetime.now())
 
-arguments = pf.parse_args(sys.argv)
+arguments = pf.parse_args_n_keys(sys.argv)
 start     = arguments.first_file
 numb      = arguments.n_files
+i_key     = arguments.i_key
+f_key     = arguments.f_key
 run_no    = arguments.run_no
 out_path  = arguments.out_path
 
@@ -54,6 +56,25 @@ norm_s_id_R12252 = {11: 296.84, 12: 328.07, 13: 343.80, 14: 296.74, 15: 310.26, 
 def apply_norm_s_id_R12252(sid: int) -> float:
     return norm_s_id_R12252[sid]
 
+def filter_evt_peak(df, det_plane=True):
+    if det_plane:
+        tofpet_id = 5
+        min_ch    = 260
+        max_ch    = 300
+    else:
+        tofpet_id = 1
+        min_ch    = 380
+        max_ch    = 420
+
+    df         = df[df.tofpet_id == tofpet_id]
+    charge_max = df.efine_norm.max()
+    return (charge_max > min_ch) & (charge_max < max_ch)
+
+
+def select_evt_peak(df, det_plane=True):
+    df_filter = df.groupby(['evt_number', 'cluster']).filter(filter_evt_peak, dropna=True, det_plane=det_plane)
+    return df_filter
+
 
 for i in range(start, start+numb):
     df0 = pd.DataFrame({})
@@ -63,7 +84,7 @@ for i in range(start, start+numb):
     except OSError:
         print(f'Error with file {f}')
         continue
-    for key in store.keys():
+    for key in store.keys()[i_key:f_key]:
         df = store.get(key)
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
@@ -74,9 +95,21 @@ for i in range(start, start+numb):
         df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
 
         df_coinc['efine_norm'] = df_coinc['efine_corrected']*df_coinc['sensor_id'].apply(apply_norm_s_id_R12252)
-        df0 = pd.concat([df0, df_coinc], ignore_index=False, sort=False)
 
-    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_R{run_no}_{i}.h5'
+        df_peak0 = select_evt_peak(df_coinc, det_plane=True)
+        df_peak2 = select_evt_peak(df_coinc, det_plane=False)
+
+        df0 = pd.concat([df0, df_peak0], ignore_index=False, sort=False)
+        df0 = pd.concat([df0, df_peak2], ignore_index=False, sort=False)
+
+        df0.drop('ct_data',          axis=1)
+        df0.drop('tac_id',           axis=1)
+        df0.drop('ecoarse',          axis=1)
+        df0.drop('tfine',            axis=1)
+        df0.drop('tcoarse_extended', axis=1)
+        df0.drop('tfine_corrected',  axis=1)
+
+    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_R{run_no}_{i}.h5'
 
     df    = df0.reset_index()
     store = pd.HDFStore(out_file, "w", complib=str("zlib"), complevel=4)
