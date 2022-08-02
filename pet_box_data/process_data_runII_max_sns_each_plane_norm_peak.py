@@ -15,7 +15,7 @@ arguments = pf.parse_args_n_keys(sys.argv)
 start     = arguments.first_file
 numb      = arguments.n_files
 i_key     = arguments.i_key
-f_key     = arguments.f_key
+n_key     = arguments.n_key
 run_no    = arguments.run_no
 out_path  = arguments.out_path
 
@@ -84,7 +84,7 @@ for i in range(start, start+numb):
     except OSError:
         print(f'Error with file {f}')
         continue
-    for key in store.keys()[i_key:f_key]:
+    for key in store.keys()[i_key:i_key+n_key]:
         df = store.get(key)
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
