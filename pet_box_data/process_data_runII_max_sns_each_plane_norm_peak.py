@@ -88,6 +88,13 @@ for i in range(start, start+numb):
         df = store.get(key)
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
+        df.drop('ct_data',          axis=1)
+        df.drop('tac_id',           axis=1)
+        df.drop('ecoarse',          axis=1)
+        df.drop('tfine',            axis=1)
+        df.drop('tcoarse_extended', axis=1)
+        df.drop('tfine_corrected',  axis=1)
+
         df_coinc  = prf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
         max_sns_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=True)
         max_sns_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=False)
@@ -101,13 +108,6 @@ for i in range(start, start+numb):
 
         df0 = pd.concat([df0, df_peak0], ignore_index=False, sort=False)
         df0 = pd.concat([df0, df_peak2], ignore_index=False, sort=False)
-
-        df0.drop('ct_data',          axis=1)
-        df0.drop('tac_id',           axis=1)
-        df0.drop('ecoarse',          axis=1)
-        df0.drop('tfine',            axis=1)
-        df0.drop('tcoarse_extended', axis=1)
-        df0.drop('tfine_corrected',  axis=1)
 
     out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_R{run_no}_{i}_{i_key}.h5'
 
