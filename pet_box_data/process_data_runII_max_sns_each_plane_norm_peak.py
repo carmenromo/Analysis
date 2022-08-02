@@ -87,7 +87,7 @@ for i in range(start, start+numb):
     for key in store.keys()[i_key:i_key+n_key]:
         df = store.get(key)
 
-        df = df.drop(columns='ct_data', 'ctdaq', 'tac_id', 'ecoarse', 'tfine', 'tcoarse_extended', 'tfine_corrected') #Remove unused columns
+        df = df.drop(columns=['ct_data', 'ctdaq', 'tac_id', 'ecoarse', 'tfine', 'tcoarse_extended', 'tfine_corrected']) #Remove unused columns
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
         df_coinc  = prf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
