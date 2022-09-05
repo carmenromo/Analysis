@@ -100,7 +100,7 @@ for i in range(start, start+numb):
         df_coinc['max_sns0'] = max_sns_all0[df_coinc.index].values
         df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
 
-        df_coinc['efine_norm'] = df_coinc['efine_corrected']*df_coinc['sensor_id'].apply(apply_norm_s_id_R12252)
+        df_coinc['efine_norm'] = df_coinc['efine_corrected']/df_coinc['sensor_id'].apply(apply_norm_s_id_R12252)
 
         df_peak0 = select_evt_peak(df_coinc, det_plane=True)
         df_peak2 = select_evt_peak(df_coinc, det_plane=False)
