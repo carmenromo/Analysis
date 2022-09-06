@@ -36,6 +36,13 @@ def compute_max_sns_per_plane_new(df, variable='efine_corrected', det_plane=True
     argmax = df[variable].argmax()
     return df.iloc[argmax].sensor_id #channel_id
 
+def compute_tmin_per_plane(df, det_plane=True):
+    if det_plane:
+        df = df[df.tofpet_id == 5]
+    else:
+        df = df[df.tofpet_id == 1]
+    return df.t.min()
+
 norm_s_id_R12252 = {11: 296.84, 12: 328.07, 13: 343.80, 14: 296.74, 15: 310.26, 16: 300.42, 17: 263.87, 18: 243.81,
                     21: 305.91, 22: 320.18, 23: 283.32, 24: 274.68, 25: 308.74, 26: 295.25, 27: 245.10, 28: 234.98,
                     31: 306.68, 32: 317.62, 33: 310.00, 34: 274.47, 35: 330.59, 36: 296.29, 37: 250.48, 38: 255.84,
@@ -60,6 +67,30 @@ def apply_norm_s_id_R12252(sid: int) -> float:
         norm = 415
     return norm_s_id_R12252[sid]/norm
 
+norm_s_id_R12212 = {11: 300.53, 12: 328.69, 13: 340.54, 14: 298.74, 15: 312.32, 16: 301.55, 17: 266.71, 18: 243.99,
+                    21: 309.04, 22: 321.33, 23: 283.47, 24: 278.47, 25: 309.02, 26: 294.92, 27: 252.30, 28: 235.52,
+                    31: 309.74, 32: 317.15, 33: 311.47, 34: 279.64, 35: 333.06, 36: 296.73, 37: 249.48, 38: 258.87,
+                    41: 258.84, 42: 256.85, 43: 283.65, 44: 286.45, 45: 265.68, 46: 306.09, 47: 263.49, 48: 268.13,
+                    51: 310.47, 52: 317.14, 53: 311.81, 54: 256.70, 55: 275.80, 56: 257.35, 57: 287.21, 58: 263.44,
+                    61: 340.50, 62:      0, 63: 307.23, 64: 306.92, 65: 283.94, 66: 264.04, 67: 254.19, 68:      0,
+                    71: 290.54, 72: 295.58, 73: 313.08, 74: 259.79, 75: 258.95, 76: 292.69, 77: 275.09, 78: 242.91,
+                    81: 321.04, 82: 286.65, 83: 261.49, 84:      0, 85: 243.37, 86: 259.59, 87: 210.20, 88: 223.17,
+                    111: 343.72, 112: 333.08, 113: 386.80, 114: 365.00, 115: 299.01, 116: 0, 117: 336.51,118: 306.34, 
+                    121: 401.56, 122: 359.98, 123:      0, 124: 333.20, 125: 362.41, 126: 327.71, 127: 339.82, 128: 319.30,
+                    131: 384.02, 132: 369.43, 133: 223.03, 134: 244.94, 135: 325.53, 136: 329.77, 137: 321.92, 138: 361.86,
+                    141: 299.28, 142: 357.88, 143: 364.20, 144: 373.72, 145: 297.64, 146: 328.10, 147: 325.22, 148: 333.75,
+                    151: 377.74, 152: 380.78, 153: 367.28, 154: 336.62, 155: 321.13, 156: 355.83, 157: 318.76, 158: 335.56,
+                    161: 387.74, 162: 377.52, 163: 353.05, 164: 402.35, 165: 360.38, 166: 312.83, 167: 322.64, 168: 345.87,
+                    171: 316.68, 172: 347.63, 173: 374.55, 174: 354.72, 175: 323.09, 176: 345.08, 177: 337.14, 178: 303.79,
+                    181: 370.28, 182: 347.17, 183: 337.94, 184: 340.84, 185: 303.30, 186: 336.85, 187: 337.40, 188: 355.60}
+
+def apply_norm_s_id_R12212(sid: int) -> float:
+    if sid < 100:
+        norm = 270
+    else:
+        norm = 330
+    return norm_s_id_R12212[sid]/norm
+
 def filter_evt_peak(df, det_plane=True):
     if det_plane:
         tofpet_id = 5
@@ -69,6 +100,10 @@ def filter_evt_peak(df, det_plane=True):
         tofpet_id = 1
         min_ch    = 390
         max_ch    = 435
+
+        #tofpet_id = 2
+        #min_ch    = 300
+        #max_ch    = 350
 
     df         = df[df.tofpet_id == tofpet_id]
     charge_max = df.efine_norm.max()
@@ -102,13 +137,18 @@ for i in range(start, start+numb):
 
         df_coinc['efine_norm'] = df_coinc['efine_corrected']/df_coinc['sensor_id'].apply(apply_norm_s_id_R12252)
 
+        tmin_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_tmin_per_plane, det_plane=True)
+        tmin_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_tmin_per_plane, det_plane=False)
+        df_coinc['tmin0'] = tmin_all0[df_coinc.index].values
+        df_coinc['tmin2'] = tmin_all2[df_coinc.index].values
+        
         df_peak0 = select_evt_peak(df_coinc, det_plane=True)
         df_peak2 = select_evt_peak(df_coinc, det_plane=False)
 
         df0 = pd.concat([df0, df_peak0], ignore_index=False, sort=False)
         df0 = pd.concat([df0, df_peak2], ignore_index=False, sort=False)
 
-    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_R{run_no}_{i}_{i_key}.h5'
+    out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_tmin_R{run_no}_{i}_{i_key}.h5'
 
     df    = df0.reset_index()
     store = pd.HDFStore(out_file, "w", complib=str("zlib"), complevel=4)
