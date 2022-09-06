@@ -29,7 +29,7 @@ out_path           = arguments.out_path
 coinc_plane_4tiles = arguments.coinc_plane_4tiles
 
 thr = 2
-evt_file = f'{out_path}/get_sns_info_cov_corona_teflon_block_thr{thr}_{start}_{numb}.h5'
+evt_file = f'{out_path}/get_sns_info_cov_corona_teflon_block_only_coinc_thr{thr}_{start}_{numb}.h5'
 
 int_area = [22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
             33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55]
@@ -103,11 +103,16 @@ ratios = prf.compute_charge_ratio_in_corona(df_int_c,
 df_int_c['ratio_cor'] = ratios[df_int_c.index].values
 df_int_c = df_int_c.reset_index()
 
-df_int_c = df_int_c.astype({'event_id':  'int32',
+df_coinc = df_coinc.reset_index()
+df_int_c = df_coinc.astype({'event_id':  'int32',
                             'sensor_id': 'int32',
                             'charge':    'int32',
-                            'tofpet_id': 'int32',
-                            'ratio_cor': 'float64'})
+                            'tofpet_id': 'int32'})
+#df_int_c = df_int_c.astype({'event_id':  'int32',
+#                            'sensor_id': 'int32',
+#                            'charge':    'int32',
+#                            'tofpet_id': 'int32',
+#                            'ratio_cor': 'float64'})
 
 store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
 store.put('data', df_int_c, format='table', data_columns=True)
