@@ -26,6 +26,14 @@ def compute_max_sns_per_plane(df, variable='efine_corrected', det_plane=True):
     argmax = df[variable].argmax()
     return df.iloc[argmax].sensor_id
 
+def compute_max_sns_per_plane_new(df, variable='efine_corrected', det_plane=True):
+    if det_plane:
+        df = df[df.tofpet_id == 5]
+    else:
+        df = df[df.tofpet_id == 2]
+    argmax = df[variable].argmax()
+    return df.iloc[argmax].sensor_id #channel_id
+
 
 for i in range(start, start+numb):
     df0 = pd.DataFrame({})
@@ -40,8 +48,8 @@ for i in range(start, start+numb):
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
         df_coinc  = prf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
-        max_sns_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane, variable='efine_corrected', det_plane=True)
-        max_sns_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane, variable='efine_corrected', det_plane=False)
+        max_sns_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=True)
+        max_sns_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=False)
         df_coinc['max_sns0'] = max_sns_all0[df_coinc.index].values
         df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
         df0 = pd.concat([df0, df_coinc], ignore_index=False, sort=False)
