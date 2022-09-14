@@ -9,6 +9,16 @@ def parse_args(args):
     parser.add_argument('out_path'  ,             help = "Output path")
     return parser.parse_args()
 
+def parse_args_tofpets(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('first_file', type = int, help = "first file (inclusive)"        )
+    parser.add_argument('n_files'   , type = int, help = "number of files to analize"    )
+    parser.add_argument('run_no'    , type = int, help = "Run number" )
+    parser.add_argument('tofpet_d'  , type = int, help = "Tofpet id for the det plane"   )
+    parser.add_argument('tofpet_c'  , type = int, help = "Tofpet id for the coinc plane" )
+    parser.add_argument('out_path'  ,             help = "Output path")
+    return parser.parse_args()
+
 def parse_args_n_keys(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('first_file', type = int, help = "first file (inclusive)"    )
@@ -16,6 +26,18 @@ def parse_args_n_keys(args):
     parser.add_argument('i_key'     , type = int, help = "first key (inclusive)"     )
     parser.add_argument('n_key'     , type = int, help = "number of keys to analize" )
     parser.add_argument('run_no'    , type = int, help = "Run number" )
+    parser.add_argument('out_path'  ,             help = "Output path")
+    return parser.parse_args()
+
+def parse_args_n_keys_tofpets(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('first_file', type = int, help = "first file (inclusive)"    )
+    parser.add_argument('n_files'   , type = int, help = "number of files to analize")
+    parser.add_argument('i_key'     , type = int, help = "first key (inclusive)"     )
+    parser.add_argument('n_key'     , type = int, help = "number of keys to analize" )
+    parser.add_argument('run_no'    , type = int, help = "Run number" )
+    parser.add_argument('tofpet_d'  , type = int, help = "Tofpet id for the det plane"   )
+    parser.add_argument('tofpet_c'  , type = int, help = "Tofpet id for the coinc plane" )
     parser.add_argument('out_path'  ,             help = "Output path")
     return parser.parse_args()
 

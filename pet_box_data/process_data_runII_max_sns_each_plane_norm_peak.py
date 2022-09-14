@@ -11,36 +11,30 @@ import data_taking_petalo_functions as pf
 
 print(datetime.datetime.now())
 
-arguments = pf.parse_args_n_keys(sys.argv)
+arguments = pf.parse_args_n_keys_tofpets(sys.argv)
 start     = arguments.first_file
 numb      = arguments.n_files
 i_key     = arguments.i_key
 n_key     = arguments.n_key
 run_no    = arguments.run_no
+tofpet_d  = arguments.tofpet_d
+tofpet_c  = arguments.tofpet_c
 out_path  = arguments.out_path
 
 
 def compute_max_sns_per_plane(df, variable='efine_corrected', det_plane=True):
     if det_plane:
-        df = df[df.tofpet_id == 0]
+        df = df[df.tofpet_id == tofpet_d]
     else:
-        df = df[df.tofpet_id == 2]
-    argmax = df[variable].argmax()
-    return df.iloc[argmax].sensor_id
-
-def compute_max_sns_per_plane_new(df, variable='efine_corrected', det_plane=True):
-    if det_plane:
-        df = df[df.tofpet_id == 5]
-    else:
-        df = df[df.tofpet_id == 1]
+        df = df[df.tofpet_id == tofpet_c]
     argmax = df[variable].argmax()
     return df.iloc[argmax].sensor_id #channel_id
 
 def compute_tmin_per_plane(df, det_plane=True):
     if det_plane:
-        df = df[df.tofpet_id == 5]
+        df = df[df.tofpet_id == tofpet_d]
     else:
-        df = df[df.tofpet_id == 1]
+        df = df[df.tofpet_id == tofpet_c]
     return df.t.min()
 
 norm_s_id_R12252 = {11: 296.84, 12: 328.07, 13: 343.80, 14: 296.74, 15: 310.26, 16: 300.42, 17: 263.87, 18: 243.81,
@@ -75,7 +69,7 @@ norm_s_id_R12212 = {11: 300.53, 12: 328.69, 13: 340.54, 14: 298.74, 15: 312.32, 
                     61: 340.50, 62:      0, 63: 307.23, 64: 306.92, 65: 283.94, 66: 264.04, 67: 254.19, 68:      0,
                     71: 290.54, 72: 295.58, 73: 313.08, 74: 259.79, 75: 258.95, 76: 292.69, 77: 275.09, 78: 242.91,
                     81: 321.04, 82: 286.65, 83: 261.49, 84:      0, 85: 243.37, 86: 259.59, 87: 210.20, 88: 223.17,
-                    111: 343.72, 112: 333.08, 113: 386.80, 114: 365.00, 115: 299.01, 116: 0, 117: 336.51,118: 306.34, 
+                    111: 343.72, 112: 333.08, 113: 386.80, 114: 365.00, 115: 299.01, 116: 0, 117: 336.51,118: 306.34,
                     121: 401.56, 122: 359.98, 123:      0, 124: 333.20, 125: 362.41, 126: 327.71, 127: 339.82, 128: 319.30,
                     131: 384.02, 132: 369.43, 133: 223.03, 134: 244.94, 135: 325.53, 136: 329.77, 137: 321.92, 138: 361.86,
                     141: 299.28, 142: 357.88, 143: 364.20, 144: 373.72, 145: 297.64, 146: 328.10, 147: 325.22, 148: 333.75,
@@ -91,29 +85,52 @@ def apply_norm_s_id_R12212(sid: int) -> float:
         norm = 330
     return norm_s_id_R12212[sid]/norm
 
-def filter_evt_peak(df, det_plane=True):
-    if det_plane:
-        tofpet_id = 5
-        min_ch    = 245
-        max_ch    = 290
-    else:
-        tofpet_id = 1
-        min_ch    = 390
-        max_ch    = 435
+# def filter_evt_peak(df, det_plane=True):
+#     if det_plane:
+#         tofpet_id = tofpet_d
+#         min_ch    = 245 # for tofpet 5
+#         max_ch    = 290 # for tofpet 5
+#     else:
+#         tofpet_id = tofpet_c
+#         min_ch    = 390 # for tofpet 1
+#         max_ch    = 435 # for tofpet 1
+#
+#         #tofpet_id = 2
+#         #min_ch    = 300
+#         #max_ch    = 350
+#
+#     df         = df[df.tofpet_id == tofpet_id]
+#     charge_max = df.efine_norm.max()
+#     return (charge_max > min_ch) & (charge_max < max_ch)
+#
+#
+# def select_evt_peak(df, det_plane=True):
+#     df_filter = df.groupby(['evt_number', 'cluster']).filter(filter_evt_peak, dropna=True, det_plane=det_plane)
+#     return df_filter
 
-        #tofpet_id = 2
-        #min_ch    = 300
-        #max_ch    = 350
+def filter_evt_both_peaks(df):
 
-    df         = df[df.tofpet_id == tofpet_id]
-    charge_max = df.efine_norm.max()
-    return (charge_max > min_ch) & (charge_max < max_ch)
+    tofpet_id0 = tofpet_d
+    min_ch0    = 245 # for tofpet 5
+    max_ch0    = 290 # for tofpet 5
 
+    tofpet_id2 = tofpet_c
+    min_ch2    = 390 # for tofpet 1
+    max_ch2    = 435 # for tofpet 1
 
-def select_evt_peak(df, det_plane=True):
-    df_filter = df.groupby(['evt_number', 'cluster']).filter(filter_evt_peak, dropna=True, det_plane=det_plane)
+    df0         = df[df.tofpet_id == tofpet_id0]
+    charge_max0 = df0.efine_norm.max()
+    is_this_evt_in_peak0 = (charge_max0 > min_ch0) & (charge_max0 < max_ch0)
+
+    df2         = df[df.tofpet_id == tofpet_id2]
+    charge_max2 = df2.efine_norm.max()
+    is_this_evt_in_peak2 = (charge_max2 > min_ch2) & (charge_max2 < max_ch2)
+
+    return is_this_evt_in_peak0 & is_this_evt_in_peak2
+
+def select_evt_both_peaks(df):
+    df_filter = df.groupby(['evt_number', 'cluster']).filter(filter_evt_both_peaks)
     return df_filter
-
 
 for i in range(start, start+numb):
     df0 = pd.DataFrame({})
@@ -130,8 +147,8 @@ for i in range(start, start+numb):
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
         df_coinc  = prf.compute_coincidences(df, evt_groupby=['evt_number', 'cluster'])
-        max_sns_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=True)
-        max_sns_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane_new, variable='efine_corrected', det_plane=False)
+        max_sns_all0 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane, variable='efine_corrected', det_plane=True)
+        max_sns_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane, variable='efine_corrected', det_plane=False)
         df_coinc['max_sns0'] = max_sns_all0[df_coinc.index].values
         df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
 
@@ -141,12 +158,9 @@ for i in range(start, start+numb):
         tmin_all2 = df_coinc.groupby(['evt_number', 'cluster']).apply(compute_tmin_per_plane, det_plane=False)
         df_coinc['tmin0'] = tmin_all0[df_coinc.index].values
         df_coinc['tmin2'] = tmin_all2[df_coinc.index].values
-        
-        df_peak0 = select_evt_peak(df_coinc, det_plane=True)
-        df_peak2 = select_evt_peak(df_coinc, det_plane=False)
 
-        df0 = pd.concat([df0, df_peak0], ignore_index=False, sort=False)
-        df0 = pd.concat([df0, df_peak2], ignore_index=False, sort=False)
+        df_peak = select_evt_both_peaks(df_coinc)
+        df0 = pd.concat([df0, df_peak], ignore_index=False, sort=False)
 
     out_file  = f'{out_path}/data_coinc_runII_ch_max_sns_norm_peak_tmin_R{run_no}_{i}_{i_key}.h5'
 
