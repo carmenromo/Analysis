@@ -74,8 +74,8 @@ df_coinc = prf.compute_coincidences(df_sns_resp_th2, evt_groupby)
 
 #df_coinc = df_sns_resp_th2
 ## Coincidences + max sns
-max_sns_all0 = df_coinc.apply(compute_max_sns_per_plane, variable='charge', det_plane=True)
-max_sns_all2 = df_coinc.apply(compute_max_sns_per_plane, variable='charge', det_plane=False)
+max_sns_all0 = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge', det_plane=True)
+max_sns_all2 = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge', det_plane=False)
 df_coinc['max_sns0'] = max_sns_all0[df_coinc.index].values
 df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
 
