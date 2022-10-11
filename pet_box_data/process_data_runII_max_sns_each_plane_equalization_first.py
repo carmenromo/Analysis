@@ -11,11 +11,9 @@ import data_taking_petalo_functions as pf
 
 print(datetime.datetime.now())
 
-arguments = pf.parse_args_n_keys_tofpets(sys.argv)
+arguments = pf.parse_args_tofpets(sys.argv)
 start     = arguments.first_file
 numb      = arguments.n_files
-i_key     = arguments.i_key
-n_key     = arguments.n_key
 run_no    = arguments.run_no
 tofpet_d  = arguments.tofpet_d
 tofpet_c  = arguments.tofpet_c
@@ -69,9 +67,8 @@ for i in range(start, start+numb):
     except OSError:
         print(f'Error with file {f}')
         continue
-    for key in store.keys()[i_key:i_key+n_key]:
+    for key in store.keys():
         df = store.get(key)
-
         df = df.drop(columns=['ct_data', 'ctdaq', 'tac_id', 'ecoarse', 'tfine', 'tcoarse_extended', 'tfine_corrected']) #Remove unused columns
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
