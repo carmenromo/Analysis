@@ -64,7 +64,7 @@ time_window    = 5000
 time           = np.arange(0, 5000)
 spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
-DataSiPM_pb     = db.DataSiPM('petalo', 0, 'PB')
+DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 reco_x1, reco_x2 = [], []

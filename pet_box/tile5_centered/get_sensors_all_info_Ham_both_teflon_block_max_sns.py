@@ -34,7 +34,7 @@ coinc_plane_4tiles = arguments.coinc_plane_4tiles
 thr = 2
 evt_file = f'{out_path}/get_sns_info_coinc_max_sns_teflon_block_coinc_fluct_thr{thr}_{start}_{numb}.h5'
 
-DataSiPM_pb     = db.DataSiPM('petalo', 0, 'PB')
+DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 def compute_max_sns_per_plane(df, variable='charge', det_plane=True):

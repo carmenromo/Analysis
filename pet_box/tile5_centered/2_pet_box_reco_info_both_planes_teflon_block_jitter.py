@@ -80,7 +80,7 @@ event_ids1 = []
 event_ids2 = []
 event_ids_times = []
 
-DataSiPM_pb     = db.DataSiPM('petalo', 0, 'PB')
+DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 for number in range(start, start+numb):
