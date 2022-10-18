@@ -12,6 +12,9 @@ import antea.elec.shaping_functions as shf
 import antea.reco.mctrue_functions  as mcf
 import antea.io  .mc_io             as mcio
 
+import antea.database.load_db              as db
+import antea.mcsim   .sensor_functions     as snsf
+
 from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
 
@@ -61,6 +64,8 @@ time_window    = 5000
 time           = np.arange(0, 5000)
 spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
+DataSiPM_pb     = db.DataSiPM('petalo', 0, 'PB')
+DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 reco_x1, reco_x2 = [], []
 reco_y1, reco_y2 = [], []
@@ -107,7 +112,8 @@ for number in range(start, start+numb):
         times = evt_tof.time_bin.values * tof_bin_size / units.ps
         evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
 
-        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
+        fluct_sns_response = snsf.apply_charge_fluctuation(evt_sns, DataSiPM_pb_idx)
+        evt_sns = rf.find_SiPMs_over_threshold(fluct_sns_response, threshold=th)
         if len(evt_sns) == 0:
             continue
 
@@ -177,7 +183,9 @@ for number in range(start, start+numb):
             evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
             try:
                 min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, ids1, ids2)
-            except:
+            except Exception as e:
+                print(e)
+                print("Function find_coincidence_timestamps fails, event = ", evt)
                 min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
             first_sipm1[k].append(min_id1)

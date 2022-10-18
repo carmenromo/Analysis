@@ -12,6 +12,9 @@ import antea.elec.shaping_functions as shf
 import antea.reco.mctrue_functions  as mcf
 import antea.io  .mc_io             as mcio
 
+import antea.database.load_db              as db
+import antea.mcsim   .sensor_functions     as snsf
+
 from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
 
@@ -77,6 +80,9 @@ event_ids1 = []
 event_ids2 = []
 event_ids_times = []
 
+DataSiPM_pb     = db.DataSiPM('petalo', 0, 'PB')
+DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
+
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
     filename = in_path + f'{file_name}.{number_str}.pet.h5'
@@ -94,8 +100,8 @@ for number in range(start, start+numb):
     mchits        = mcio.load_mchits           (filename)
     tof_response  = mcio.load_mcTOFsns_response(filename)
 
-    DataSiPM     = sns_positions.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
+    #DataSiPM     = sns_positions.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
+    #DataSiPM_idx = DataSiPM.set_index('SensorID')
 
     events = mcparticles.event_id.unique()
     th     = 2
@@ -112,14 +118,15 @@ for number in range(start, start+numb):
         else:
             evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
 
-        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
+        fluct_sns_response = snsf.apply_charge_fluctuation(evt_sns, DataSiPM_pb_idx)
+        evt_sns = rf.find_SiPMs_over_threshold(fluct_sns_response, threshold=th)
         if len(evt_sns) == 0:
             continue
 
         ids_over_thr = evt_sns.sensor_id.astype('int64').values
         evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
 
-        ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
+        ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_pb_idx, evt_sns)
         if len(qs1)==0 or len(qs2)==0:
             continue
 
