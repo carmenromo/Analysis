@@ -98,8 +98,8 @@ for number in range(start, start+numb):
     mchits        = mcio.load_mchits           (filename)
     tof_response  = mcio.load_mcTOFsns_response(filename)
 
-    DataSiPM     = sns_positions.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
+    #DataSiPM     = sns_positions.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
+    #DataSiPM_idx = DataSiPM.set_index('SensorID')
 
     events = mcparticles.event_id.unique()
     th     = 2
@@ -120,7 +120,7 @@ for number in range(start, start+numb):
         ids_over_thr = evt_sns.sensor_id.astype('int64').values
         evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
 
-        ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_idx, evt_sns)
+        ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_pb_idx, evt_sns)
         if len(qs1)==0 or len(qs2)==0:
             continue
 
