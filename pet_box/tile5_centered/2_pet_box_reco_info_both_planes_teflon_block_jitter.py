@@ -194,12 +194,12 @@ for number in range(start, start+numb):
             except Exception as e:
                 print(e)
                 print("Function find_coincidence_timestamps fails, event = ", evt)
-                min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
+                min_id1, min_id2, min_t1, min_t2 = [-1], [-1], -1, -1
 
-            first_sipm1[k].append(min_id1)
+            first_sipm1[k].append(min_id1[0])
             first_time1[k].append(min_t1)
 
-            first_sipm2[k].append(min_id2)
+            first_sipm2[k].append(min_id2[0])
             first_time2[k].append(min_t2)
         event_ids_times.append(evt)
 
