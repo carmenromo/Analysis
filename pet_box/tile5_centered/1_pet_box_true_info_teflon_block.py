@@ -8,10 +8,11 @@ import datetime
 
 #import pet_box_functions as pbf
 
-import antea.reco.reco_functions   as rf
-import antea.reco.mctrue_functions as mcf
-
-import antea.io.mc_io as mcio
+import antea.database.load_db          as db
+import antea.reco    .reco_functions   as rf
+import antea.reco    .mctrue_functions as mcf
+import antea.mcsim   .sensor_functions as snsf
+import antea.io      .mc_io            as mcio
 
 """ To run this script
 python 1_pet_box_build_z_map_both_planes.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/
@@ -49,6 +50,9 @@ ids2      = []
 #                     33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
 evt_file   = f'{out_path}/pet_box_true_info_teflon_block_fluct_{start}_{numb}'
+
+DataSiPM_pb     = db.DataSiPM('petalo', 12406, 'PB')
+DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
