@@ -48,7 +48,7 @@ ids2      = []
 #int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
 #                     33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
-evt_file   = f'{out_path}/pet_box_true_info_teflon_block_simple_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_true_info_teflon_block_fluct_{start}_{numb}'
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
@@ -71,22 +71,23 @@ for number in range(start, start+numb):
         evt_hits  = mchits      [mchits      .event_id == evt]
 
         th = 2
-        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=th)
+        fluct_evt_sns = snsf.apply_charge_fluctuation(evt_sns, DataSiPM_pb_idx)
+        fluct_evt_sns = rf.find_SiPMs_over_threshold(fluct_evt_sns, threshold=th)
 
         phot, true_pos_phot = mcf.select_photoelectric(evt_parts, evt_hits)
 
         if phot:
             for pos in true_pos_phot:
-                if pos[2]<0 and len(evt_sns.charge.values[evt_sns.sensor_id.values<100]):
+                if pos[2]<0 and len(fluct_evt_sns.charge.values[fluct_evt_sns.sensor_id.values<100]):
                     true_pos1.append(pos)
                     events1  .append(evt)
-                    charges1 .append(evt_sns.charge   .values[evt_sns.sensor_id.values<100])
-                    ids1     .append(evt_sns.sensor_id.values[evt_sns.sensor_id.values<100])
-                elif pos[2]>0 and len(evt_sns.charge.values[evt_sns.sensor_id.values>100]):
+                    charges1 .append(fluct_evt_sns.charge   .values[fluct_evt_sns.sensor_id.values<100])
+                    ids1     .append(fluct_evt_sns.sensor_id.values[fluct_evt_sns.sensor_id.values<100])
+                elif pos[2]>0 and len(fluct_evt_sns.charge.values[fluct_evt_sns.sensor_id.values>100]):
                     true_pos2.append(pos)
                     events2  .append(evt)
-                    charges2 .append(evt_sns.charge   .values[evt_sns.sensor_id.values>100])
-                    ids2     .append(evt_sns.sensor_id.values[evt_sns.sensor_id.values>100])
+                    charges2 .append(fluct_evt_sns.charge   .values[fluct_evt_sns.sensor_id.values>100])
+                    ids2     .append(fluct_evt_sns.sensor_id.values[fluct_evt_sns.sensor_id.values>100])
 
 true_pos1_a = np.array(true_pos1)
 true_pos2_a = np.array(true_pos2)
