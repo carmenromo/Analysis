@@ -80,7 +80,7 @@ event_ids1 = []
 event_ids2 = []
 event_ids_times = []
 
-DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
+DataSiPM_pb     = db.DataSiPM('petalo', 12406, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 for number in range(start, start+numb):
@@ -93,23 +93,18 @@ for number in range(start, start+numb):
         continue
     #print(f'file {number}')
 
-    tof_bin_size = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
-
+    tof_bin_size  = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
     sns_positions = mcio.load_sns_positions    (filename)
-    mcparticles   = mcio.load_mcparticles      (filename)
-    mchits        = mcio.load_mchits           (filename)
     tof_response  = mcio.load_mcTOFsns_response(filename)
 
     #DataSiPM     = sns_positions.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
     #DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-    events = mcparticles.event_id.unique()
+    events = sns_response.event_id.unique()
     th     = 2
     for evt in events:
-        evt_sns   = sns_response[sns_response.event_id == evt]
-        evt_parts = mcparticles [mcparticles .event_id == evt]
-        evt_hits  = mchits      [mchits      .event_id == evt]
-        evt_tof   = tof_response[tof_response.event_id == evt]
+        evt_sns = sns_response[sns_response.event_id == evt]
+        evt_tof = tof_response[tof_response.event_id == evt]
 
         times = evt_tof.time_bin.values * tof_bin_size / units.ps
         ## INTRINSIC SIPM FLUCTUATIONS
