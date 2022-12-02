@@ -28,9 +28,9 @@ def parse_args(args):
     parser.add_argument('data_path'  ,             help = "output files path"          )
     return parser.parse_args()
 
-def load_sens_pos(file_name):
-    sens_pos = pd.read_hdf(file_name, 'MC/sensor_positions')
-    return sens_pos
+#def load_sens_pos(file_name):
+#    sens_pos = pd.read_hdf(file_name, 'MC/sensor_positions')
+#    return sens_pos
 
 arguments  = parse_args(sys.argv)
 start      = arguments.first_file
@@ -40,7 +40,7 @@ eventsPath = arguments.events_path
 file_name  = arguments.file_name
 data_path  = arguments.data_path
 
-evt_file  = f"{data_path}/full_body_r_map_{start}_{numb}_{threshold}"
+evt_file  = f"{data_path}/full_body_r_map_fluct_ch_{start}_{numb}_{threshold}"
 
 true_r1, true_r2   = [], []
 var_phi1, var_phi2 = [], []
@@ -54,8 +54,9 @@ charges1, charges2 = [], []
 touched_sipms1, touched_sipms2 = [], []
 
 for number in range(start, start+numb):
-    number_str = "{:03d}".format(number)
-    filename  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
+    #number_str = "{:03d}".format(number)
+    #filename  = f"{eventsPath}/{file_name}.{number_str}.pet.h5"
+    filename  = f"{eventsPath}/{file_name}.{number}.h5"
     try:
         sns_response = load_mcsns_response(filename)
     except ValueError:
@@ -84,7 +85,7 @@ for number in range(start, start+numb):
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
-        select, true_pos = rf2.true_photoelect(evt_parts, evt_hits)
+        select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits) #rf2.true_photoelect(evt_parts, evt_hits)
         if not select: continue
 
         sns_resp = fluct_sns_response[fluct_sns_response.event_id == evt]
