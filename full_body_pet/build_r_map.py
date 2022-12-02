@@ -7,6 +7,7 @@ import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 import reco_functions              as rf2
+import antea.mcsim.sensor_functions as snsf
 
 from antea.io.mc_io import load_mcsns_response
 from antea.io.mc_io import load_mchits
