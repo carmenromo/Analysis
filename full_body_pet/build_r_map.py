@@ -15,8 +15,8 @@ from antea.io.mc_io import load_mcparticles
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
-#DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
-#DataSiPM_idx = DataSiPM.set_index('SensorID')
+DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
+DataSiPM_idx = DataSiPM.set_index('SensorID')
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
@@ -49,6 +49,7 @@ mean_phi1, mean_phi2 = [], []
 mean_z1, mean_z2     = [], []
 
 evt_ids, num_phot_evts = [], []
+charges1, charges2 = [], []
 
 touched_sipms1, touched_sipms2 = [], []
 
@@ -69,14 +70,15 @@ for number in range(start, start+numb):
     print(f'Analyzing file {filename}')
 
     sel_df = rf.find_SiPMs_over_threshold(sns_response, threshold)
+    fluct_sns_response = snsf.apply_charge_fluctuation(sel_df, DataSiPM_idx)
 
     particles = load_mcparticles(filename)
     hits      = load_mchits     (filename)
     events    = particles.event_id.unique()
 
-    DataSiPM     = load_sens_pos(filename)
-    DataSiPM     = DataSiPM.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
+    #DataSiPM     = load_sens_pos(filename)
+    #DataSiPM     = DataSiPM.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
+    #DataSiPM_idx = DataSiPM.set_index('SensorID')
 
     for evt in events:
         ### Select photoelectric events only
@@ -85,7 +87,7 @@ for number in range(start, start+numb):
         select, true_pos = rf2.true_photoelect(evt_parts, evt_hits)
         if not select: continue
 
-        sns_resp = sel_df[sel_df.event_id == evt]
+        sns_resp = fluct_sns_response[fluct_sns_response.event_id == evt]
         if len(sns_resp) == 0: continue
 
         _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_resp, true_pos, DataSiPM_idx)
@@ -109,7 +111,7 @@ for number in range(start, start+numb):
             touched_sipms1.append(len(pos1))
             mean_phi1     .append(mean_phi)
             mean_z1       .append(mean_z)
-        
+            charges1      .append(sum(q1))
         
         else:
             var_phi1      .append(1.e9)
@@ -118,6 +120,7 @@ for number in range(start, start+numb):
             true_r1       .append(1.e9)
             mean_phi1     .append(1.e9)
             mean_z1       .append(1.e9)
+            charges1      .append(1.e9)
 
         if len(pos2) > 0:
             pos_phi    = rf.from_cartesian_to_cyl(np.array(pos2))[:,1]
@@ -135,6 +138,7 @@ for number in range(start, start+numb):
             touched_sipms2.append(len(pos2))
             mean_phi2     .append(mean_phi)
             mean_z2       .append(mean_z)
+            charges2      .append(sum(q2))
         else:
             var_phi2      .append(1.e9)
             var_z2        .append(1.e9)
@@ -142,6 +146,7 @@ for number in range(start, start+numb):
             true_r2       .append(1.e9)
             mean_phi2     .append(1.e9)
             mean_z2       .append(1.e9)
+            charges2      .append(1.e9)
 
 a_true_r1   = np.array(true_r1)
 a_true_r2   = np.array(true_r2)
@@ -154,6 +159,9 @@ a_mean_z2   = np.array(mean_z2)
 a_var_z1    = np.array(var_z1)
 a_var_z2    = np.array(var_z2)
 
+a_charges1 = np.array(charges1)
+a_charges2 = np.array(charges2)
+
 a_evt_ids       = np.array(evt_ids)
 a_num_phot_evts = np.array(num_phot_evts)
 
@@ -163,6 +171,7 @@ a_touched_sipms2 = np.array(touched_sipms2)
 np.savez(evt_file, true_r1=a_true_r1, true_r2=a_true_r2, 
 var_phi1=a_var_phi1, var_phi2=a_var_phi2, 
 var_z1=a_var_z1, var_z2=a_var_z2, 
+charges1=a_charges1, charges2=a_charges2,
 mean_phi1=a_mean_phi1, mean_phi2=a_mean_phi2, mean_z1=a_mean_z1, mean_z2=a_mean_z2,
 evt_ids=a_evt_ids, num_phot_evts=a_num_phot_evts,
 touched_sipms1=a_touched_sipms1, touched_sipms2=a_touched_sipms2)
