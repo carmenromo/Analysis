@@ -1,4 +1,5 @@
 import sys
+import argparse
 import numpy  as np
 import pandas as pd
 
@@ -8,6 +9,8 @@ import antea.database.load_db       as db
 import antea.reco.reco_functions    as rf
 import antea.reco.mctrue_functions  as mcf
 import antea.mcsim.sensor_functions as snsf
+
+from antea.io.mc_io import load_mcsns_response
 
 def charge_fluctuation(signal, single_pe_rms):
     """Simulate the fluctuation of the pe before noise addition
@@ -84,10 +87,7 @@ print(f'Using database {label}')
 DataSiPM     = db.DataSiPMsim_only('petalo', 0, label)
 DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-folder = '/home/paolafer/sim/full-body-wires-3cm/'
-file_full = folder + 'full_body_wires_3cm.{0}.h5' #{0:03d}
-evt_file = f'/home/paolafer/analysis/full-body-wires-3cm/e_map/full_body_wires_3cm_e_map.{start}_{numb}_qthr{thr_e}_phithr{thr_phi}'
-
+evt_file = f'{data_path}/full_body_3cm_e_map.{start}_{numb}_qthr{thr_e}_phithr{thr_phi}'
 
 phi_sigmas1,    phi_sigmas2    = [], []
 touched_sipms1, touched_sipms2 = [], []
