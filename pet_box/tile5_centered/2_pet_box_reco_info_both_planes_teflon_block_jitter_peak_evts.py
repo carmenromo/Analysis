@@ -122,8 +122,8 @@ for number in range(start, start+numb):
         evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
 
         ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_pb_idx, evt_sns)
-        # if len(qs1)==0 or len(qs2)==0:
-        #     continue
+        if len(qs1)==0 or len(qs2)==0:
+            continue
         if max(qs1) < 4000 or max(qs2) < 4000:
             continue
 
