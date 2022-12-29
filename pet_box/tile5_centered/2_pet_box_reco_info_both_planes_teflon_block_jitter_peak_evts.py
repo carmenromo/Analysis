@@ -91,6 +91,9 @@ for number in range(start, start+numb):
     except OSError:
         print(f'File {filename} does not exist')
         continue
+    except KeyError:
+        print(f'File {filename} KeyError')
+        continue
     #print(f'file {number}')
 
     tof_bin_size  = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
