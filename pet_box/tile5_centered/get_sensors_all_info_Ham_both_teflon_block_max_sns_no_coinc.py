@@ -38,10 +38,10 @@ DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 def compute_max_sns_per_plane(df, variable='charge', det_plane=True):
-    if det_plane:
-        df = df[df.tofpet_id == 0]
-    else:
-        df = df[df.tofpet_id == 2]
+    # if det_plane:
+    #     df = df[df.tofpet_id == 0]
+    # else:
+    #     df = df[df.tofpet_id == 2]
     argmax = df[variable].argmax()
     return df.iloc[argmax].sensor_id
 
@@ -65,7 +65,7 @@ df_sns_resp_th2    = rf  .find_SiPMs_over_threshold(fluct_sns_response, thr)
 
 df_sns_resp_th2['tofpet_id'] = df_sns_resp_th2['sensor_id'].apply(prf.tofpetid)
 
-evt_groupby = ['event_id']
+evt_groupby = ['event_id', 'tofpet_id']
 variable    = 'charge'
 tot_mode    = False
 
