@@ -34,8 +34,15 @@ coinc_plane_4tiles = arguments.coinc_plane_4tiles
 thr = 2
 evt_file = f'{out_path}/get_sns_info_coinc_max_sns_teflon_block_NO_coinc_fluct_thr{thr}_{start}_{numb}.h5'
 
-DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
+DataSiPM_pb     = db.DataSiPM('petalo', 12406, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
+
+def compute_no_coincidences(df, evt_groupby):
+    nplanes  = df.groupby(evt_groupby)['tofpet_id'].nunique()
+    df_idx   = df.set_index(evt_groupby)
+    #df_coinc = df_idx.loc[nplanes[nplanes == 2].index]
+    return df_idx
+
 
 def compute_max_sns_per_plane(df, variable='charge'):
     # if det_plane:
@@ -69,15 +76,11 @@ evt_groupby = ['event_id', 'tofpet_id']
 variable    = 'charge'
 tot_mode    = False
 
-## Coincidences:
-#df_coinc = prf.compute_coincidences(df_sns_resp_th2, evt_groupby)
+## NO Coincidences:
+df_coinc = compute_no_coincidences(df_sns_resp_th2, evt_groupby)
 
-df_coinc = df_sns_resp_th2
-## Coincidences + max sns
 max_sns_all = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge')
-#max_sns_all2 = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge', det_plane=False)
 df_coinc['max_sns'] = max_sns_all[df_coinc.index].values
-#df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
 
 df_coinc = df_coinc.reset_index()
 
@@ -85,8 +88,7 @@ df_coinc = df_coinc.astype({'event_id':  'int32',
                             'sensor_id': 'int32',
                             'charge':    'int32',
                             'tofpet_id': 'int32',
-                            'max_sns0': 'int32',
-                            'max_sns2': 'int32'})
+                            'max_sns': 'int32'})
 
 store = pd.HDFStore(evt_file, "w", complib=str("zlib"), complevel=4)
 store.put('data', df_coinc, format='table', data_columns=True)
