@@ -37,7 +37,7 @@ evt_file = f'{out_path}/get_sns_info_coinc_max_sns_teflon_block_NO_coinc_fluct_t
 DataSiPM_pb     = db.DataSiPM('petalo', 11400, 'PB')
 DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
-def compute_max_sns_per_plane(df, variable='charge', det_plane=True):
+def compute_max_sns_per_plane(df, variable='charge'):
     # if det_plane:
     #     df = df[df.tofpet_id == 0]
     # else:
@@ -74,10 +74,10 @@ tot_mode    = False
 
 df_coinc = df_sns_resp_th2
 ## Coincidences + max sns
-max_sns_all0 = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge', det_plane=True)
-max_sns_all2 = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge', det_plane=False)
-df_coinc['max_sns0'] = max_sns_all0[df_coinc.index].values
-df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
+max_sns_all = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge')
+#max_sns_all2 = df_coinc.groupby(evt_groupby).apply(compute_max_sns_per_plane, variable='charge', det_plane=False)
+df_coinc['max_sns'] = max_sns_all[df_coinc.index].values
+#df_coinc['max_sns2'] = max_sns_all2[df_coinc.index].values
 
 df_coinc = df_coinc.reset_index()
 
