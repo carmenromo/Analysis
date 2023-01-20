@@ -48,7 +48,7 @@ for i in range(start, start+numb):
     except OSError:
         print(f'Error with file {f}')
         continue
-    for key in store.keys():
+    for key in store.keys()[:10]:
         df = store.get(key)
         df = df[df.cluster != -1] ## Filtering events with only one sensor
 
@@ -59,7 +59,8 @@ for i in range(start, start+numb):
         max_sns_all2 = df_coinc2.groupby(['evt_number', 'cluster']).apply(compute_max_sns_per_plane, variable='efine_corrected', det_plane=False)
         df_coinc0['max_sns0'] = max_sns_all0[df_coinc0.index].values
         df_coinc2['max_sns2'] = max_sns_all2[df_coinc2.index].values
-        df0 = pd.concat([df_coinc0, df_coinc2], ignore_index=False, sort=False)
+        df0 = pd.concat([df0, df_coinc0], ignore_index=False, sort=False)
+        df0 = pd.concat([df0, df_coinc2], ignore_index=False, sort=False)
 
     out_file  = f'{out_path}/data_NO_coinc_runII_ch_max_sns_R{run_no}_{i}.h5'
 
