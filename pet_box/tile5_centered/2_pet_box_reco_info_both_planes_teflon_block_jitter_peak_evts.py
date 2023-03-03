@@ -101,7 +101,7 @@ for number in range(start, start+numb):
         continue
     #print(f'file {number}')
 
-    tof_bin_size  = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
+    #tof_bin_size  = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
     sns_positions = mcio.load_sns_positions    (filename)
     tof_response  = mcio.load_mcTOFsns_response(filename)
 
@@ -114,12 +114,18 @@ for number in range(start, start+numb):
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_tof = tof_response[tof_response.event_id == evt]
 
-        times = evt_tof.time_bin.values * tof_bin_size / units.ps
+        #times = evt_tof.time_bin.values * tof_bin_size / units.ps
+        times = evt_tof.time / units.ps
         ## INTRINSIC SIPM FLUCTUATIONS
-        if sigma_sipm != 0:
-            evt_tof.insert(len(evt_tof.columns), 'time', np.round(np.random.normal(times, sigma_sipm)).astype(int))
-        else:
-            evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+        if sigma_sipm > 0:
+            times = np.round(np.random.normal(times, sigma_sipm))
+        #     evt_tof.insert(len(evt_tof.columns), 'time', np.round(np.random.normal(times, sigma_sipm)).astype(int))
+        # else:
+        #     evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+
+        evt_tof = evt_tof.drop('time', axis=1) # drop original time
+        evt_tof.insert(len(evt_tof.columns), 'time', np.round(times)) # round to 1 ps
+        evt_tof.insert(len(evt_tof.columns), 'charge', np.ones(len(times)).astype(int)) # add 1 unit of charge per time
 
         fluct_sns_response = snsf.apply_charge_fluctuation(evt_sns, DataSiPM_pb_idx)
         evt_sns = rf.find_SiPMs_over_threshold(fluct_sns_response, threshold=th)
@@ -127,7 +133,8 @@ for number in range(start, start+numb):
             continue
 
         ids_over_thr = evt_sns.sensor_id.astype('int64').values
-        evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
+        #evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
+        evt_tof      = evt_tof[evt_tof.sensor_id.isin(evt_sns.sensor_id)]
 
         ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_pb_idx, evt_sns)
         if len(qs1)==0 or len(qs2)==0:
@@ -189,6 +196,7 @@ for number in range(start, start+numb):
             if sigma_elec != 0:
                 tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
             evt_tof_exp_dist.append(tdc_conv_df)
+
         if len(evt_tof_exp_dist) == 0:
             continue
         else:
