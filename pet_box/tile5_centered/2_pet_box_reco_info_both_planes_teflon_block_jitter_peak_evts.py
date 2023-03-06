@@ -29,8 +29,6 @@ def parse_args(args):
     parser.add_argument('n_files'   , type = int, help = "number of files to analize")
     parser.add_argument('in_path'   ,             help = "input files path"          )
     parser.add_argument('file_name' ,             help = "name of input files"       )
-    parser.add_argument('peak_min'  , type = int, help = "Minimum of photopeak"      )
-    parser.add_argument('peak_max'  , type = int, help = "Maximum of photopeak"      )
     parser.add_argument('out_name' ,              help = "name of output files"      )
     parser.add_argument('out_path'  ,             help = "output files path"         )
     return parser.parse_args()
@@ -43,15 +41,13 @@ in_path       = arguments.in_path
 file_name     = arguments.file_name
 #zpos_file     = arguments.zpos_file
 #zpos_file2    = arguments.zpos_file2
-peak_min      = arguments.peak_min
-peak_max      = arguments.peak_max
 out_name      = arguments.out_name
 out_path      = arguments.out_path
 
 # int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
 #                      33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
-evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_fluct_jitter_peak_evts_{peak_min}_{peak_max}_{out_name}_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_fluct_jitter_peak_evts_{out_name}_{start}_{numb}'
 
 # Zpos = load_map(zpos_file, group="Zpos",
 #                             node=f"f2pes200bins",
@@ -89,8 +85,7 @@ DataSiPM_pb_idx = DataSiPM_pb.set_index('SensorID')
 
 for number in range(start, start+numb):
     number_str = "{:03d}".format(number)
-    #filename = in_path + f'{file_name}.{number_str}.pet.h5'
-    filename = in_path + f'{file_name}.{number}.h5'
+    filename = in_path + f'{file_name}.{number_str}.pet.h5'
     try:
         sns_response = mcio.load_mcsns_response(filename)
     except OSError:
@@ -101,7 +96,7 @@ for number in range(start, start+numb):
         continue
     #print(f'file {number}')
 
-    #tof_bin_size  = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
+    tof_bin_size  = mcio.read_sensor_bin_width_from_conf(filename, tof=True)
     sns_positions = mcio.load_sns_positions    (filename)
     tof_response  = mcio.load_mcTOFsns_response(filename)
 
@@ -114,18 +109,12 @@ for number in range(start, start+numb):
         evt_sns = sns_response[sns_response.event_id == evt]
         evt_tof = tof_response[tof_response.event_id == evt]
 
-        #times = evt_tof.time_bin.values * tof_bin_size / units.ps
-        times = evt_tof.time / units.ps
+        times = evt_tof.time_bin.values * tof_bin_size / units.ps
         ## INTRINSIC SIPM FLUCTUATIONS
-        if sigma_sipm > 0:
-            times = np.round(np.random.normal(times, sigma_sipm))
-        #     evt_tof.insert(len(evt_tof.columns), 'time', np.round(np.random.normal(times, sigma_sipm)).astype(int))
-        # else:
-        #     evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
-
-        evt_tof = evt_tof.drop('time', axis=1) # drop original time
-        evt_tof.insert(len(evt_tof.columns), 'time', np.round(times)) # round to 1 ps
-        evt_tof.insert(len(evt_tof.columns), 'charge', np.ones(len(times)).astype(int)) # add 1 unit of charge per time
+        if sigma_sipm != 0:
+            evt_tof.insert(len(evt_tof.columns), 'time', np.round(np.random.normal(times, sigma_sipm)).astype(int))
+        else:
+            evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
 
         fluct_sns_response = snsf.apply_charge_fluctuation(evt_sns, DataSiPM_pb_idx)
         evt_sns = rf.find_SiPMs_over_threshold(fluct_sns_response, threshold=th)
@@ -133,15 +122,12 @@ for number in range(start, start+numb):
             continue
 
         ids_over_thr = evt_sns.sensor_id.astype('int64').values
-        #evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
-        evt_tof      = evt_tof[evt_tof.sensor_id.isin(evt_sns.sensor_id)]
+        evt_tof      = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
 
         ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_pb_idx, evt_sns)
         if len(qs1)==0 or len(qs2)==0:
             continue
-        if max(qs1) < peak_min or max(qs2) < peak_min:
-            continue
-        if max(qs1) > peak_min or max(qs2) > peak_min:
+        if max(qs1) < 4000 or max(qs2) < 4000:
             continue
 
         # max_charge_s_id       = ids1[np.argmax(qs1)]
@@ -162,8 +148,8 @@ for number in range(start, start+numb):
 
         reco_x1.append(mean_x1)
         reco_y1.append(mean_y1)
-        #reco_z1.append(-53.25)
-        reco_z1.append(-36.65)
+        reco_z1.append(-53.25)
+
         event_ids1.append(evt)
 
 
@@ -182,8 +168,7 @@ for number in range(start, start+numb):
 
         reco_x2.append(mean_x2)
         reco_y2.append(mean_y2)
-        #reco_z2.append(53.25)
-        reco_z2.append(36.65)
+        reco_z2.append(53.25)
 
         event_ids2.append(evt)
 
@@ -196,7 +181,6 @@ for number in range(start, start+numb):
             if sigma_elec != 0:
                 tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
             evt_tof_exp_dist.append(tdc_conv_df)
-
         if len(evt_tof_exp_dist) == 0:
             continue
         else:
