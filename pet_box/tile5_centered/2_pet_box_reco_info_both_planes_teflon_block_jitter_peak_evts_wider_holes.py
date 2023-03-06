@@ -29,11 +29,89 @@ def parse_args(args):
     parser.add_argument('n_files'   , type = int, help = "number of files to analize")
     parser.add_argument('in_path'   ,             help = "input files path"          )
     parser.add_argument('file_name' ,             help = "name of input files"       )
+    parser.add_argument('group'     , type = int, help = "Sensors grouped"           )
     parser.add_argument('peak_min'  , type = int, help = "Minimum of photopeak"      )
     parser.add_argument('peak_max'  , type = int, help = "Maximum of photopeak"      )
     parser.add_argument('out_name' ,              help = "name of output files"      )
     parser.add_argument('out_path'  ,             help = "output files path"         )
     return parser.parse_args()
+
+tile1 = np.array([11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34, 41, 42, 43, 44])
+tile2 = tile1  + 4
+tile3 = tile1  + 40
+tile4 = tile1  + 44
+
+tile1_3 = np.array([11, 12, 13, 21, 22, 23, 31, 32, 33])
+tile2_3 = tile1_3  + 4
+tile3_3 = tile1_3  + 40
+tile4_3 = tile1_3  + 44
+
+tile1_6 = np.array([11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36,
+                    41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 61, 62, 63, 64, 65, 66])
+
+def sns_groups(s_id, group=2):
+    unit = s_id% 10
+    decen = (s_id// 10)%10
+    if s_id < 100:
+        sum_val = 0
+    else:
+        sum_val = 100
+    if group==2:
+        if decen %2 != 0:
+            if unit%2 != 0:
+                return [s_id, s_id+1, s_id+10, s_id+11]
+            else:
+                return [s_id, s_id-1, s_id+9, s_id+10]
+        else:
+            if unit%2 != 0:
+                return [s_id, s_id+1, s_id-10, s_id-9]
+            else:
+                return [s_id, s_id-1, s_id-10, s_id-11]
+    elif group==4:
+        if unit > 4:
+            if decen > 4:
+                tile = list(tile4 + sum_val)
+            else:
+                tile = list(tile2 + sum_val)
+        else:
+            if decen > 4:
+                tile = list(tile3 + sum_val)
+            else:
+                tile = list(tile1 + sum_val)
+        return tile
+
+    elif group==3:
+        if unit > 4:
+            if decen > 4:
+                tile = list(tile4_3 + sum_val)
+            else:
+                tile = list(tile2_3 + sum_val)
+        else:
+            if decen > 4:
+                tile = list(tile3_3 + sum_val)
+            else:
+                tile = list(tile1_3 + sum_val)
+        return tile
+
+    elif group==6:
+        tile = list(tile1_6 + sum_val)
+        return tile
+
+
+def charge_grouped_sensors(ids, charges, group):
+    max_id     = ids[np.argmax(charges)]
+    group_of_4 = sns_groups(max_id, group)
+    indexes    = []
+    for s_id in group_of_4:
+        try:
+            indexes.append(np.where(ids == s_id)[0][0])
+        except:
+            continue
+    if len(indexes) == 0:
+        return 0
+    return np.sum(charges[indexes])
+
+
 print(datetime.datetime.now())
 
 arguments     = parse_args(sys.argv)
@@ -41,6 +119,7 @@ start         = arguments.first_file
 numb          = arguments.n_files
 in_path       = arguments.in_path
 file_name     = arguments.file_name
+group         = arguments.group
 #zpos_file     = arguments.zpos_file
 #zpos_file2    = arguments.zpos_file2
 peak_min      = arguments.peak_min
@@ -51,7 +130,7 @@ out_path      = arguments.out_path
 # int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
 #                      33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
-evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_both_planes_fluct_jitter_peak_evts_{peak_min}_{peak_max}_{out_name}_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_fluct_wider_{group}x{group}_jitter_peak_evts_{peak_min}_{peak_max}_{out_name}_{start}_{numb}'
 
 # Zpos = load_map(zpos_file, group="Zpos",
 #                             node=f"f2pes200bins",
@@ -76,6 +155,7 @@ reco_z1, reco_z2 = [], []
 
 sns_resp1, sns_resp2 = [], []
 max_resp1, max_resp2 = [], []
+sns_resp_gr1, sns_resp_gr2 = [], []
 
 first_sipm1, first_sipm2 = [[] for i in range(len(timestamp_thr))], [[] for i in range(len(timestamp_thr))]
 first_time1, first_time2 = [[] for i in range(len(timestamp_thr))], [[] for i in range(len(timestamp_thr))]
@@ -137,11 +217,16 @@ for number in range(start, start+numb):
         evt_tof      = evt_tof[evt_tof.sensor_id.isin(evt_sns.sensor_id)]
 
         ids1, pos1, qs1, ids2, pos2, qs2 = pbf.info_from_the_tiles(DataSiPM_pb_idx, evt_sns)
+
         if len(qs1)==0 or len(qs2)==0:
             continue
-        if max(qs1) < peak_min or max(qs2) < peak_min:
+
+        max_ch_group1 = charge_grouped_sensors(ids1, qs1, group)
+        max_ch_group2 = charge_grouped_sensors(ids2, qs2, group)
+
+        if max_ch_group1 < peak_min or max_ch_group2 < peak_min:
             continue
-        if max(qs1) > peak_max or max(qs2) > peak_max:
+        if max_ch_group1 > peak_max or max_ch_group2 > peak_max:
             continue
 
         print(f'Passed event: {evt}')
@@ -152,6 +237,7 @@ for number in range(start, start+numb):
         # if (max_charge_s_id in int_area) and (max_charge_s_id_tile5 in int_area+100):
         sns_resp1.append(sum(qs1))
         max_resp1.append(max(qs1))
+        sns_resp_gr1.append(max_ch_group1)
 
         pos_xs1 = np.array(pos1.T[0])
         mean_x1 = np.average(pos_xs1, weights=qs1)
@@ -171,6 +257,7 @@ for number in range(start, start+numb):
 
         sns_resp2.append(sum(qs2))
         max_resp2.append(max(qs2))
+        sns_resp_gr2.append(max_ch_group2)
 
         pos_xs2 = np.array(pos2.T[0])
         mean_x2 = np.average(pos_xs2, weights=qs2)
@@ -208,13 +295,12 @@ for number in range(start, start+numb):
         for k, th in enumerate(timestamp_thr):
             evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, ids1, ids2)
-            print(evt_tof_exp_dist)
-            # try:
-            #     min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, ids1, ids2)
-            # except Exception as e:
-            #     print(e)
-            #     print("Function find_coincidence_timestamps fails, event = ", evt)
-            #     min_id1, min_id2, min_t1, min_t2 = [-1], [-1], -1, -1
+            try:
+                min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, ids1, ids2)
+            except Exception as e:
+                print(e)
+                print("Function find_coincidence_timestamps fails, event = ", evt)
+                min_id1, min_id2, min_t1, min_t2 = [-1], [-1], -1, -1
 
             first_sipm1[k].append(min_id1[0])
             first_time1[k].append(min_t1)
@@ -236,6 +322,9 @@ sns_resp2 = np.array(sns_resp2)
 max_resp1 = np.array(max_resp1)
 max_resp2 = np.array(max_resp2)
 
+sns_resp_gr1 = np.array(sns_resp_gr1)
+sns_resp_gr2 = np.array(sns_resp_gr2)
+
 event_ids1 = np.array(event_ids1)
 event_ids2 = np.array(event_ids2)
 event_ids_times = np.array(event_ids_times)
@@ -247,6 +336,7 @@ first_time2 = np.array([np.array(i) for i in first_time2])
 
 np.savez(evt_file, reco_x1=reco_x1, reco_x2=reco_x2, reco_y1=reco_y1, reco_y2=reco_y2, reco_z1=reco_z1, reco_z2=reco_z2,
                    sns_resp1=sns_resp1, sns_resp2=sns_resp2, max_resp1=max_resp1, max_resp2=max_resp2,
+                   sns_resp_gr1=sns_resp_gr1, sns_resp_gr2=sns_resp_gr2,
                    event_ids1=event_ids1, event_ids2=event_ids2, event_ids_times=event_ids_times,
                    first_sipm1_0=first_sipm1[0], first_sipm2_0=first_sipm2[0], first_time1_0=first_time1[0], first_time2_0=first_time2[0],
                    first_sipm1_1=first_sipm1[1], first_sipm2_1=first_sipm2[1], first_time1_1=first_time1[1], first_time2_1=first_time2[1],
