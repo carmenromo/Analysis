@@ -130,7 +130,7 @@ out_path      = arguments.out_path
 # int_area = np.array([22, 23, 24, 25, 26, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 73, 74, 75, 76, 77,
 #                      33, 34, 35, 36, 43, 46, 53, 56, 63, 64, 65, 66, 44, 45, 54, 55])
 
-evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_fluct_wider_{group}x{group}_jitter_peak_evts_{peak_min}_{peak_max}_{out_name}_{start}_{numb}'
+evt_file   = f'{out_path}/pet_box_reco_info_HamVUV_fluct_jitter_peak_evts_{out_name}_{group}x{group}_{peak_min}_{peak_max}_{start}_{numb}'
 
 # Zpos = load_map(zpos_file, group="Zpos",
 #                             node=f"f2pes200bins",
