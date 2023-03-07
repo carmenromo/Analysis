@@ -147,13 +147,13 @@ def find_first_interactions_in_active(particles, hits, photo_range=1, petit=Fals
     ### Calculate the minimum time among the hits of a given primary gamma,
     ### if any.
     if len(hits[hits.particle_id == id1]) > 0:
-        g_pos1, g_min_t1 = part_first_hit(hits, id1)
+        g_pos1, g_min_t1 = rf.part_first_hit(hits, id1)
         if g_min_t1 < min_t1:
             min_t1     = g_min_t1
             gamma_pos1 = g_pos1
 
     if len(hits[hits.particle_id == id2]) > 0:
-        g_pos2, g_min_t2 = part_first_hit(hits, id2)
+        g_pos2, g_min_t2 = rf.part_first_hit(hits, id2)
         if g_min_t2 < min_t2:
             min_t2     = g_min_t2
             gamma_pos2 = g_pos2
@@ -299,6 +299,8 @@ for number in range(start, start+numb):
             continue
 
         true_pos1, true_pos2, t_t1, t_t2, _, _ = find_first_interactions_in_active(evt_part, evt_hits, petit=True)
+        if len(true_pos1)==0 or len(true_pos2)==0:
+            continue
 
         max_ch_group1 = charge_grouped_sensors(ids1, qs1, group)
         max_ch_group2 = charge_grouped_sensors(ids2, qs2, group)
@@ -333,7 +335,7 @@ for number in range(start, start+numb):
         reco_z1.append(-36.65)
         true_x1.append(true_pos1[0])
         true_y1.append(true_pos1[1])
-        true_z1.append(true_pos1[3])
+        true_z1.append(true_pos1[2])
         true_t1.append(t_t1)
         event_ids1.append(evt)
 
@@ -358,7 +360,7 @@ for number in range(start, start+numb):
         reco_z2.append(36.65)
         true_x2.append(true_pos2[0])
         true_y2.append(true_pos2[1])
-        true_z2.append(true_pos2[3])
+        true_z2.append(true_pos2[2])
         true_t2.append(t_t2)
         event_ids2.append(evt)
 
