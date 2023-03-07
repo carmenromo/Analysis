@@ -112,6 +112,74 @@ def charge_grouped_sensors(ids, charges, group):
     return np.sum(charges[indexes])
 
 
+def find_first_interactions_in_active(particles, hits, photo_range, petit):
+    """
+    Looks for the first interaction of primary gammas in the active volume.
+    """
+    ### select electrons, primary gammas daughters in ACTIVE
+    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
+    sel_name     = particles.particle_name == 'e-'
+    sel_vol_name = particles[sel_volume & sel_name]
+    if petit:
+        gammas	  = particles[particles.particle_name == 'gamma']
+        positrons = particles[(particles.particle_name == 'e+') &
+                              (particles.initial_volume == 'NA22_SOURCE')]
+        gammas    = gammas[(gammas.creator_proc == 'pos_annihil') &
+                           (gammas.mother_id.isin(positrons.particle_id.values))]
+    else:
+        gammas = particles[particles.primary == True]
+
+    if len(gammas) != 2:
+        print('Cannot find two true gamma interactions for this event')
+        return [], [], None, None, None, None
+
+    id1 = gammas.particle_id.values[0]
+    id2 = gammas.particle_id.values[1]
+    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(gammas.particle_id.values)]
+    ### Calculate the initial vertex.
+    gamma_pos1, gamma_pos2 = [], []
+    min_t1    , min_t2     = float('inf'), float('inf')
+    if len(sel_all[sel_all.mother_id == id1]) > 0:
+        gamma_pos1, min_t1, _ = rf.initial_coord_first_daughter(sel_all, id1)
+
+    if len(sel_all[sel_all.mother_id == id2]) > 0:
+        gamma_pos2, min_t2, _ = rf.initial_coord_first_daughter(sel_all, id2)
+
+    ### Calculate the minimum time among the hits of a given primary gamma,
+    ### if any.
+    if len(hits[hits.particle_id == id1]) > 0:
+        g_pos1, g_min_t1 = part_first_hit(hits, id1)
+        if g_min_t1 < min_t1:
+            min_t1     = g_min_t1
+            gamma_pos1 = g_pos1
+
+    if len(hits[hits.particle_id == id2]) > 0:
+        g_pos2, g_min_t2 = part_first_hit(hits, id2)
+        if g_min_t2 < min_t2:
+            min_t2     = g_min_t2
+            gamma_pos2 = g_pos2
+
+    if not len(gamma_pos1) or not len(gamma_pos2):
+        print("Cannot find two true gamma interactions for this event")
+        return [], [], None, None, None, None
+
+    ## find if the event is photoelectric-like
+
+    distances1 = rf.find_hit_distances_from_true_pos(hits, gamma_pos1)
+    if max(distances1) > photo_range: ## hits at <1 mm distance are considered of the same point
+        phot_like1 = False
+    else:
+        phot_like1 = True
+
+    distances2 = rf.find_hit_distances_from_true_pos(hits, gamma_pos2)
+    if max(distances2) > photo_range: ## hits at <1 mm distance are considered of the same point
+        phot_like2 = False
+    else:
+        phot_like2 = True
+
+    return gamma_pos1, gamma_pos2, min_t1, min_t2, phot_like1, phot_like2
+
+
 print(datetime.datetime.now())
 
 arguments     = parse_args(sys.argv)
@@ -153,6 +221,11 @@ reco_x1, reco_x2 = [], []
 reco_y1, reco_y2 = [], []
 reco_z1, reco_z2 = [], []
 
+true_x1, true_x2 = [], []
+true_y1, true_y2 = [], []
+true_z1, true_z2 = [], []
+true_t1, true_t2 = [], []
+
 sns_resp1, sns_resp2 = [], []
 max_resp1, max_resp2 = [], []
 sns_resp_gr1, sns_resp_gr2 = [], []
@@ -185,14 +258,19 @@ for number in range(start, start+numb):
     sns_positions = mcio.load_sns_positions    (filename)
     tof_response  = mcio.load_mcTOFsns_response(filename)
 
+    particles = mcio.load_mcparticles(filename)
+    hits      = mcio.load_mchits     (filename)
+
     #DataSiPM     = sns_positions.rename(columns={"sensor_id": "SensorID","x": "X", "y": "Y", "z": "Z"})
     #DataSiPM_idx = DataSiPM.set_index('SensorID')
 
     events = sns_response.event_id.unique()
     th     = 2
     for evt in events:
-        evt_sns = sns_response[sns_response.event_id == evt]
-        evt_tof = tof_response[tof_response.event_id == evt]
+        evt_sns  = sns_response[sns_response.event_id == evt]
+        evt_tof  = tof_response[tof_response.event_id == evt]
+        evt_part = particles   [particles   .event_id == evt]
+        evt_hits = hits        [hits        .event_id == evt]
 
         #times = evt_tof.time_bin.values * tof_bin_size / units.ps
         times = np.round(evt_tof.time.values / units.ps)
@@ -220,6 +298,8 @@ for number in range(start, start+numb):
 
         if len(qs1)==0 or len(qs2)==0:
             continue
+
+        true_pos1, true_pos2, t_t1, t_t2, _, _ = rf.find_first_interactions_in_active(evt_part, evt_hits, petit=True)
 
         max_ch_group1 = charge_grouped_sensors(ids1, qs1, group)
         max_ch_group2 = charge_grouped_sensors(ids2, qs2, group)
@@ -252,6 +332,10 @@ for number in range(start, start+numb):
         reco_y1.append(mean_y1)
         #reco_z1.append(-53.25)
         reco_z1.append(-36.65)
+        true_x1.append(true_pos1[0])
+        true_y1.append(true_pos1[1])
+        true_z1.append(true_pos1[3])
+        true_t1.append(t_t1)
         event_ids1.append(evt)
 
 
@@ -273,7 +357,10 @@ for number in range(start, start+numb):
         reco_y2.append(mean_y2)
         #reco_z2.append(53.25)
         reco_z2.append(36.65)
-
+        true_x2.append(true_pos2[0])
+        true_y2.append(true_pos2[1])
+        true_z2.append(true_pos2[3])
+        true_t2.append(t_t2)
         event_ids2.append(evt)
 
         ## produce a TOF dataframe with convolved time response
@@ -316,6 +403,15 @@ reco_y2 = np.array(reco_y2)
 reco_z1 = np.array(reco_z1)
 reco_z2 = np.array(reco_z2)
 
+true_x1 = np.array(true_x1)
+true_x2 = np.array(true_x2)
+true_y1 = np.array(true_y1)
+true_y2 = np.array(true_y2)
+true_z1 = np.array(true_z1)
+true_z2 = np.array(true_z2)
+true_t1 = np.array(true_t1)
+true_t2 = np.array(true_t2)
+
 sns_resp1 = np.array(sns_resp1)
 sns_resp2 = np.array(sns_resp2)
 
@@ -335,6 +431,8 @@ first_time1 = np.array([np.array(i) for i in first_time1])
 first_time2 = np.array([np.array(i) for i in first_time2])
 
 np.savez(evt_file, reco_x1=reco_x1, reco_x2=reco_x2, reco_y1=reco_y1, reco_y2=reco_y2, reco_z1=reco_z1, reco_z2=reco_z2,
+                   true_x1=true_x1, true_x2=true_x2, true_y1=true_y1, true_y2=true_y2,
+                   true_z1=true_z1, true_z2=true_z2, true_t1=true_t1, true_t2=true_t2,
                    sns_resp1=sns_resp1, sns_resp2=sns_resp2, max_resp1=max_resp1, max_resp2=max_resp2,
                    sns_resp_gr1=sns_resp_gr1, sns_resp_gr2=sns_resp_gr2,
                    event_ids1=event_ids1, event_ids2=event_ids2, event_ids_times=event_ids_times,
