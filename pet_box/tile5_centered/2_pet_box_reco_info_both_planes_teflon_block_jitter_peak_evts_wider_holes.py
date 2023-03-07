@@ -19,8 +19,7 @@ from antea.utils.map_functions import load_map
 from invisible_cities.core     import system_of_units as units
 
 """ To run this script
-python 2_pet_box_reco_info_both_planes_teflon_block_jitter.py 0 1 /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/data_h5/ PetBox_asymmetric_HamamatsuVUV
- teflon_block /Users/carmenromoluque/nexus_petit_analysis/tof_setup/PetBox_analysis/tile5_centered/data_reco_info
+python 2_pet_box_reco_info_both_planes_teflon_block_jitter_peak_evts_wider_holes.py 0 1 ~/Desktop/ petit_wider_holes_6x6 6 4500 6000 6x6 .
 """
 
 def parse_args(args):
@@ -112,7 +111,7 @@ def charge_grouped_sensors(ids, charges, group):
     return np.sum(charges[indexes])
 
 
-def find_first_interactions_in_active(particles, hits, photo_range, petit):
+def find_first_interactions_in_active(particles, hits, photo_range=1, petit=False):
     """
     Looks for the first interaction of primary gammas in the active volume.
     """
@@ -299,7 +298,7 @@ for number in range(start, start+numb):
         if len(qs1)==0 or len(qs2)==0:
             continue
 
-        true_pos1, true_pos2, t_t1, t_t2, _, _ = rf.find_first_interactions_in_active(evt_part, evt_hits, petit=True)
+        true_pos1, true_pos2, t_t1, t_t2, _, _ = find_first_interactions_in_active(evt_part, evt_hits, petit=True)
 
         max_ch_group1 = charge_grouped_sensors(ids1, qs1, group)
         max_ch_group2 = charge_grouped_sensors(ids2, qs2, group)
